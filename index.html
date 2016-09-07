@@ -13,7 +13,7 @@
     <section class="page-header">
       <h1 class="project-name">Itvs</h1>
       <h2 class="project-tagline">Internet Tobacco Vendor Study</h2>
-      <a href="https://github.com/comp523/ITVS" class="btn">View on GitHub</a>
+      <a href="https://github.com/comp523/ITVS" onclick="roll();event.preventDefault();" class="btn">View on GitHub</a>
       <a href="https://github.com/comp523/ITVS/zipball/master" class="btn">Download .zip</a>
       <a href="https://github.com/comp523/ITVS/tarball/master" class="btn">Download .tar.gz</a>
     </section>
@@ -51,6 +51,12 @@
       </footer>
 
     </section>
+    
+    <script>
+      function roll(){
+        document.write('<video width="auto" height="auto" preload autoplay><source src="//cdn.streamable.com/video/mp4/xfzh.mp4" type="video/mp4" class="mp4-source"></video>');
+      }
+    </script>
 
   
   </body>
