@@ -18,9 +18,3 @@ def check_url(url, keywords=KEYWORDS):
     return False
 
 
-if __name__ == "__main__":
-    print "hi"
-    print check_url("https://www.google.com/")
-    print check_url("https://www.e-cig.com/")
-
-
