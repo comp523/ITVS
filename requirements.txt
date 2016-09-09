@@ -1,2 +1,2 @@
 beautifulsoup4==4.5.1
-spynner==2.19
+autopy==0.51
