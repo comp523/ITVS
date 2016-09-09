@@ -1,6 +1,6 @@
 ---
-title: "{{ site.title }} by {{ site.git.organization.name }}"
 layout: default
+show_header: true
 ---
 
 # General Materials
