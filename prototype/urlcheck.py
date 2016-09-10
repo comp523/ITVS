@@ -1,6 +1,5 @@
+import urllib.request as request
 
-import requests
-import urllib2
 
 KEYWORDS = (
     "tobacco",
@@ -10,11 +9,9 @@ KEYWORDS = (
 
 
 def check_url(url, keywords=KEYWORDS):
-    #page = requests.get(url)
-    page = urllib2.urlopen(url).read()
+    # `in` operator only works with consistent data types, urlopen.read returns bytes
+    page = str(request.urlopen(url).read())
     for keyword in keywords:
         if keyword in page:
             return True
     return False
-
-
