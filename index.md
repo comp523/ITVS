@@ -3,7 +3,7 @@ layout: default
 show_header: true
 ---
 
-# General Materials
+## General Materials
  - Project Introduction, including Tweet
  - Schedule of Standing Meetings
  - [Contact Information and Team Roles](#contact-information-and-team-roles)
@@ -11,14 +11,14 @@ show_header: true
  - Link to Journal of Meetings and Decisions
  - Related Links
 
-# Requirements Deliverables
+## Requirements Deliverables
  - Project Concept
  - User Stories
  - Personas
  - Platform Analysis and Selection
  - Prototype
 
-# Sprint Deliverables
+## Sprint Deliverables
  - Functional Specification
  - Design Doc, which includes the architecture diagram
  - Test Plan
@@ -28,7 +28,7 @@ show_header: true
  
  ---
  
- ## Contact Information and Team Roles
+ # Contact Information and Team Roles
  
   **Architect**: Rourke Creighton - [Email](racreigh@live.unc.edu)
   **Client Liaison**: Daniel Chiquito - [Email](daniel.chiquito@gmail.com)
