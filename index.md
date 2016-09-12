@@ -30,8 +30,8 @@ show_header: true
  
 # Contact Information and Team Roles
  
-**Architect**: Rourke Creighton - [Email](racreigh@live.unc.edu)  
-**Client Liaison**: Daniel Chiquito - [Email](daniel.chiquito@gmail.com)  
+**Architect**: Rourke Creighton - [Email](mailto:racreigh@live.unc.edu)  
+**Client Liaison**: Daniel Chiquito - [Email](mailto:daniel.chiquito@gmail.com)  
 **Project Manager**: Lukas O'Daniel - [Email](mailto:odani@live.unc.edu)  
 **Writer**: Bryan Iddings - [Email](mailto:iddings@cs.unc.edu)  
   
