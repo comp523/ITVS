@@ -6,7 +6,7 @@ show_header: true
 # General Materials
  - Project Introduction, including Tweet
  - Schedule of Standing Meetings
- - Contact Information and Team Roles
+ - [Contact Information and Team Roles](#contact-information-and-team-roles)
  - Team Rules
  - Link to Journal of Meetings and Decisions
  - Related Links
@@ -25,3 +25,13 @@ show_header: true
  - User Manual
  - Version-controlled Repository
  - Executable Code and Instructions
+ 
+ ---
+ 
+ ## Contact Information and Team Roles
+ 
+  **Architect**: Rourke Creighton - [Email](racreigh@live.unc.edu)
+  **Client Liaison**: Daniel Chiquito - [Email](daniel.chiquito@gmail.com)
+  **Project Manager**: Lukas O'Daniel - [Email](mailto:odani@live.unc.edu)
+  **Writer**: Bryan Iddings - [Email](mailto:iddings@cs.unc.edu)
+  
