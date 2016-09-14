@@ -1,5 +1,0 @@
-beautifulsoup4==4.5.1
-ghost.py==0.2.3
-selenium==2.52.0
-requests==2.11.1
-nose==1.3.7

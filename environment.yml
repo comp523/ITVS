@@ -1,0 +1,10 @@
+name: itvs-venv
+dependencies:
+  - python>=3.5
+  - numpy
+  - scipy
+  - scikit-learn
+  - nose
+  - requests
+  - pip:
+    - selenium

@@ -5,7 +5,4 @@
 ***
 
 ## Requirements
- - Python >= 3.1
- - BeautifulSoup4 >= 4.5.1
- - *for unit testing* - nosetests >= 1.3.7
- - *some headless browser...(tbd)*
+ - Python >= 3.5
