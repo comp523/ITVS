@@ -15,7 +15,7 @@ show_header: true
  - Project Concept
  - User Stories
  - Personas
- - Platform Analysis and Selection
+ - [Platform Analysis and Selection](#platform-analysis-and-selection)
  - Prototype
 
 ## Sprint Deliverables
@@ -23,15 +23,31 @@ show_header: true
  - Design Doc, which includes the architecture diagram
  - Test Plan
  - User Manual
- - Version-controlled Repository
+ - [Version-controlled Repository]({{ site.git.project_url }})
  - Executable Code and Instructions
- 
----
+
+***
  
 # Contact Information and Team Roles
  
 **Architect**: Rourke Creighton - [Email](mailto:racreigh@live.unc.edu)  
 **Client Liaison**: Daniel Chiquito - [Email](mailto:daniel.chiquito@gmail.com)  
 **Project Manager**: Lukas O'Daniel - [Email](mailto:odani@live.unc.edu)  
-**Writer**: Bryan Iddings - [Email](mailto:iddings@cs.unc.edu)  
-  
+**Writer**: Bryan Iddings - [Email](mailto:iddings@cs.unc.edu)
+
+***
+
+# Platform Analysis and Selection
+
+### Programming Language/Libraries
+
+**Python 3:** Selected over Python 2 due to nearing end-of-life of Python 2.  
+**Selenium:** Headless browser package for automating scraping of dynamically generated sites.  
+**scikit-learn:** Machine learning library for self-improving content analysis.
+
+### Code Quality Assurance
+
+**PyUnit/nosetests:** Reduce bug severity with test-driven development.  
+**Travis CI:** Continuous integration, namely automated unit testing.  
+**CodeClimate:** Ensure style-guide adherence and best coding practices.  
+**Manual Code Review:** All code is peer-reviewed prior to incorporation.

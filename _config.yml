@@ -4,3 +4,5 @@ git:
     name: comp523
     url: https://github.com/comp523
   project_url: https://github.com/comp523/ITVS
+
+exclude: [venv/]
