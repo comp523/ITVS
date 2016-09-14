@@ -2,6 +2,7 @@ language: python
 python: '3.5'
 install: ./setup.sh
 script: nosetests
+sudo: required
 notifications:
   email: false
   slack:
