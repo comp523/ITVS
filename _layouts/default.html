@@ -10,7 +10,7 @@
         <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
         <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
     </head>
-    <body>
+    <body id="top">
         {% if page.show_header == true %}
         <section class="page-header">
             <h1 class="project-name">{{ site.title }}</h1>
@@ -26,6 +26,10 @@
                 <span class="site-footer-owner"><a href="{{ site.git.project_url }}">{{ site.title }}</a> is maintained by <a href="{{ site.git.organization.url }}">{{ site.git.organization.name }}</a>.</span>
             </footer>
         </section>
+
+        <div id="back-to-top">
+            <a href="#top">[^ Back to top]</a>
+        </div>
 
   </body>
 </html>

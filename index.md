@@ -5,7 +5,7 @@ show_header: true
 
 ## General Materials
  - [Project Introduction, including Tweet](#project-introduction)
- - Schedule of Standing Meetings
+ - [Schedule of Standing Meetings](#standing-meetings)
  - [Contact Information and Team Roles](#contact-information-and-team-roles)
  - [Team Rules](#team-rules)
  - Link to Journal of Meetings and Decisions

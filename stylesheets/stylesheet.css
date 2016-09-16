@@ -15,6 +15,16 @@ a {
   a:hover {
     text-decoration: underline; }
 
+#back-to-top {
+  position: fixed;
+  bottom: 24px;
+  right: 36px;
+  display: inline-block;
+  background-color: #c8dadf;
+  padding: 4px; }
+  #back-to-top a, #back-to-top a:visited {
+    color: #606c71; }
+
 .btn {
   display: inline-block;
   margin-bottom: 1rem;
