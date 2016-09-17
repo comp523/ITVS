@@ -1,5 +1,7 @@
 # Project Introduction
 
+The goal of this project is to streamline the process by which employees of the Lineberger Cancer Center document and classify Internet Tobacco Vendors. Initially, we are starting with tracking Reddit popularity of certain keywords and interests with the goal of providing insight about how these communities and intersts have changed over time. We then plan to expand the project to provide a way to do some predictive analysis on suspect websites to aid employees in pruning internet tobacco vendor false positives. 
+
 **Tweet:** Our aim is to provide utilities aiding in the process of scraping, caching, and identifying internet tobacco vending websites.
 
 # Standing Meetings
