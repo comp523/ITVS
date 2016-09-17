@@ -12,7 +12,7 @@ show_header: true
  - Related Links
 
 ## Requirements Deliverables
- - Project Concept
+ - [Project Concept](#project-concept)
  - [User Stories](#user-stories)
  - [Personas](#personas)
  - [Platform Analysis and Selection](#platform-analysis-and-selection)
@@ -58,7 +58,32 @@ Client Meeting: **Friday 1:30**
  
 ***
 
+# Project Concept
+
+This project is intended to enhance the effectiveness and efficiency of the Internet Tobacco Vendors Study (ITVS).
+To provide such an enhancement, our team will focus on two main goals: automating and streamlining much of the ITVS’s
+research process;namely the processes scraping, caching, and identifying internet tobacco vendors, and providing an
+intuitive mechanism for up-to-date social media stats, specifically information about particular Sub-Reddits.
+
+The current process of identifying internet tobacco vendors is a tedious and repetitive process involving manually
+visiting over ten thousand websites, to determine whether they are actual vendors, or false positives. To improve the
+efficiency of this process, we will implement an automated website analyzer to aid in determining the site’s tobacco
+vending status. An effective analyzer can be implemented by identifying various features indicative of internet
+tobacco vendors, and utilizing a simple classifier to provide a self-improving tool that produces a confidence level
+with its prediction.
+
+Currently, the ITVS only accounts for statically served tobacco vendors. We will improve the breadth of the study
+by creating a flexible and easy-to-use data collection tool for the online E-Cigarette community on Reddit. Our tool
+will maintain an up-to-date database of specific information regarding posts in the various Sub-Reddits of this
+community, e.g. post title, number of up/down votes, number of comments, etc. This data can be used to track and
+analyze trends in the E-Cigarette community.
+
+Our stretch goals for this project involve providing scripts and services to automate and streamline various other
+parts of the ITVS research and data collection process. Potential areas for improvement include: creating scripts
+to transform data effectively between formats conducive to manual labor and automation.
+
 # User stories
+
  - Jason needs a list of Internet Tobacco Vendors in order to conduct research for the ITVS project. To generate this list, the internet must be searched for websites that sell tobacco and tobacco related products. It is essential that no vendors are mistakenly eliminated, although any false positives must be identified and removed manually, which is a time consuming process. 
  - Jason has a list of ITVs, but websites change and go out of business all the time. To ensure a solid baseline, all sites on Jason's list must be cached to be examined at a later date. The site should be preserved as accurately as possible to ensure that it is an accurate representation of the original site.
  - Jason has a cache of potential ITVs, but is concerned about false positives. To remove them, Jason needs a way to manually inspect every ITV as efficiently as possible, as there are more than cached 10,000 ITVs. Identifying suspicous ITVs first and providing a quick summary of data-mined site characteristics would be useful in this process.
@@ -66,9 +91,14 @@ Client Meeting: **Friday 1:30**
  - Mysterio has joined the project for the year and has been assigned to assist Jason with a portion of the data collection. Mysterio is not very computer savvy, and Jason has other responsibilites besides training. Mysterio needs a comprehensive manual describing all the tools Jason needs her to use.
 
 # Personas
-*Jason*: Mid level management for the ITVS project. Jason is in charge of coordinating the more technical aspects of ITVS data processing. As such, he needs a thorough understanding of how to use every aspect of every tool, as well as the basic principles the tools are employing. Jason must be capable of performing every step in the process himself. Jason also needs the ability to train newcomers (Mysterio) to the project in order to delegate steps in the data processing pipeline.  
-*Dmitriy*: Staffer responsible for maintaining our tools long term. In addition to being able to use our tools, Dmitriy needs a complete understanding of the inner workings of our product to be able to modify and update them as necessary. Dmitriy will be involved in our design process so that he is fully up to date with our project at the end of the semester. Dmitriy needs comprehensive documentation for as much functionality as possible, as well as any design decisions we make.  
-*Mysterio*: Anyone who uses our tools. Mysterio will be a person subbordinate to Jason who will take at least partial responsibility for using some component of our tools. Mysterio is assumed to have basic computing experience. Mysterio will be replacing Jason, and so Jason is assumed to be present for basic training and allocation of responsibilities. For any further questions, Mysterio needs a basic user manual that describes the function of all of our tools. Mysterio is not concerned with the implementation of our tools.
+
+**Jason**: Project manager for the ITVS project. Jason is in charge of coordinating the more technical aspects of ITVS data processing. As such, he needs a thorough understanding of how to use every aspect of every tool, as well as the basic principles the tools are employing. Jason must be capable of performing every step in the process himself. Jason also needs the ability to train newcomers (Mysterio) to the project in order to delegate steps in the data processing pipeline.  
+
+
+**Dmitriy**: Staffer responsible for maintaining our tools long term. In addition to being able to use our tools, Dmitriy needs a complete understanding of the inner workings of our product to be able to modify and update them as necessary. Dmitriy will be involved in our design process so that he is fully up to date with our project at the end of the semester. Dmitriy needs comprehensive documentation for as much functionality as possible, as well as any design decisions we make.  
+
+
+**Mysterio**: Anyone who uses our tools. Mysterio will be a person subordinate to Jason who will take at least partial responsibility for using some component of our tools. Mysterio is assumed to have basic computing experience. Mysterio will be replacing Jason, and so Jason is assumed to be present for basic training and allocation of responsibilities. For any further questions, Mysterio needs a basic user manual that describes the function of all of our tools. Mysterio is not concerned with the implementation of our tools.
 
 # Platform Analysis and Selection
 
