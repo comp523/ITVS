@@ -1,0 +1,41 @@
+#!/bin/bash
+#
+# This hook checks to make sure all .py files are pylint approved
+#
+
+# Redirect output to stderr.
+exec 1>&2
+
+# sends keyboard to stdin
+exec < /dev/tty
+
+# matches the errors and the score from the pylint report
+regex=".*\\*(.*)\\s\\s\\sReport.*Your\\ code\\ has\\ been\\ rated\\ at\\ (\\-?[0-9\\.]+)/10.*"
+
+# gets every added file ready for commit that ends in .py
+for filename in `git diff --cached --name-only | grep \\.py$`; do
+
+    # skip anything in venv
+    if [[ ! $filename =~ ^venv.* ]]; then
+        echo
+        echo "Testing file $filename"
+        if [[ `pylint $filename` =~ $regex ]]; then
+            # first capturing group is the error messages (if any)
+            echo "${BASH_REMATCH[1]}"
+            # second capturing group is the score
+            echo "Score: ${BASH_REMATCH[2]}"
+            if [[ ${Bash_REMATCH[2]} -lt 8 ]]; then
+                echo "Score should be greater than 8 to commit."
+                echo "Are you sure you want to commit anyway? (y to continue, anything else to abort)"
+                read yn
+                if [[ $yn == y ]]; then
+                    echo
+                    echo "Skipping failure $filename"
+                else
+                    exit 1
+                fi
+            fi
+        fi
+    fi
+done
+
