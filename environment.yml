@@ -8,5 +8,6 @@ dependencies:
   - requests
   - pip:
     - openpyxl
+    - praw
     - pylint
     - selenium
