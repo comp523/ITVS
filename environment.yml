@@ -6,6 +6,7 @@ dependencies:
   - scikit-learn
   - nose
   - requests
-  - psutil
   - pip:
+    - openpyxl
+    - pylint
     - selenium
