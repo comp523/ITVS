@@ -1,8 +1,5 @@
 #!/usr/bin/python3
 
-import openpyxl
-
-
 def columnize(n):
     column = ''
     if(n == 0):
@@ -13,17 +10,6 @@ def columnize(n):
         n = n-n%26
         n = n//26
     return column
-
-#def columnize2(n):
-#    l = []
-#    end = False
-#    while(not end):
-#        l.append(n%26)
-#        if(n == 0):
-#            end = True
-#        n = n-n%26
-#        n = n//26
-#    return l
 
 def wexcel(wb, columns, post):
     if(post[0] in wb.sheetnames):
@@ -44,13 +30,6 @@ def wexcel(wb, columns, post):
             wb[post[0]]['{}2'.format(columnize(x))] = post[1][columns[x]]
             x+=1
         wb[post[0]]['AAA1'] = 2
-
-
-
-
-for k in range(10000,20000):
-    print([k, columnize(k)])
-
 
 
 
