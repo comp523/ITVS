@@ -61,8 +61,10 @@ def parse_args():
         },
         "subreddit selection": {
             ("-i", "--input-file"): {
+                "action": "append",
                 "help": ("name of file containing space-delimited "
                          "list of subreddits to analyze"),
+                "nargs": "+",
                 "type": FileType()
             },
             ("-s", "--subreddit"): {
@@ -128,14 +130,15 @@ def parse_args():
     subreddits = set()
 
     if args.input_file is not None:
-        file_contents = args.input_file.read()
-        if file_contents.endswith("\n"):
-            file_contents = file_contents[:-1]
-        file_set = file_contents.split(" ")
-        subreddits.update(tuple(file_set))
+        for file in chain(*args.input_file):
+            file_contents = file.read()
+            if file_contents.endswith("\n"):
+                file_contents = file_contents[:-1]
+            file_set = file_contents.split(" ")
+            subreddits.update(tuple(file_set))
 
     if args.subreddit is not None:
-        args.subreddit = chain(*args.subreddit)  # flatten args
+        args.subreddit = chain(*args.subreddit)  # flatten 2d subreddit list
         subreddits.update(tuple(args.subreddit))
 
     # Sanitize subreddit names
@@ -144,3 +147,6 @@ def parse_args():
                                for sub in subreddits)
 
     return sanitized_subreddits, date_range, args.output_file.name
+
+if __name__ == "__main__":
+    print(parse_args())
