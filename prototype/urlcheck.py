@@ -14,6 +14,7 @@ KEYWORDS = (
 
 """
 documentation
+
 """
 def check_url(url, keywords=KEYWORDS):
     # `in` operator only works with consistent data types, urlopen.read returns bytes
