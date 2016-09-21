@@ -1,6 +1,7 @@
 ---
 layout: default
 show_header: true
+show_back_to_top: true
 ---
 
 ## General Materials
