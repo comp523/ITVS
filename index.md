@@ -28,7 +28,7 @@ show_back_to_top: true
  - Executable Code and Instructions
  
 ## Sub-Components
- - **[ranalyze](/ITVS/ranalyze):** Analysis tool to traverse a set of subreddits extracting post information.
+ - **[ranalyze](/ITVS/ranalyze):** Analysis tool to traverse a set of subreddits extracting post information.  
 
 ***
 
