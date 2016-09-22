@@ -4,6 +4,7 @@
 
 **[Python 3](https://docs.python.org/3/):** Selected over Python 2 due to nearing end-of-life of Python 2.  
 **[Selenium](http://docs.seleniumhq.org/projects/webdriver/):** Headless browser package for automated scraping of dynamically generated sites.  
+**[openpyxl](https://openpyxl.readthedocs.io/en/default/):** Python library for reading and writing Microsoft Excel files.  
 **Machine Learning Library:** *[scikit-learn](http://scikit-learn.org/)* and *[TensorFlow](https://www.tensorflow.org/)* are potential candidates under review.
 
 ### Code Quality Assurance
