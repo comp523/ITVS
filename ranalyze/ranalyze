@@ -93,8 +93,8 @@ def fetch_data(subreddit_set, after, before):
     :param subreddit_set: set of subreddits from which to retrieve data
     :param after: ignores posts before this datetime
     :param before: ignores posts after this datetime
-    :return: yields individual reddit posts one at a time
-    :rtype: collections.Iterable[Post]
+    :return: yields the name of the subeddit and individual reddit posts one at a time
+    :rtype: str, collections.Iterable[Post]
     """
     reddit = praw.Reddit(user_agent="Documenting ecig subs")
     for subreddit_name in subreddit_set:
