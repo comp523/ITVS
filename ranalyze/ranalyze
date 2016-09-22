@@ -1,5 +1,11 @@
 #!/usr/bin/env python
-
+"""
+Analysis tool to traverse a set of subreddits extracting post information including:
+ - Post title
+ - Post date
+ - Post URL (if not a self post)
+ - Number of upvotes/downvotes
+"""
 from argparse import (ArgumentParser, FileType)
 import datetime
 from itertools import chain
