@@ -26,6 +26,9 @@ show_back_to_top: true
  - User Manual
  - [Version-controlled Repository]({{ site.git.project_url }})
  - Executable Code and Instructions
+ 
+## Sub-Components
+ - **[ranalyze](/ranalyze):** Analysis tool to traverse a set of subreddits extracting post information.
 
 ***
 

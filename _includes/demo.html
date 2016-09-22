@@ -1,0 +1,18 @@
+{% assign tab-names = tab-names | strip | newline_to_br | split: '<br />' %}
+{% assign tabs = tabs | strip | split: '\-/' %}
+<div class="demo">
+  <div class="tab-headers">
+    {% assign first=true %}
+    {% for name in tab-names %}
+    <a
+    {% if first == true %} class="active" {% assign first=false %}{% endif %}>{{ name | strip }}</a>
+    {% endfor %}
+  </div>
+  <div class="tabs">
+    {% assign first=true %}
+    {% for tab in tabs %}
+    <pre
+    {% if first == true %} class="active" {% assign first=false %}{% endif %}>{{ tab | strip }}</pre>
+    {% endfor %}
+  </div>
+</div>

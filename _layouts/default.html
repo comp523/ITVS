@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en-us">
     <head>
@@ -9,6 +8,48 @@
         <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
         <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+        <link rel="stylesheet" type="text/css" href="stylesheets/demo.css">
+        <script src="//cdn.rawgit.com/julienw/dollardom/master/dollardom.min.js"></script>
+        <script>
+            $dom.onready(function(){
+            "use strict";
+
+                var addListeners = function(demo) {
+
+                    var tabHeaders = $dom.descendants(demo, ".tab-headers a"),
+                        tabs = $dom.descendants(demo, ".tabs pre");
+
+                    for (var i = 0, j = tabHeaders.length; i < j; i++) {
+
+                        tabHeaders[i].addEventListener("click", function(event){
+
+                            for (var k = 0, l = tabHeaders.length; k < l; k++) {
+
+                                if (tabHeaders[k] === event.target) {
+                                    $dom.addClass(tabHeaders[k], "active");
+                                    $dom.addClass(tabs[k], "active");
+                                }
+                                else {
+                                    $dom.removeClass(tabHeaders[k], "active");
+                                    $dom.removeClass(tabs[k], "active");
+                                }
+
+                            }
+
+                        });
+
+                    }
+
+                };
+
+                var demos = $dom.get(".demo");
+
+                for (var i = 0, j = demos.length; i < j; i++){
+                    addListeners(demos[i]);
+                }
+
+            });
+        </script>
     </head>
     <body id="top">
         {% if page.show_header == true %}

@@ -1,0 +1,46 @@
+.demo {
+    background-color: #606c71;
+    color: #FFF;
+}
+
+.demo .tab-headers {
+    background-image: linear-gradient(120deg, #155799, #159957);
+    padding: 8px 0;
+}
+
+.demo .tab-headers a {
+    cursor: pointer;
+    padding: 8px 8px 6px 8px;
+    color: #FFF;
+}
+
+.demo .tab-headers a:hover {
+    text-decoration: none;
+}
+
+.demo .tab-headers a.active {
+    border-bottom: 3px solid #159957;
+}
+
+.demo .tabs {
+    padding: 8px;
+}
+
+.demo .tabs pre {
+    display: none;
+    border-radius: 0;
+    background: none;
+    border: none;
+    padding: 8px 0;
+    color: #FFF;
+    margin: 0;
+}
+
+.demo .tabs pre.active {
+    display: block;
+}
+
+.terminal-prompt {
+    color: #15CC70;
+    font-weight: bold;
+}
