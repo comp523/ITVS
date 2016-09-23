@@ -12,32 +12,40 @@ import ranalyze
 
 
 class RanalyzeTest(unittest.TestCase):
-    
+    """
+    Unit tests for the ranalyze module
+    """
     EXPECTED = (
-        ranalyze.Post("https://www.reddit.com/r/itvs_testing/comments/541kdo/radical_place_to_discuss_vaping/", # permalink
-             "http://vapingunderground.com/", # url
-             1, # num_comments
-             1, # upvotes
-             0, # downvotes
-             "Radical place to discuss vaping", # title
-             "2016-09-22T18:17:38", # time_submitted
-             "2016-09-23T14:14:31.459507" # time_retrieved is unused, but required
-        ),
-        ranalyze.Post("https://www.reddit.com/r/itvs_testing/comments/541k35/vaping_is_so_cool/", # permalink
-             "https://www.reddit.com/r/itvs_testing/comments/541k35/vaping_is_so_cool/", # url
-             1, # num_comments
-             1, # upvotes
-             0, # downvotes
-             "Vaping is so cool", # title
-             "2016-09-22T18:15:51", # time_submitted
-             "2016-09-23T14:14:31.459507" # time_retrieved is unused, but required
-        )
+        ranalyze.Post("https://www.reddit.com/r/itvs_testing/comments/541kdo/radical_place_to_discuss_vaping/",
+                      # permalink
+                      "http://vapingunderground.com/", # url
+                      1, # num_comments
+                      1, # upvotes
+                      0, # downvotes
+                      "Radical place to discuss vaping", # title
+                      "2016-09-22T18:17:38", # time_submitted
+                      "2016-09-23T14:14:31.459507" # time_retrieved is unused, but required
+                     ),
+        ranalyze.Post("https://www.reddit.com/r/itvs_testing/comments/541k35/vaping_is_so_cool/",
+                      # permalink
+                      "https://www.reddit.com/r/itvs_testing/comments/541k35/vaping_is_so_cool/",
+                      # url
+                      1, # num_comments
+                      1, # upvotes
+                      0, # downvotes
+                      "Vaping is so cool", # title
+                      "2016-09-22T18:15:51", # time_submitted
+                      "2016-09-23T14:14:31.459507" # time_retrieved is unused, but required
+                     )
     )
 
     def test_fetch_data(self):
+        """
+        Tests the ranalyze.fetch_data() function against a private
+        subreddit (r/itvs_testing) with known content
+        """
         end = datetime.datetime.strptime("2016-9-23", "%Y-%m-%d").date()
         start = end - datetime.timedelta(days=14)
-        
         for expected, actual in zip(self.EXPECTED, ranalyze.fetch_data(["itvs_testing"], start, end)):
             print("Verifying \"{0}\"".format(expected.title))
             self.assertEqual(actual[1].permalink, expected.permalink)

@@ -24,44 +24,44 @@ MISSING_SUBREDDIT_ERROR = ("at least one subreddit specifier "
                            "(-i or -s) is required")
 
 CLI_ARGUMENTS = {
-        "date range": {
-            ("-a", "--after"): {
-                "help": "only analyze posts on or after this date",
-                "required": True,
-                "type": str
-            },
-            ("-b", "--before"): {
-                "help": ("only analyze posts on or before "
-                         "this date, defaults to today"),
-                "default": datetime.date.today().isoformat(),
-                "type": str
-            }
+    "date range": {
+        ("-a", "--after"): {
+            "help": "only analyze posts on or after this date",
+            "required": True,
+            "type": str
         },
-        "subreddit selection": {
-            ("-i", "--input-file"): {
-                "action": "append",
-                "help": ("name of file containing space-delimited "
-                         "list of subreddits to analyze"),
-                "nargs": "+",
-                "type": FileType()
-            },
-            ("-s", "--subreddit"): {
-                "action": "append",
-                "help": ("subreddit to analyze, may be a single value, "
-                         "or a space-delimited list"),
-                "nargs": "+",
-                "type": str
-            }
+        ("-b", "--before"): {
+            "help": ("only analyze posts on or before "
+                     "this date, defaults to today"),
+            "default": datetime.date.today().isoformat(),
+            "type": str
+        }
+    },
+    "subreddit selection": {
+        ("-i", "--input-file"): {
+            "action": "append",
+            "help": ("name of file containing space-delimited "
+                     "list of subreddits to analyze"),
+            "nargs": "+",
+            "type": FileType()
         },
-        "output": {
-            ("-o", "--output-file"): {
-                "help": ("analysis data will be written "
-                         "to this file (must be *.xlsx)"),
-                "required": True,
-                "type": FileType(mode='w')
-            }
+        ("-s", "--subreddit"): {
+            "action": "append",
+            "help": ("subreddit to analyze, may be a single value, "
+                     "or a space-delimited list"),
+            "nargs": "+",
+            "type": str
+        }
+    },
+    "output": {
+        ("-o", "--output-file"): {
+            "help": ("analysis data will be written "
+                     "to this file (must be *.xlsx)"),
+            "required": True,
+            "type": FileType(mode='w')
         }
     }
+}
 
 
 class Post:
@@ -78,7 +78,7 @@ class Post:
                           'time_submitted',
                           'time_retrieved')
 
-    def __init__(self,  permalink, url, num_comments,
+    def __init__(self, permalink, url, num_comments,
                  upvotes, downvotes, title,
                  time_submitted, time_retrieved):
         self.permalink = permalink
