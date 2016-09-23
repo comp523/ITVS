@@ -19,7 +19,6 @@ SUBREDDIT_SANITIZE_REGEX = r"^(?:\/?r?\/?)([^\/]*)\/?$"
 INVALID_DATE_ERROR = "{} is not a valid date"
 INVALID_DATE_FORMAT_ERROR = ("{} is not a valid date format. "
                              "Proper format is YYYY-MM-DD")
-MALFORMED_SHEET_ERROR = "Malformed excel sheet"
 MISSING_SUBREDDIT_ERROR = ("at least one subreddit specifier "
                            "(-i or -s) is required")
 
@@ -66,7 +65,7 @@ CLI_ARGUMENTS = {
 
 class Post:
     """
-    Post
+    Class for centralizing Excel column order and headings
     """
 
     EXCEL_COLUMN_ORDER = ('permalink',
@@ -200,16 +199,17 @@ def parse_args():
     subreddits = set()
 
     if args.input_file is not None:
-        for file in chain(*args.input_file):
+        for file in chain(*args.input_file):  # flatten 2d file list
             file_contents = file.read()
             if file_contents.endswith("\n"):
                 file_contents = file_contents[:-1]
             file_set = file_contents.split(" ")
             subreddits.update(tuple(file_set))
 
+    # Flatten 2d subreddit list (from -s) to 1d tuple and add to set
+
     if args.subreddit is not None:
-        args.subreddit = chain(*args.subreddit)  # flatten 2d subreddit list
-        subreddits.update(tuple(args.subreddit))
+        subreddits.update(tuple(chain(*args.subreddit)))
 
     # Sanitize subreddit names
 
@@ -266,8 +266,8 @@ def wexcel(wb, columns, post):
 
 def main():
     """
-
-    :return:
+    Parse CLI arguments, fetch data from requested subreddits, and generate
+    Excel workbook.
     """
     subreddits, date_range, output_file_name = parse_args()
 
