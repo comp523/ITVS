@@ -19,7 +19,6 @@ SUBREDDIT_SANITIZE_REGEX = r"^(?:\/?r?\/?)([^\/]*)\/?$"
 INVALID_DATE_ERROR = "{} is not a valid date"
 INVALID_DATE_FORMAT_ERROR = ("{} is not a valid date format. "
                              "Proper format is YYYY-MM-DD")
-MALFORMED_SHEET_ERROR = "Malformed excel sheet"
 MISSING_SUBREDDIT_ERROR = ("at least one subreddit specifier "
                            "(-i or -s) is required")
 
@@ -66,7 +65,7 @@ CLI_ARGUMENTS = {
 
 class Post:
     """
-    Post
+    Class for centralizing Excel column order and headings
     """
 
     EXCEL_COLUMN_ORDER = ('permalink',
@@ -200,16 +199,17 @@ def parse_args():
     subreddits = set()
 
     if args.input_file is not None:
-        for file in chain(*args.input_file):
+        for file in chain(*args.input_file):  # flatten 2d file list
             file_contents = file.read()
             if file_contents.endswith("\n"):
                 file_contents = file_contents[:-1]
             file_set = file_contents.split(" ")
             subreddits.update(tuple(file_set))
 
+    # Flatten 2d subreddit list (from -s) to 1d tuple and add to set
+
     if args.subreddit is not None:
-        args.subreddit = chain(*args.subreddit)  # flatten 2d subreddit list
-        subreddits.update(tuple(args.subreddit))
+        subreddits.update(tuple(chain(*args.subreddit)))
 
     # Sanitize subreddit names
 
@@ -220,18 +220,32 @@ def parse_args():
 
 
 def wexcel(wb, columns, post):
-
+    """
+    append post to end of sheet corresponding to subreddit, 
+    making a new sheet if no sheet exists
+    :param wb: openpyxl workbook to append post to
+    :param columns: column order to use in excel sheet
+    :param post: post to append in format (subreddit_name, post) where post is a dict
+    """
+    
     def columnize(n):
+        """
+        takes and integer n and returns the string corresponding to the nth column in an excel sheet
+        :param n: integer
+        :return: string corresponding to the nth column in an excel sheet
+        :rtype: str
+        """
         column = ''
         if n == 0:
             return 'A'
+        #mapping off by one, so add one to correct mapping
         n += 1
         while n > 0:
             column = chr(ord('A') + n % 26 - (1 if n < 25 else 0)) + column
             n -= n % 26
             n //= 26
         return column
-
+    #add post to existing sheet
     if post[0] in wb.sheetnames:
         sheet = wb[post[0]]
         x = 0
@@ -241,6 +255,7 @@ def wexcel(wb, columns, post):
             sheet[cell] = post[1][columns[x]]
             x += 1
     else:
+        #sheet did not exist, so create one and add column headings and the post
         sheet = wb.create_sheet(post[0])
         x = 0
         while x < len(columns):
@@ -251,8 +266,8 @@ def wexcel(wb, columns, post):
 
 def main():
     """
-
-    :return:
+    Parse CLI arguments, fetch data from requested subreddits, and generate
+    Excel workbook.
     """
     subreddits, date_range, output_file_name = parse_args()
 
