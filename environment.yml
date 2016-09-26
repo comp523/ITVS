@@ -1,12 +1,8 @@
 name: itvs-venv
 dependencies:
-  - python>=3.5
-#  - numpy
-#  - scipy
-#  - scikit-learn
-  - nose
+  - python=3.5.2=0
+  - nose=1.3.7=py35_1
   - pip:
-    - openpyxl
-    - praw
-    - pylint
-#    - selenium
+    - praw==3.5.0
+    - openpyxl==2.4.0
+    - pylint==1.5.4
