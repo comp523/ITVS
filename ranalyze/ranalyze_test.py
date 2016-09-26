@@ -19,7 +19,7 @@ class RanalyzeTest(unittest.TestCase):
         ranalyze.Post("https://www.reddit.com/r/itvs_testing/comments/541kdo/radical_place_to_discuss_vaping/",
                       # permalink
                       "http://vapingunderground.com/", # url
-                      1, # num_comments
+                      2, # num_comments
                       1, # upvotes
                       0, # downvotes
                       "Radical place to discuss vaping", # title
