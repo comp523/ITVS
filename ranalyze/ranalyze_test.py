@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Analysis tool to traverse a set of subreddits extracting post information including:
  - Post title
@@ -8,7 +7,7 @@ Analysis tool to traverse a set of subreddits extracting post information includ
 """
 import datetime
 import unittest
-import ranalyze
+from . import ranalyze
 
 
 class RanalyzeTest(unittest.TestCase):
