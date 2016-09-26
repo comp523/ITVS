@@ -1,6 +1,9 @@
 language: python
 python: '3.5'
-install: ./setup.sh
+install:
+ - ./setup.sh
+ - source deactivate
+ - source activate itvs-venv
 script: nosetests
 notifications:
   email: false
