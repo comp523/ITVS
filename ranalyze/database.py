@@ -5,7 +5,7 @@ Database abstraction class for handling storage of Posts and Comments
 import sqlite3
 import atexit
 from .utils import date_to_timestamp
-from typing import List
+from typing import (List, Union)
 import os
 
 class Database:
@@ -226,7 +226,7 @@ class Database:
         self._database.close()
 
     @staticmethod
-    def _dict_to_sql(dictionary: dict, mode: str) -> (str, str):
+    def _dict_to_sql(dictionary: dict, mode: str) -> Union[(str, str), str]:
         """
         Convert a dict to sql.
 
