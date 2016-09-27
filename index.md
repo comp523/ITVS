@@ -16,8 +16,10 @@ show_back_to_top: true
  - [Project Concept](#project-concept)
  - [User Stories](#user-stories)
  - [Personas](#personas)
+ - [Use Cases](#use-cases)
+ - [Requirements](#requirements)
  - [Platform Analysis and Selection](#platform-analysis-and-selection)
- - Prototype
+ - [Prototype](https://github.com/comp523/ITVS/blob/master/prototype/reddit_json.py)
 
 ## Sprint Deliverables
  - Functional Specification
@@ -39,5 +41,7 @@ show_back_to_top: true
 {% include index/concept.md %}
 
 {% include index/personas.md %}
+
+{% include index/requirements.md %}
 
 {% include index/platform.md %}
