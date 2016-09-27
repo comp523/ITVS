@@ -28,6 +28,8 @@ class Database:
                     "date_updated", "posted_by", "controversiality",
                     "external_url", "self_text", "gilded"}
 
+    debug_mode = False  # Prints all sql statements if True
+
     def __init__(self):
         """
         Opens the connection to the database.
@@ -248,6 +250,10 @@ class Database:
         Gets a new cursor, executes given sql, with given params. Optionally
         commits changes to the database.
         """
+
+        if self.debug_mode:
+            print("SQL:", sql)
+            print("params:", params)
 
         cursor = self._database.cursor()
         cursor.execute(sql, params)
