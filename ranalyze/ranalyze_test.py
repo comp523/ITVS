@@ -22,7 +22,7 @@ class RanalyzeTest(unittest.TestCase):
                       1, # upvotes
                       0, # downvotes
                       "Radical place to discuss vaping", # title
-                      "2016-09-22T18:17:38", # time_submitted
+                      "2016-09-22T22:17:38", # time_submitted
                       "2016-09-23T14:14:31.459507" # time_retrieved is unused, but required
                      ),
         ranalyze.Post("https://www.reddit.com/r/itvs_testing/comments/541k35/vaping_is_so_cool/",
@@ -33,7 +33,7 @@ class RanalyzeTest(unittest.TestCase):
                       1, # upvotes
                       0, # downvotes
                       "Vaping is so cool", # title
-                      "2016-09-22T18:15:51", # time_submitted
+                      "2016-09-22T22:15:51", # time_submitted
                       "2016-09-23T14:14:31.459507" # time_retrieved is unused, but required
                      )
     )
