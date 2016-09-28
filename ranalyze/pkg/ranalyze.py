@@ -52,12 +52,12 @@ def main():
 
     config = Config.get_config()
 
-    database = Database()
+    database = Database(config["database_file"])
 
     for post in fetch_data(config["subreddits"],
-                                      config["date_range"]["after"],
-                                      config["date_range"]["before"]):
-        database.add_update_post(post)
+                           config["date_range"]["after"],
+                           config["date_range"]["before"]):
+        database.add_update_entry(post)
 
 if __name__ == "__main__":
     main()

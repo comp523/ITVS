@@ -168,7 +168,6 @@ class Config:
 
             raise MissingParameterError("date_range.after")
 
-
     @staticmethod
     def _parse_cli_args(parser: ArgumentParser) -> Tuple[dict, str]:
         """
@@ -259,7 +258,10 @@ class ConfigError(Exception):
     """
     Base class for exceptions raised while processing configuration variables
     """
-    pass
+
+    def __init__(self, message: str):
+
+        self.message = message
 
 
 class DateError(ConfigError):
