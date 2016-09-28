@@ -19,27 +19,64 @@ def fetch_data(subreddit_set, after, before):
     :param after: ignores posts before this datetime
     :param before: ignores posts after this datetime
     :return: yields individual reddit posts one at a time
-    :rtype: collections.Iterable[Post]
+    :rtype: collections.Iterable[dict]
     """
+    def traverse_comments(root_id, top_level_comments):
+        """
+        :param root_id: id of the parent post
+        :top_level_comments: all comments that have a parent that is the 
+        post
+
+        :return: yields each comment dict
+        :rtype: collections.Iterable[dict]
+        """
+        comment_stack = [comment for comment in top_level_comments]
+        while len(comment_stack) > 0:
+            next_comment = comment_stack.pop()
+            comment_dict = {
+                "id": next_comment.id,
+                "root_id": root_id,
+                "up_votes": next_comment.ups,
+                "time_submitted": next_comment.created_utc,
+                "time_updated": datetime.datetime.utcnow(),
+                "posted_by": str(next_comment.author),
+                "text_content": next_comment.body,
+                "parent_id": next_comment.parent_id,
+                "gilded": next_comment.gilded
+            }
+            comment_stack.extend(next_comment.replies)
+            yield(comment_dict)
     reddit = praw.Reddit(user_agent="Documenting ecig subs")
     for subreddit_name in subreddit_set:
         subreddit = reddit.get_subreddit(subreddit_name)
         for post_data in subreddit.get_new(limit=None):
+            post_data.replace_more_comments(limit=None, threshold=0)
             post_date = datetime.datetime.fromtimestamp(post_data.created_utc)
             if post_date.date() > before:
                 continue
             if post_date.date() < after:
                 continue
-            pretty_now_date = date_to_timestamp(datetime.datetime.utcnow())
-            post = {
+            pretty_submitted_date = post_date.isoformat()
+            pretty_now_date = datetime.datetime.utcnow().isoformat()
+            post_dict = {
+                "id": post_date.id,
                 "permalink": post_data.permalink,
-                "external_url": post_data.url,
                 "up_votes": post_data.ups,
-                "title": post_data.title,
+                "up_ratio": post_data.up_ratio,
                 "time_submitted": post_data.created_utc,
-                "time_updated": pretty_now_date
+                "time_updated": datetime.datetime.utcnow(),
+                "posted_by": str(post_data.author),
+                "title": post_data.title,
+                "subreddit": post_data.subreddit,
+                "external_url": post_data.url,
+                "text_content": post_data.self_text,
+                "gilded": post_data.gilded
             }
-            yield(post)
+            yield(post_dict)
+            post_data.replace_more_comments(limit=None)
+            for comment_tuple in traverse_comments(post_data.id, post_data.comments):
+                yield(comment_tuple)
+
 
 
 def main():
