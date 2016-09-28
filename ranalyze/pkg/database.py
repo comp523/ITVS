@@ -2,11 +2,13 @@
 Database abstraction class for handling storage of Posts and Comments
 """
 
-import sqlite3
 import atexit
+import sqlite3
+
+from .config import Config
+from typing import (List, Tuple, Union)
 from .utils import date_to_timestamp
-from typing import (List, Union)
-import os
+
 
 class Database:
     """
@@ -14,28 +16,30 @@ class Database:
     Currently implements a SQLite database.
     """
 
-    DATABASE_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                                 "reddit-data.db")
-
     COMMENT_TABLE = "comments"
 
-    COMMENT_COLUMNS = {"id", "post_id", "parent_id", "reddit_comment_id",
-                       "posted_by", "date_posted", "up_votes"}
+    COMMENT_COLUMNS = {"id", "post_id", "parent_id", "posted_by", "up_votes",
+                       "time_submitted", "time_posted", "reddit_comment_id"}
 
     POST_TABLE = "posts"
 
-    POST_COLUMNS = {"id", "permalink", "up_votes", "up_ratio", "date_posted",
-                    "date_updated", "posted_by", "controversiality",
+    POST_COLUMNS = {"id", "permalink", "up_votes", "up_ratio", "time_submitted",
+                    "time_updated", "posted_by", "controversiality", "title",
                     "external_url", "self_text", "gilded"}
-
-    debug_mode = False  # Prints all sql statements if True
 
     def __init__(self):
         """
         Opens the connection to the database.
         """
 
-        self._database = sqlite3.connect(self.DATABASE_FILE)
+        config = Config.get_config()
+
+        # Prints all sql statements if True
+        self._debug_mode = config["debug"]
+
+        database_file = config["database_file"]
+
+        self._database = sqlite3.connect(database_file)
         self._database.row_factory = sqlite3.Row
         atexit.register(self._close)
 
@@ -226,7 +230,7 @@ class Database:
         self._database.close()
 
     @staticmethod
-    def _dict_to_sql(dictionary: dict, mode: str) -> Union[(str, str), str]:
+    def _dict_to_sql(dictionary: dict, mode: str) -> Union[Tuple[str, str], str]:
         """
         Convert a dict to sql.
 
@@ -251,7 +255,7 @@ class Database:
         commits changes to the database.
         """
 
-        if self.debug_mode:
+        if self._debug_mode:
             print("SQL:", sql)
             print("params:", params)
 
@@ -299,7 +303,7 @@ class Database:
 
 class DatabaseError(Exception):
     """
-    Exception raised for errors in database I/O.
+    Exceptions raised for errors in database I/O.
     """
 
     INVALID_IDENTIFIER_ERROR = ("Missing/invalid identifier for get_{get_type},"
