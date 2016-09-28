@@ -23,9 +23,9 @@ the likelihood that it is, in fact, an ITV.
 
 ### [ranalyze](/ITVS/ranalyze)
 
-This utility will scrape the subreddits in a user specified set of subreddits and date range 
+This utility will scrape a user specified set of subreddits and over a particular date range 
 and output the result into a relational database for further manipulation and analysis. 
-In a given date range, this will get every post and comment (within the limits of the reddit API) 
-and relevant data and metadata (title, url, upvote count, upvote ratio, comment body). This will be 
-set to run on a frequent schedule (with a Cron job) and will go back and update post data and 
-comments in the case of a change on each of these job runs. 
+Within the limits of the reddit API, every post, comment, and relevant data and metadata
+(title, url, up-vote count, up-vote ratio, comment body, etc.) will be collected and stored.
+This process will run on a regular schedule and update non-static metadata in an incremental
+fashion.
