@@ -10,7 +10,7 @@ queries = ("DROP TABLE IF EXISTS posts",
            "DROP TABLE IF EXISTS entries",
            """
            CREATE TABLE entries (
-           id text PRIMARY KEY, permalink text UNIQUE NOT NULL, root_id text,
+           id text PRIMARY KEY, permalink text UNIQUE, root_id text,
            up_votes integer, up_ratio real, time_submitted integer,
            time_updated integer, posted_by text, title text, subreddit text,
            external_url text, text_content text, parent_id text, gilded integer,
