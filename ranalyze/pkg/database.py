@@ -5,7 +5,7 @@ Database abstraction class for handling storage of Posts and Comments
 import atexit
 import sqlite3
 
-from .types import (DateRange, IntRange)
+from .common_types import (DateRange, IntRange)
 from typing import (List, Tuple, Union)
 from .utils import date_to_timestamp
 

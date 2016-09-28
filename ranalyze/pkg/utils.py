@@ -3,7 +3,7 @@ Common utilities
 """
 
 from datetime import datetime
-from .types import Date
+from .common_types import Date
 
 
 EPOCH = datetime.utcfromtimestamp(0)
