@@ -19,13 +19,13 @@ class Database:
 
     COMMENT_TABLE = "comments"
 
-    COMMENT_COLUMNS = {"id", "post_id", "parent_id", "reddit_comment_id",
-                       "posted_by", "date_posted", "up_votes"}
+    COMMENT_COLUMNS = {"id", "post_id", "parent_id", "posted_by", "up_votes",
+                       "time_submitted", "time_posted", "reddit_comment_id"}
 
     POST_TABLE = "posts"
 
-    POST_COLUMNS = {"id", "permalink", "up_votes", "up_ratio", "date_posted",
-                    "date_updated", "posted_by", "controversiality",
+    POST_COLUMNS = {"id", "permalink", "up_votes", "up_ratio", "time_submitted",
+                    "time_updated", "posted_by", "controversiality", "title",
                     "external_url", "self_text", "gilded"}
 
     debug_mode = False  # Prints all sql statements if True
