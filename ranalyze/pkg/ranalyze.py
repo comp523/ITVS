@@ -6,12 +6,12 @@ Analysis tool to traverse a set of subreddits extracting post information includ
  - Number of upvotes/downvotes
 """
 
-from .config import Config
-from .database import Database
-from .utils import date_to_timestamp
 import datetime
 import praw
 
+from .config import Config
+from .database import Database
+from .progress import Progress
 
 def fetch_data(subreddit_set, after, before):
     """
@@ -21,6 +21,10 @@ def fetch_data(subreddit_set, after, before):
     :return: yields individual reddit posts one at a time
     :rtype: collections.Iterable[dict]
     """
+
+    progress = Progress("Scraped {posts} posts and {comments} comments from "
+                        "{subreddit}")
+
     def traverse_comments(root_id, top_level_comments):
         """
         :param root_id: id of the parent post
@@ -46,36 +50,66 @@ def fetch_data(subreddit_set, after, before):
             }
             comment_stack.extend(next_comment.replies)
             yield(comment_dict)
+
     reddit = praw.Reddit(user_agent="Documenting ecig subs")
+
+    first_pass = True
+
     for subreddit_name in subreddit_set:
+
         subreddit = reddit.get_subreddit(subreddit_name)
+
+        if first_pass:
+            first_pass = False
+        else:
+            progress.freeze()
+
+
+        post_count = 0
+        comment_count = 0
+
+        progress.update(posts=post_count,
+                        comments=comment_count,
+                        subreddit=subreddit_name)
+
         for post_data in subreddit.get_new(limit=None):
+
             post_data.replace_more_comments(limit=None, threshold=0)
+
             post_date = datetime.datetime.fromtimestamp(post_data.created_utc)
             if post_date.date() > before:
                 continue
             if post_date.date() < after:
                 continue
-            pretty_submitted_date = post_date.isoformat()
-            pretty_now_date = datetime.datetime.utcnow().isoformat()
+
             post_dict = {
                 "id": post_data.id,
                 "permalink": post_data.permalink,
                 "up_votes": post_data.ups,
-                #"up_ratio": post_data.upvote_ratio,
+                #  "up_ratio": post_data.up_ratio,
                 "time_submitted": post_data.created_utc,
                 "time_updated": datetime.datetime.utcnow(),
                 "posted_by": str(post_data.author),
                 "title": post_data.title,
-                "subreddit": subreddit_name,
+                "subreddit": str(post_data.subreddit),
                 "external_url": post_data.url,
                 "text_content": post_data.selftext,
                 "gilded": post_data.gilded
             }
+
             yield(post_dict)
+
+            post_count += 1
+            progress.update(posts=post_count)
+
             post_data.replace_more_comments(limit=None)
-            for comment_tuple in traverse_comments(post_data.id, post_data.comments):
-                yield(comment_tuple)
+
+            for comment_dict in traverse_comments(post_data.id,
+                                                  post_data.comments):
+                yield(comment_dict)
+
+                comment_count += 1
+                progress.update(comments=comment_count)
 
 
 
@@ -89,7 +123,7 @@ def main():
 
     config = Config.get_config()
 
-    database = Database(config["database_file"])
+    database = Database(config["database_file"], config["debug"])
 
     for post in fetch_data(config["subreddits"],
                            config["date_range"]["after"],

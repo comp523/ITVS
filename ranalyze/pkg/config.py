@@ -36,6 +36,7 @@ class Config:
         "subreddit selection": {
             ("-s", "--subreddit"): {
                 "action": "append",
+                "dest": "subreddits",
                 "help": ("subreddit to analyze, may be a single value, "
                          "or a space-delimited list"),
                 "nargs": "+",
@@ -198,6 +199,14 @@ class Config:
                 group.add_argument(*flags, **options)
 
         args = vars(parser.parse_args())
+
+        args["date_range"] = {
+            "after": args["after"],
+            "before": args["before"]
+        }
+
+        del args["after"]
+        del args["before"]
 
         Config._merge_configs(config, args)
 

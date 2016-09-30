@@ -8,7 +8,9 @@ install:
  - hash -r
  - conda info -a
  - conda env create -f ranalyze/environment.yml
-script: nosetests
+script:
+ - source activate ranalyze-venv
+ - nosetests
 notifications:
   email: false
   slack:

@@ -11,6 +11,7 @@ import unittest
 
 from pkg import ranalyze
 from .config import Config
+from .config import MissingParameterError
 
 
 class RanalyzeTest(unittest.TestCase):
@@ -19,57 +20,57 @@ class RanalyzeTest(unittest.TestCase):
     """
     EXPECTED_SUBREDDIT_DATA = {
         "541kdo":{ # id
-         "permalink":"https://www.reddit.com/r/itvs_testing/comments/541kdo/radical_place_to_discuss_vaping/",
-         "up_votes":1,
-         #"up_ratio":1,
-         "time_submitted":1474582658,
-         #"time_updated":"2016-09-23T14:14:31.459507", 
-         "posted_by":"dchiquit",
-         "title":"Radical place to discuss vaping",
-         "subreddit":"itvs_testing",
-         "external_url":"http://vapingunderground.com/",
-         "text_content":"",
-         "gilded":False
+            "permalink":"https://www.reddit.com/r/itvs_testing/comments/541kdo/radical_place_to_discuss_vaping/",
+            "up_votes":1,
+            #"up_ratio":1,
+            "time_submitted":1474582658,
+            #"time_updated":"2016-09-23T14:14:31.459507",
+            "posted_by":"dchiquit",
+            "title":"Radical place to discuss vaping",
+            "subreddit":"itvs_testing",
+            "external_url":"http://vapingunderground.com/",
+            "text_content":"",
+            "gilded":False
         },
         "d7y3d8z":{ # id
-         "root_id":"541kdo",
-         "up_votes":1,
-         "time_submitted":1474583379,
-         "posted_by":"biddigs3",
-         "text_content":"omg no way this place is the radicalest #vapenation",
-         "parent_id":"t3_541kdo",
-         "gilded":False,
+            "root_id":"541kdo",
+            "up_votes":1,
+            "time_submitted":1474583379,
+            "posted_by":"biddigs3",
+            "text_content":"omg no way this place is the radicalest #vapenation",
+            "parent_id":"t3_541kdo",
+            "gilded":False,
         },
         "d82mfzb":{ # id
-         "root_id":"541kdo",
-         "up_votes":1,
-         "time_submitted":1474898358,
-         "posted_by":"dchiquit",
-         "text_content":"omg we should totes discuss purchasing tobacco products there =D ",
-         "parent_id":"t1_d7y3d8z",
-         "gilded":False,
+            "root_id":"541kdo",
+            "up_votes":1,
+            "time_submitted":1474898358,
+            "posted_by":"dchiquit",
+            "text_content":"omg we should totes discuss purchasing tobacco products there =D ",
+            "parent_id":"t1_d7y3d8z",
+            "gilded":False,
         },
-         "541k35":{ # id
-         "permalink":"https://www.reddit.com/r/itvs_testing/comments/541k35/vaping_is_so_cool/",
-         "up_votes":1,
-         #"up_ratio":1,
-         "time_submitted":1474582551,
-         #"time_updated":"2016-09-23T14:14:31.459507", 
-         "posted_by":"dchiquit",
-         "title":"Vaping is so cool",
-         "subreddit":"itvs_testing",
-         "external_url":"https://www.reddit.com/r/itvs_testing/comments/541k35/vaping_is_so_cool/",
-         "text_content":"I love vaping",
-         "gilded":False
-        },
+        "541k35":{ # id
+            "permalink":"https://www.reddit.com/r/itvs_testing/comments/541k35/vaping_is_so_cool/",
+            "up_votes":1,
+            #"up_ratio":1,
+            "time_submitted":1474582551,
+            #"time_updated":"2016-09-23T14:14:31.459507",
+            "posted_by":"dchiquit",
+            "title":"Vaping is so cool",
+            "subreddit":"itvs_testing",
+            "external_url":"https://www.reddit.com/r/itvs_testing/comments/541k35/vaping_is_so_cool/",
+            "text_content":"I love vaping",
+            "gilded":False
+           },
         "d7y2u6h":{ # id
-         "root_id":"541k35",
-         "up_votes":1,
-         "time_submitted":1474582611,
-         "posted_by":"dchiquit",
-         "text_content":"omg me too! You should buy vaping products from [e-cig.com](https://www.e-cig.com/)!",
-         "parent_id":"t3_541k35",
-         "gilded":False,
+            "root_id":"541k35",
+            "up_votes":1,
+            "time_submitted":1474582611,
+            "posted_by":"dchiquit",
+            "text_content":"omg me too! You should buy vaping products from [e-cig.com](https://www.e-cig.com/)!",
+            "parent_id":"t3_541k35",
+            "gilded":False,
         },
     }
 
@@ -90,17 +91,47 @@ class RanalyzeTest(unittest.TestCase):
             expected = self.EXPECTED_SUBREDDIT_DATA[actual["id"]]
             for key in expected.keys():
                 self.assertEqual(actual[key], expected[key])
-    
+
     def test_config(self):
         """
         Tests config.py configuration loading
         """
         backup = sys.argv[:]
+
+        config = {
+            "database_file": None,
+            "date_range": None,
+            "debug": False,
+            "subreddits": None
+        }
+        try:
+            Config._validate_config(config)
+            self.fail("argument database_file was missing, but config validation succeeded");
+        except MissingParameterError as error:
+            pass
+        
+        config["database_file"] = "db-file.db"
+        try:
+            Config._validate_config(config)
+            self.fail("argument subreddit was missing, but config validation succeeded");
+        except MissingParameterError as error:
+            pass
+        config["subreddits"] = ["itvs_testing"]
+        try:
+            Config._validate_config(config)
+            self.fail("argument date_range.after was missing, but config validation succeeded");
+        except MissingParameterError as error:
+            pass
+        config["date_range"] = {"after":"1969-01-01"}
+        
         
         sys.argv = [
             "ranalyze.py",
-            
+            "-d", "db-file.db",
+            "-s","itvs_testing",
+            "-a","1969-01-01"
         ]
+        
         
         print("Using arguments",sys.argv)
         
