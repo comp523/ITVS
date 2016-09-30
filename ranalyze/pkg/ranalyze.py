@@ -59,17 +59,17 @@ def fetch_data(subreddit_set, after, before):
             pretty_submitted_date = post_date.isoformat()
             pretty_now_date = datetime.datetime.utcnow().isoformat()
             post_dict = {
-                "id": post_date.id,
+                "id": post_data.id,
                 "permalink": post_data.permalink,
                 "up_votes": post_data.ups,
-                "up_ratio": post_data.up_ratio,
+                #"up_ratio": post_data.upvote_ratio,
                 "time_submitted": post_data.created_utc,
                 "time_updated": datetime.datetime.utcnow(),
                 "posted_by": str(post_data.author),
                 "title": post_data.title,
-                "subreddit": post_data.subreddit,
+                "subreddit": subreddit_name,
                 "external_url": post_data.url,
-                "text_content": post_data.self_text,
+                "text_content": post_data.selftext,
                 "gilded": post_data.gilded
             }
             yield(post_dict)
