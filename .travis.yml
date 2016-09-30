@@ -10,7 +10,7 @@ install:
  - conda env create -f ranalyze/environment.yml
 script:
  - source activate ranalyze-venv
- - nosetests
+ - nosetests ranalyze.pkg
 notifications:
   email: false
   slack:

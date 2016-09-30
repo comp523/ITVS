@@ -9,7 +9,7 @@ import datetime
 import sys
 import unittest
 
-from pkg import ranalyze
+from . import ranalyze
 from .config import Config
 from .config import MissingParameterError
 
