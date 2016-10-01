@@ -9,3 +9,4 @@ then
     hash -r
 fi
 conda env create
+export PATH="$(pwd):$PATH"
