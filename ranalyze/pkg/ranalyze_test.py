@@ -81,7 +81,7 @@ class RanalyzeTest(unittest.TestCase):
         """
         end = datetime.datetime.strptime("2016-9-23", "%Y-%m-%d").date()
         start = end - datetime.timedelta(days=14)
-        for actual in ranalyze.fetch_data(["itvs_testing"], start, end):
+        for actual in ranalyze.fetch_data(["itvs_testing"], (start, end)):
             if not actual["id"] in self.EXPECTED_SUBREDDIT_DATA.keys():
                 self.fail("No expected data for entry "+actual["id"])
             if "title" in actual.keys():
