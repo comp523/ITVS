@@ -1,9 +1,15 @@
+#!/usr/bin/env python
+
 """
 Create tables in the database
 """
-import sqlite3
 
-connection = sqlite3.connect('reddit-data.db')
+import sqlite3
+import sys
+
+database_file = sys.argv[1]
+
+connection = sqlite3.connect(database_file)
 cursor = connection.cursor()
 queries = ("DROP TABLE IF EXISTS posts",
            "DROP TABLE IF EXISTS comments",

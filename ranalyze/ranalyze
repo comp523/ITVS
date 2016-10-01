@@ -1,4 +1,0 @@
-#!/bin/bash
-
-source activate ranalyze-venv
-python -m pkg.ranalyze "$@"

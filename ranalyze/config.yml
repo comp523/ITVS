@@ -1,6 +1,0 @@
-database_file: reddit-data.db
-subreddits:
-  - vaping
-  - electronic_cigarette
-date_range:
-  after: 2016-09-25
