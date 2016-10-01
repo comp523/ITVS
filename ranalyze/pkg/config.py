@@ -200,10 +200,9 @@ class Config:
 
         args = vars(parser.parse_args())
 
-        args["date_range"] = {
-            "after": args["after"],
-            "before": args["before"]
-        }
+        if args["after"] is not None or args["before"] is not None:
+            args["date_range"] = {key: args[key] for key in ("after", "before")
+                                  if args[key] is not None}
 
         del args["after"]
         del args["before"]

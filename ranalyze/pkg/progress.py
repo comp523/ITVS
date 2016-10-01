@@ -6,14 +6,23 @@ import atexit
 
 
 class Progress:
+    """
+    Static only class for outputting update-able feedback to stdout
+    """
 
-    def __init__(self, output_format: str):
+    _params = {}
+
+    format = ""
+
+    def __init__(self):
         """
-        Initialize progress feedback
+        Disable initialization
         """
 
-        self.output_format = output_format
-        self.params = {}
+        error_message = "Progress objects cannot be instantiated"
+
+        raise NotImplementedError(message=error_message)
+
 
     @staticmethod
     @atexit.register
@@ -25,11 +34,14 @@ class Progress:
 
         print("")
 
-    def update(self, **kwargs):
+    @staticmethod
+    def update(**kwargs):
         """
         Update the progress with new values
         """
 
-        self.params.update(kwargs)
+        # Update any params specified in kwargs
+        Progress._params.update(kwargs)
 
-        print(self.output_format.format(**self.params), end="\r")
+        # Print with trailing carriage return to keep output on one line
+        print(Progress.format.format(**Progress._params), end="\r")

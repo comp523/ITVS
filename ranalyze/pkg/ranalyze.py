@@ -1,5 +1,5 @@
 """
-Analysis tool to traverse a set of subreddits extracting post information including:
+Tool to traverse a set of subreddits extracting post/comment information including:
  - Post title
  - Post date
  - Post URL (if not a self post)
@@ -9,30 +9,26 @@ Analysis tool to traverse a set of subreddits extracting post information includ
 import datetime
 import praw
 
+from .common_types import DateRange
 from .config import Config
 from .database import Database
 from .progress import Progress
+from typing import Iterable
 
-def fetch_data(subreddit_set, after, before):
+
+def fetch_data(subreddit_set: set, date_range: DateRange):
     """
-    :param subreddit_set: set of subreddits from which to retrieve data
-    :param after: ignores posts before this datetime
-    :param before: ignores posts after this datetime
-    :return: yields individual reddit posts one at a time
-    :rtype: collections.Iterable[dict]
+    Fetch all posts and associated comments from a given subreddit set, within
+    the specified inclusive date range. Yields both posts and comments.
     """
 
-    progress = Progress("Scraped {posts} posts and {comments} comments from "
-                        "{subreddit}")
+    Progress.format = ("Scraped {posts} posts and {comments} comments from "
+                       "{subreddit}")
 
-    def traverse_comments(root_id, top_level_comments):
+    def traverse_comments(root_id: str,
+                          top_level_comments: Iterable[praw.objects.Comment]):
         """
-        :param root_id: id of the parent post
-        :top_level_comments: all comments that have a parent that is the 
-        post
-
-        :return: yields each comment dict
-        :rtype: collections.Iterable[dict]
+        Iterate through all comments, extracting desired properties.
         """
         comment_stack = [comment for comment in top_level_comments]
         while len(comment_stack) > 0:
@@ -62,13 +58,12 @@ def fetch_data(subreddit_set, after, before):
         if first_pass:
             first_pass = False
         else:
-            progress.freeze()
-
+            Progress.freeze()
 
         post_count = 0
         comment_count = 0
 
-        progress.update(posts=post_count,
+        Progress.update(posts=post_count,
                         comments=comment_count,
                         subreddit=subreddit_name)
 
@@ -77,9 +72,9 @@ def fetch_data(subreddit_set, after, before):
             post_data.replace_more_comments(limit=None, threshold=0)
 
             post_date = datetime.datetime.fromtimestamp(post_data.created_utc)
-            if post_date.date() > before:
+            if post_date.date() > date_range[1]:
                 continue
-            if post_date.date() < after:
+            if post_date.date() < date_range[0]:
                 continue
 
             post_dict = {
@@ -100,7 +95,7 @@ def fetch_data(subreddit_set, after, before):
             yield(post_dict)
 
             post_count += 1
-            progress.update(posts=post_count)
+            Progress.update(posts=post_count)
 
             post_data.replace_more_comments(limit=None)
 
@@ -109,8 +104,7 @@ def fetch_data(subreddit_set, after, before):
                 yield(comment_dict)
 
                 comment_count += 1
-                progress.update(comments=comment_count)
-
+                Progress.update(comments=comment_count)
 
 
 def main():
@@ -125,10 +119,11 @@ def main():
 
     database = Database(config["database_file"], config["debug"])
 
-    for post in fetch_data(config["subreddits"],
-                           config["date_range"]["after"],
-                           config["date_range"]["before"]):
+    date_range = (config["date_range"]["after"], config["date_range"]["before"])
+
+    for post in fetch_data(config["subreddits"], date_range):
         database.add_update_entry(post)
+
 
 if __name__ == "__main__":
     main()
