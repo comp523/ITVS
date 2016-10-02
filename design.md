@@ -1,6 +1,7 @@
 ---
 layout: default
 title: ITVS | Design
+show_home_nav: true
 ---
 
 # Architecture

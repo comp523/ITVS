@@ -8,9 +8,15 @@
         <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
         <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+        {% if page.enable_demo == true %}
         <link rel="stylesheet" type="text/css" href="stylesheets/demo.css">
         <script src="//cdn.rawgit.com/julienw/dollardom/master/dollardom.min.js"></script>
         <script>
+            /**
+             * Attach listeners to tab buttons on code demos.
+             *
+             * @author Bryan Iddings
+             */
             $dom.onready(function(){
             "use strict";
 
@@ -50,6 +56,7 @@
 
             });
         </script>
+        {% endif %}
     </head>
     <body id="top">
         {% if page.show_header == true %}
@@ -60,6 +67,12 @@
         {% endif %}
 
         <section class="main-content">
+
+            {% if page.show_home_nav == true %}
+            <div class="home-nav">
+                <a href="/ITVS">&#11013; Home</a>
+            </div>
+            {% endif %}
 
             {{ content }}
 

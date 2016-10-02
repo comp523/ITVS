@@ -1,6 +1,8 @@
 ---
 layout: default
 title: ITVS | ranalyze
+show_home_nav: true
+enable_demo: true
 ---
 
 # ranalyze: Reddit Analyzer

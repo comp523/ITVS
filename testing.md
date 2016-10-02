@@ -1,6 +1,7 @@
 ---
 layout: default
 title: ITVS | Testing
+show_home_nav: true
 ---
 
 # Ideal Plan
