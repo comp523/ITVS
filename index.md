@@ -22,7 +22,7 @@ show_back_to_top: true
 ## Sprint Deliverables
  - [Functional Specification](#use-cases)
  - [Design Doc](/ITVS/design), which includes the architecture diagram
- - Test Plan
+ - [Test Plan](/ITVS/testing)
  - [User Manual](/ITVS/ranalyze)
  - [Version-controlled Repository]({{ site.git.project_url }})
  - Executable Code and Instructions
