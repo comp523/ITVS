@@ -16,16 +16,14 @@ show_back_to_top: true
  - [Project Concept](#project-concept)
  - [User Stories](#user-stories)
  - [Personas](#personas)
- - [Use Cases](#use-cases)
- - [Requirements](#requirements)
  - [Platform Analysis and Selection](#platform-analysis-and-selection)
  - [Prototype](https://github.com/comp523/ITVS/blob/master/prototype/reddit_json.py)
 
 ## Sprint Deliverables
- - Functional Specification
- - Design Doc, which includes the architecture diagram
+ - [Functional Specification](#use-cases)
+ - [Design Doc](/ITVS/design), which includes the architecture diagram
  - Test Plan
- - User Manual
+ - [User Manual](/ITVS/ranalyze)
  - [Version-controlled Repository]({{ site.git.project_url }})
  - Executable Code and Instructions
  
