@@ -29,7 +29,7 @@ enable_demo: true
 
 1. Open a bash terminal
 2. Run  
-    `ranalyze-make-db db_name.db`
+    `ranalyze create-db db_name.db`
 
 ***
  
