@@ -29,9 +29,12 @@ def fetch_data(subreddit_set: set, date_range: DateRange):
                           top_level_comments: Iterable[praw.objects.Comment]):
         """
         Iterate through all comments, extracting desired properties.
+        :yield: each subsequent comment
         """
         comment_stack = [comment for comment in top_level_comments]
+        # In order traversal of the comment tree
         while len(comment_stack) > 0:
+            # most expand the most recently added comment
             next_comment = comment_stack.pop()
             comment_dict = {
                 "id": next_comment.id,
@@ -44,12 +47,16 @@ def fetch_data(subreddit_set: set, date_range: DateRange):
                 "parent_id": next_comment.parent_id,
                 "gilded": next_comment.gilded
             }
+            # place all replies in the comment stack to also
+            # be expanded
             comment_stack.extend(next_comment.replies)
             yield(comment_dict)
 
+    # api wrapper connection
     reddit = praw.Reddit(user_agent="Documenting ecig subs")
 
-    first_pass = True
+    # for use in progress logging
+    first_pass = True 
 
     for subreddit_name in subreddit_set:
 
@@ -60,6 +67,7 @@ def fetch_data(subreddit_set: set, date_range: DateRange):
         else:
             Progress.freeze()
 
+        # progress logging
         post_count = 0
         comment_count = 0
 
@@ -92,7 +100,7 @@ def fetch_data(subreddit_set: set, date_range: DateRange):
                 "gilded": post_data.gilded
             }
 
-            yield(post_dict)
+            yield(post_dict) # first yields the post itself
 
             post_count += 1
             Progress.update(posts=post_count)
@@ -101,7 +109,7 @@ def fetch_data(subreddit_set: set, date_range: DateRange):
 
             for comment_dict in traverse_comments(post_data.id,
                                                   post_data.comments):
-                yield(comment_dict)
+                yield(comment_dict) # yields all post comments
 
                 comment_count += 1
                 Progress.update(comments=comment_count)
