@@ -110,7 +110,7 @@ class Config:
             print("Database `{}` created successfully.".format(sys.argv[2]))
             exit()
 
-        parser = ArgumentParser()
+        parser = ArgumentParser("ranalyze")
 
         cli_config, config_file = Config._parse_cli_args(parser)
 
