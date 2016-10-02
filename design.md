@@ -5,7 +5,7 @@ title: ITVS | Design
 
 # Architecture
 
-![alt text](_includes/index/arch_diagram.png "design diagram")
+![alt text](assets/arch_diagram.png "design diagram")
 
 Our ranalyze module takes in a list of subreddits, a date range, and a database file. The program goes to each subreddit specified and puts all the posts and their associated comments into the database if the post was created inside the date range. 
 
