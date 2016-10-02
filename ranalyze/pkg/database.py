@@ -130,6 +130,36 @@ class Database:
         self._database.close()
 
     @staticmethod
+    def create_db(filename: str):
+        """
+        Create a new, pre-formatted database
+        """
+
+        connection = sqlite3.connect(filename)
+
+        cursor = connection.cursor()
+
+        queries = ("DROP TABLE IF EXISTS posts",
+                   "DROP TABLE IF EXISTS comments",
+                   "DROP TABLE IF EXISTS entries",
+                   """
+                   CREATE TABLE entries (
+                   id text PRIMARY KEY, permalink text UNIQUE, root_id text,
+                   up_votes integer, up_ratio real, time_submitted integer,
+                   time_updated integer, posted_by text, title text, subreddit text,
+                   external_url text, text_content text, parent_id text, gilded integer,
+                   deleted integer,
+                   FOREIGN KEY(parent_id) REFERENCES entries(id)
+                   )
+                   """)
+
+        for query in queries:
+            cursor.execute(query)
+
+        connection.commit()
+        connection.close()
+
+    @staticmethod
     def _dict_to_sql(dictionary: dict,
                      mode: str) -> Union[Tuple[str, str], str]:
         """

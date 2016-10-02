@@ -7,9 +7,11 @@ Configuration sources (in order of precedence):
  - .yaml config file (specified with -c command line argument)
 """
 
+import sys
 import yaml
 
 from argparse import (ArgumentParser, SUPPRESS)
+from .database import Database
 from datetime import (datetime, date)
 from itertools import chain
 from re import compile
@@ -101,9 +103,18 @@ class Config:
         Initialize the config state from all configured sources.
         """
 
+        # handle create-db sub-command
+
+        if sys.argv[1] == "create-db":
+            Database.create_db(sys.argv[2])
+            print("Database `{}` created successfully.".format(sys.argv[2]))
+            exit()
+
         parser = ArgumentParser()
 
         cli_config, config_file = Config._parse_cli_args(parser)
+
+        print(cli_config)
 
         if config_file is not None:
             with open(config_file) as file:
