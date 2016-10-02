@@ -1,4 +1,10 @@
+#IntelliJ IDEA platform
 .idea/
+#Python module cache
 *.pyc
+#Old virtual environment
 venv/
+#Jekyll site folders
 _*/
+#SQLite databases
+*.db

@@ -1,7 +1,16 @@
 language: python
 python: '3.5'
-install: ./setup.sh
-script: nosetests
+install:
+ - wget -O miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
+ - bash miniconda.sh -b -p $HOME/miniconda3
+ - rm miniconda.sh
+ - export PATH="$HOME/miniconda3/bin:$PATH"
+ - hash -r
+ - conda info -a
+ - conda env create -f ranalyze/environment.yml
+script:
+ - source activate ranalyze-venv
+ - nosetests ranalyze/pkg
 notifications:
   email: false
   slack:
