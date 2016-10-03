@@ -25,7 +25,7 @@ enable_demo: true
 5. Run the installer  
     `bash install-ranalyze.sh`
     
-### To create a database
+### To create a properly formatted, empty database
 
 1. Open a bash terminal
 2. Run  
@@ -81,7 +81,7 @@ those from a configuration file. Configuration files should be in [YAML](http://
  
 #### Date Range
 
-Dates for are specified in [ISO 8601](http://www.iso.org/iso/home/standards/iso8601.htm)
+Dates are specified in [ISO 8601](http://www.iso.org/iso/home/standards/iso8601.htm)
 format, specifically YYYY-MM-DD.
 
 #### Subreddit Selection
