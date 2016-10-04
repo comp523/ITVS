@@ -2,15 +2,15 @@
 Common utilities
 """
 
-from datetime import datetime
 from .common_types import Date
-
+from datetime import datetime
+from math import floor
 
 EPOCH = datetime.utcfromtimestamp(0)
 
 
-def date_to_timestamp(date: Date) -> float:
+def date_to_timestamp(date: Date) -> int:
     """
     convert datetime.datetime or datetime.date object to Unix timestamp
     """
-    return (date - EPOCH).total_seconds() * 1000.0
+    return floor((date - EPOCH).total_seconds())

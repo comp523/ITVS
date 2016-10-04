@@ -105,7 +105,7 @@ class Config:
 
         # handle create-db sub-command
 
-        if sys.argv[1] == "create-db":
+        if len(sys.argv) > 1 and sys.argv[1] == "create-db":
             Database.create_db(sys.argv[2])
             print("Database `{}` created successfully.".format(sys.argv[2]))
             exit()

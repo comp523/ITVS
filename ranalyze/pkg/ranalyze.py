@@ -12,21 +12,26 @@ import praw
 from .common_types import DateRange
 from .config import Config
 from .database import Database
+from .entry import (
+    Comment,
+    CommentFactory,
+    Entry,
+    PostFactory
+)
 from .progress import Progress
 from typing import Iterable
 
 
-def fetch_data(subreddit_set: set, date_range: DateRange):
+def fetch_data(subreddit_set: set, date_range: DateRange) -> Iterable[Entry]:
     """
     Fetch all posts and associated comments from a given subreddit set, within
-    the specified inclusive date range. Yields both posts and comments.
+    the specified inclusive date range. Yields both Post and Comment instances.
     """
 
     Progress.format = ("Scraped {posts} posts and {comments} comments from "
                        "{subreddit}")
 
-    def traverse_comments(root_id: str,
-                          top_level_comments: Iterable[praw.objects.Comment]):
+    def traverse_comments(top_level_comments: Iterable[praw.objects.Comment]) -> Iterable[Comment]:
         """
         Iterate through all comments, extracting desired properties.
         :yield: each subsequent comment
@@ -36,21 +41,10 @@ def fetch_data(subreddit_set: set, date_range: DateRange):
         while len(comment_stack) > 0:
             # most expand the most recently added comment
             next_comment = comment_stack.pop()
-            comment_dict = {
-                "id": next_comment.id,
-                "root_id": root_id,
-                "up_votes": next_comment.ups,
-                "time_submitted": next_comment.created_utc,
-                "time_updated": datetime.datetime.utcnow(),
-                "posted_by": str(next_comment.author),
-                "text_content": next_comment.body,
-                "parent_id": next_comment.parent_id,
-                "gilded": next_comment.gilded
-            }
             # place all replies in the comment stack to also
             # be expanded
             comment_stack.extend(next_comment.replies)
-            yield(comment_dict)
+            yield(CommentFactory.from_praw(next_comment))
 
     # api wrapper connection
     reddit = praw.Reddit(user_agent="Documenting ecig subs")
@@ -75,41 +69,25 @@ def fetch_data(subreddit_set: set, date_range: DateRange):
                         comments=comment_count,
                         subreddit=subreddit_name)
 
-        for post_data in subreddit.get_new(limit=None):
+        for post in subreddit.get_new(limit=None):
 
-            post_data.replace_more_comments(limit=None, threshold=0)
+            post.replace_more_comments(limit=None, threshold=0)
 
-            post_date = datetime.datetime.fromtimestamp(post_data.created_utc)
+            post_date = datetime.datetime.fromtimestamp(post.created_utc)
             if post_date.date() > date_range[1]:
                 continue
             if post_date.date() < date_range[0]:
                 continue
 
-            post_dict = {
-                "id": post_data.id,
-                "permalink": post_data.permalink,
-                "up_votes": post_data.ups,
-                #  "up_ratio": post_data.up_ratio,
-                "time_submitted": post_data.created_utc,
-                "time_updated": datetime.datetime.utcnow(),
-                "posted_by": str(post_data.author),
-                "title": post_data.title,
-                "subreddit": str(post_data.subreddit),
-                "external_url": post_data.url,
-                "text_content": post_data.selftext,
-                "gilded": post_data.gilded
-            }
-
-            yield(post_dict) # first yields the post itself
+            yield(PostFactory.from_praw(post)) # first yields the post itself
 
             post_count += 1
             Progress.update(posts=post_count)
 
-            post_data.replace_more_comments(limit=None)
+            post.replace_more_comments(limit=None)
 
-            for comment_dict in traverse_comments(post_data.id,
-                                                  post_data.comments):
-                yield(comment_dict) # yields all post comments
+            for comment in traverse_comments(post.comments):
+                yield(comment) # yields all post comments
 
                 comment_count += 1
                 Progress.update(comments=comment_count)

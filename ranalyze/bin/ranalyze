@@ -1,5 +1,17 @@
 #!/bin/bash
 
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" .. && pwd )"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && cd .. && pwd )"
 source activate ranalyze-venv
-python $DIR/ranalyze.py "$@"
+python <<EOF
+import runpy
+import sys
+
+sys.argv = ["$DIR/ranalyze.py"]
+sys.argv.extend("$@".split(" "))
+
+sys.path.insert(1, "$DIR")
+
+import pkg
+
+runpy.run_module("pkg.ranalyze", run_name="__main__")
+EOF
