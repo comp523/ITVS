@@ -114,8 +114,6 @@ class Config:
 
         cli_config, config_file = Config._parse_cli_args(parser)
 
-        print(cli_config)
-
         if config_file is not None:
             with open(config_file) as file:
                 yaml_config = Config._parse_yaml(file.read())

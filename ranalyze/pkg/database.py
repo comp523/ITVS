@@ -221,6 +221,7 @@ class DatabaseError(Exception):
         """
 
         self.message = message
+        Exception.__init__(self, message)
 
 
 class UnknownColumnError(DatabaseError):
@@ -231,5 +232,6 @@ class UnknownColumnError(DatabaseError):
     _FORMAT = "No such column `{column}` in table `{table}`"
 
     def __init__(self, column: str, table: str):
+        DatabaseError.__init__(self, self._FORMAT.format(column=column, table=table))
+        
 
-        self.message = self._FORMAT.format(column=column, table=table)
