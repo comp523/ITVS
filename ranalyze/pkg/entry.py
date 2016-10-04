@@ -15,7 +15,7 @@ class Entry(object, metaclass=abc.ABCMeta):
     Base class for all database entries
     """
 
-    BASE_FIELDS = {
+    _BASE_FIELDS = {
         "id": str,
         "up_votes": int,
         "time_submitted": datetime,
@@ -85,7 +85,7 @@ class Comment(Entry):
     """
 
     FIELDS = {
-        **Entry.BASE_FIELDS,
+        **Entry._BASE_FIELDS,
         "root_id": str,
         "parent_id": str
     }
@@ -112,7 +112,7 @@ class Post(Entry):
     """
 
     FIELDS = {
-        **Entry.BASE_FIELDS,
+        **Entry._BASE_FIELDS,
         "permalink": str,
         "up_ratio": float,
         "title": str,
