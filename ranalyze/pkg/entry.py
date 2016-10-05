@@ -4,9 +4,10 @@ Provides Entry base class, as well as Comment and Post subclasses.
 
 import abc
 
-from .common_types import PrawEntry
 from datetime import datetime
 from sqlite3 import Row
+from typing import Tuple, Type
+from .common_types import PrawEntry
 from .utils import date_to_timestamp
 
 
@@ -27,14 +28,12 @@ class Entry(object, metaclass=abc.ABCMeta):
         "deleted": bool
     }
 
-    FIELDS = None
-
     def __init__(self, **kwargs):
         self._attrs = {key: (kwargs[key] if key in kwargs else None)
-                       for key in self.FIELDS}
+                       for key in self._get_fields}
 
     def __getattr__(self, item):
-        if item not in self.FIELDS:
+        if item not in self._get_fields:
             raise NoSuchAttributeError(class_name=type(self).__name__,
                                        attribute=item)
         return self._attrs[item]
@@ -42,6 +41,12 @@ class Entry(object, metaclass=abc.ABCMeta):
     @property
     def dict(self) -> dict:
         return self._attrs.copy()
+
+    @staticmethod
+    @property
+    @abc.abstractmethod
+    def fields() -> dict:
+        pass
 
 
 class EntryFactory(object, metaclass=abc.ABCMeta):
@@ -59,24 +64,37 @@ class EntryFactory(object, metaclass=abc.ABCMeta):
         "up_votes": lambda e: e.ups
     }
 
-    _PRAW_MAP = None
-
-    _TARGET = None
-
     @classmethod
     def from_praw(cls, praw_obj: PrawEntry) -> Entry:
+        """
+        Creates an Entry from a PrawEntry object
+        """
         attrs = {}
-        for key in cls._TARGET.FIELDS:
-            if key in cls._PRAW_MAP:
-                attrs[key] = cls._PRAW_MAP[key](praw_obj)
+        target, fields, praw_map = cls._get_properties()
+        for key in fields:
+            if key in praw_map:
+                attrs[key] = praw_map[key](praw_obj)
             else:
                 attrs[key] = getattr(praw_obj, key)
-        return cls._TARGET(**attrs)
+        return target(**attrs)
+
+    @classmethod
+    def from_row(cls, row: Row) -> Entry:
+        """
+        Creates an Entry from an sqlite.Row object
+        """
+        data = {key: row[key] for key in row.keys()}
+        target = cls._get_properties()[0]
+        return target(**data)
 
     @staticmethod
-    def from_row(row: Row) -> Entry:
-        data = {key: row[key] for key in row.keys()}
-        return Post(**data)
+    @abc.abstractmethod
+    def _get_properties() -> Tuple[Type, dict, dict]:
+        """
+        Subclass implemented method. Returns the target class, field dictionary,
+        and praw conversion map (in that order)
+        """
+        pass
 
 
 class Comment(Entry):
@@ -84,11 +102,16 @@ class Comment(Entry):
     Class for comment entries into the database
     """
 
-    FIELDS = {
+    _FIELDS = {
         **Entry._BASE_FIELDS,
         "root_id": str,
         "parent_id": str
     }
+
+    @staticmethod
+    @property
+    def fields():
+        return Comment._FIELDS
 
 
 class CommentFactory(EntryFactory):
@@ -105,19 +128,28 @@ class CommentFactory(EntryFactory):
 
     _TARGET = Comment
 
+    @staticmethod
+    def _get_properties() -> Tuple[Type, dict, dict]:
+        return CommentFactory._TARGET, Comment.fields, CommentFactory._PRAW_MAP
+
 
 class Post(Entry):
     """
     Class for post entries into the database
     """
 
-    FIELDS = {
+    _FIELDS = {
         **Entry._BASE_FIELDS,
         "permalink": str,
         "up_ratio": float,
         "title": str,
         "external_url": str,
     }
+
+    @staticmethod
+    @property
+    def fields():
+        return Post._FIELDS
 
 
 class PostFactory(EntryFactory):
@@ -135,6 +167,10 @@ class PostFactory(EntryFactory):
 
     _TARGET = Post
 
+    @staticmethod
+    def _get_properties() -> Tuple[Type, dict, dict]:
+        return PostFactory._TARGET, Post.fields, PostFactory._PRAW_MAP
+
 
 class NoSuchAttributeError(AttributeError):
     """
@@ -145,4 +181,4 @@ class NoSuchAttributeError(AttributeError):
 
     def __init__(self, **kwargs):
 
-        self.message = NoSuchAttributeError._FORMAT.format(**kwargs)
+        super().__init__(NoSuchAttributeError._FORMAT.format(**kwargs))
