@@ -86,9 +86,9 @@ class RanalyzeTest(unittest.TestCase):
         Tests the ranalyze.fetch_data() function against a private
         subreddit (r/itvs_testing) with known content
         """
-        
+
         print("Testing Reddit API interface")
-        
+
         end = datetime.datetime.strptime("2016-9-23", "%Y-%m-%d").date()
         start = end - datetime.timedelta(days=14)
         for actual in ranalyze.fetch_data(["itvs_testing"], (start, end)):
@@ -101,17 +101,16 @@ class RanalyzeTest(unittest.TestCase):
             expected = self.EXPECTED_SUBREDDIT_DATA[actual["id"]]
             for key in expected.keys():
                 self.assertEqual(actual[key], expected[key])
-        
+
         print("Tested Reddit API interface")
-        
 
     def test_config(self):
         """
         Tests config.py configuration loading
         """
-        
+
         print("Testing configuration parameters")
-        
+
         backup = sys.argv[:]
 
         config = {
@@ -122,85 +121,84 @@ class RanalyzeTest(unittest.TestCase):
         }
         try:
             Config._validate_config(config)
-            self.fail("argument database_file was missing, but config validation succeeded");
-        except MissingParameterError as error:
+            self.fail("argument database_file was missing, but config validation succeeded")
+        except MissingParameterError:
             pass
-        
+
         config["database_file"] = "db-file.db"
         try:
             Config._validate_config(config)
-            self.fail("argument subreddit was missing, but config validation succeeded");
+            self.fail("argument subreddit was missing, but config validation succeeded")
         except MissingParameterError as error:
             pass
         config["subreddits"] = ["itvs_testing"]
         try:
             Config._validate_config(config)
-            self.fail("argument date_range.after was missing, but config validation succeeded");
+            self.fail("argument date_range.after was missing, but config validation succeeded")
         except MissingParameterError as error:
             pass
         config["date_range"] = {"after":"1969-01-01"}
-        
-        
+
         sys.argv = [
             "ranalyze.py",
             "-d", "db-file.db",
-            "-s","itvs_testing",
-            "-a","1969-01-01"
+            "-s", "itvs_testing",
+            "-a", "1969-01-01"
         ]
-        
-        
-        print("Using arguments",sys.argv)
-        
+
+        print("Using arguments", sys.argv)
+
         Config.initialize()
         config = Config.get_config()
-        
+
         sys.argv = backup
-        
+
         print("Tested configuration parameters")
-    
+
     def test_db(self):
-    
+
         print("Testing Database interface")
-        
+
         db_file = "testing.db"
-        
+
         try:
             # Remove the previous test file if it exists
             os.remove(db_file)
         except OSError:
             pass
-        
+
         Database.create_db(db_file)
-        
+
         database = Database(db_file, False)
-        
-        data_copy = self.EXPECTED_SUBREDDIT_DATA.copy()
-        
+
+        data_copy = {}
+        for key, entry in self.EXPECTED_SUBREDDIT_DATA.items():
+            data_copy[key] = entry.copy()
+
         # add test subreddit data to the DB
         for key, entry in data_copy.items():
-            print(entry)
             database.add_update_entry(entry)
-        
+
         # verify that the db is correct
         for key, entry in data_copy.items():
             db_entry = database.get_entry(key)
             for fieldname, field in entry.items():
                 self.assertEqual(field, db_entry[fieldname])
-        
+
         # change the upvotes on every expected entry
         for key, entry in data_copy.items():
             data_copy[key]["up_votes"] = 1337
-        
+
         # update the db with the new expected data
         for key, entry in data_copy.items():
             database.add_update_entry(entry)
-        
+
         # verify that the db update correctly
         for key, entry in data_copy.items():
             db_entry = database.get_entry(key)
             for fieldname, field in entry.items():
                 self.assertEqual(field, db_entry[fieldname])
-        
+
         print("Tested Database interface")
 
 if __name__ == '__main__':
