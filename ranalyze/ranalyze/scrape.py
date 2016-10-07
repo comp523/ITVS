@@ -9,8 +9,18 @@ Tool to traverse a set of subreddits extracting post/comment information includi
 import datetime
 import praw
 
+from argparse import SUPPRESS
+from itertools import chain
+from typing import (
+    Callable,
+    Iterable
+)
 from .common_types import DateRange
-from .config import Config
+from .config import (
+    Config,
+    DictConfigModule,
+    YAMLSource
+)
 from .database import Database
 from .entry import (
     Comment,
@@ -19,13 +29,52 @@ from .entry import (
     PostFactory
 )
 from .progress import Progress
-from typing import Iterable
 
 
-def fetch_data(subreddit_set: set, date_range: DateRange) -> Iterable[Entry]:
+class ScrapeConfig(DictConfigModule):
+
+    _arguments_dict = {
+        "subreddit selection": {
+            ("-s", "--subreddit"): {
+                "action": "append",
+                "dest": "subreddits",
+                "help": ("subreddit to analyze, may be a single value, "
+                         "or a space-delimited list"),
+                "nargs": "+",
+                "type": str
+            }
+        },
+        "database": {
+            ("-d", "--database-file"): {
+                "help": ("analysis data will be written "
+                         "to this SQLite file"),
+                "type": str
+            }
+        },
+        "configuration": {
+            ("-c", "--config-file"): {
+                "help": "load configuration from file",
+                "type": str
+            }
+        },
+        "development": {
+            ("--debug",): {
+                "help": SUPPRESS,
+                "dest": "debug",
+                "action": "store_true"
+            }
+        }
+    }
+
+    def get_runner(self) -> Callable:
+
+        return main
+
+
+def fetch_data(subreddit_set: set, database: Database) -> Iterable[Entry]:
     """
-    Fetch all posts and associated comments from a given subreddit set, within
-    the specified inclusive date range. Yields both Post and Comment instances.
+    Fetch all posts and associated comments from a given subreddit set, after
+    the given entry id. Yields both Post and Comment instances.
     """
 
     Progress.format = ("Scraped {posts} posts and {comments} comments from "
@@ -69,15 +118,13 @@ def fetch_data(subreddit_set: set, date_range: DateRange) -> Iterable[Entry]:
                         comments=comment_count,
                         subreddit=subreddit_name)
 
-        for post in subreddit.get_new(limit=None):
+        before = database.get_latest_post(subreddit_name)
+
+        params = {"before": before.id} if before is not None else {}
+
+        for post in subreddit.get_new(limit=None, params=params):
 
             post.replace_more_comments(limit=None, threshold=0)
-
-            post_date = datetime.datetime.fromtimestamp(post.created_utc)
-            if post_date.date() > date_range[1]:
-                continue
-            if post_date.date() < date_range[0]:
-                continue
 
             yield(PostFactory.from_praw(post)) # first yields the post itself
 
@@ -99,17 +146,14 @@ def main():
     Excel workbook.
     """
 
-    Config.initialize()
+    config = Config.get_instance()
 
-    config = Config.get_config()
+    if config["config_file"] is not None:
+        config.add_source(YAMLSource(config["config_file"]))
+
+    subreddits = chain(*config["subreddits"])
 
     database = Database(config["database_file"], config["debug"])
 
-    date_range = (config["date_range"]["after"], config["date_range"]["before"])
-
-    for post in fetch_data(config["subreddits"], date_range):
+    for post in fetch_data(subreddits, database):
         database.add_update_entry(post)
-
-
-if __name__ == "__main__":
-    main()

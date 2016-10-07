@@ -5,7 +5,9 @@ Database abstraction class for handling storage of Posts and Comments
 import atexit
 import sqlite3
 
-from .common_types import (DateRange, IntRange)
+from typing import Callable, List, Tuple, Union
+from .common_types import DateRange, IntRange
+from .config import Config, ConfigModule
 from .entry import (
     Comment,
     CommentFactory,
@@ -13,7 +15,6 @@ from .entry import (
     Post,
     PostFactory
 )
-from typing import (List, Tuple, Union)
 from .utils import date_to_timestamp
 
 
@@ -23,9 +24,9 @@ class Database(object):
     Currently implements a SQLite database.
     """
 
-    COMMENT_FIELDS = Comment.FIELDS
+    COMMENT_FIELDS = Comment.get_fields()
 
-    POST_FIELDS = Post.FIELDS
+    POST_FIELDS = Post.get_fields()
 
     ENTRY_TABLE = "entries"
 
@@ -142,6 +143,25 @@ class Database(object):
                                  values).fetchall()
         return [Database._row_to_entry(row) for row in rows]
 
+    def get_latest_post(self, subreddit: str) -> Entry:
+
+        sql_statement = """
+        SELECT id, MAX(time_submitted) FROM {table}
+        WHERE permalink IS NOT NULL
+        AND subreddit=?
+        """.format(table=Database.ENTRY_TABLE)
+
+        params = subreddit.lower(),
+
+        result = self._execute_sql(sql_statement, params).fetchone()
+
+        if result is None:
+            return None
+
+        latest_id = result[0]
+
+        return self.get_entry(latest_id)
+
     def _add_entry(self, entry: Entry):
         """
         Add an item to the database
@@ -255,3 +275,24 @@ class UnknownColumnError(DatabaseError):
 
     def __init__(self, column: str, table: str):
         super().__init__(self._FORMAT.format(column=column, table=table))
+
+
+class DatabaseConfigModule(ConfigModule):
+
+    def initialize(self):
+
+        parser = self._get_subparser()
+        parser.add_argument("name",
+                            help="File name of the SQLite database to create")
+
+    def get_runner(self) -> Callable:
+
+        return create_db
+
+
+def create_db():
+
+    config = Config.get_instance()
+    Database.create_db(config["name"])
+
+    print("Created `{}` successfully".format(config["name"]))

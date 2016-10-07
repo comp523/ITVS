@@ -6,12 +6,11 @@ python <<EOF
 import runpy
 import sys
 
-sys.argv = ["$DIR/ranalyze.py"]
-sys.argv.extend("$@".split(" "))
+sys.argv = "$@".split(" ")
 
 sys.path.insert(1, "$DIR")
 
-import pkg
+import ranalyze
 
-runpy.run_module("pkg.ranalyze", run_name="__main__")
+runpy.run_module("ranalyze")
 EOF

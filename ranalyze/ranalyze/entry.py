@@ -30,10 +30,10 @@ class Entry(object, metaclass=abc.ABCMeta):
 
     def __init__(self, **kwargs):
         self._attrs = {key: (kwargs[key] if key in kwargs else None)
-                       for key in self._get_fields}
+                       for key in self.get_fields()}
 
     def __getattr__(self, item):
-        if item not in self._get_fields:
+        if item not in self.get_fields():
             raise NoSuchAttributeError(class_name=type(self).__name__,
                                        attribute=item)
         return self._attrs[item]
@@ -43,9 +43,8 @@ class Entry(object, metaclass=abc.ABCMeta):
         return self._attrs.copy()
 
     @staticmethod
-    @property
     @abc.abstractmethod
-    def fields() -> dict:
+    def get_fields() -> dict:
         pass
 
 
@@ -58,7 +57,7 @@ class EntryFactory(object, metaclass=abc.ABCMeta):
         "deleted": lambda e: False,
         "id": lambda e: e.fullname,
         "posted_by": lambda e: str(e.author),
-        "subreddit": lambda e: str(e.subreddit),
+        "subreddit": lambda e: str(e.subreddit).lower(),
         "time_submitted": lambda e: e.created_utc,
         "time_updated": lambda e: date_to_timestamp(datetime.utcnow()),
         "up_votes": lambda e: e.ups
@@ -109,8 +108,7 @@ class Comment(Entry):
     }
 
     @staticmethod
-    @property
-    def fields():
+    def get_fields() -> dict:
         return Comment._FIELDS
 
 
@@ -130,7 +128,11 @@ class CommentFactory(EntryFactory):
 
     @staticmethod
     def _get_properties() -> Tuple[Type, dict, dict]:
-        return CommentFactory._TARGET, Comment.fields, CommentFactory._PRAW_MAP
+        return (
+            CommentFactory._TARGET,
+            Comment.get_fields(),
+            CommentFactory._PRAW_MAP
+        )
 
 
 class Post(Entry):
@@ -147,8 +149,7 @@ class Post(Entry):
     }
 
     @staticmethod
-    @property
-    def fields():
+    def get_fields() -> dict:
         return Post._FIELDS
 
 
@@ -169,7 +170,7 @@ class PostFactory(EntryFactory):
 
     @staticmethod
     def _get_properties() -> Tuple[Type, dict, dict]:
-        return PostFactory._TARGET, Post.fields, PostFactory._PRAW_MAP
+        return PostFactory._TARGET, Post.get_fields(), PostFactory._PRAW_MAP
 
 
 class NoSuchAttributeError(AttributeError):
