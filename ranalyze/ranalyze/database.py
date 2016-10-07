@@ -5,23 +5,32 @@ Database abstraction class for handling storage of Posts and Comments
 import atexit
 import sqlite3
 
-from .common_types import (DateRange, IntRange)
-from typing import (List, Tuple, Union)
+from typing import Callable, List, Tuple, Union
+from .common_types import DateRange, IntRange
+from .config import Config, ConfigModule
+from .entry import (
+    Comment,
+    CommentFactory,
+    Entry,
+    Post,
+    PostFactory
+)
 from .utils import date_to_timestamp
 
 
-class Database:
+class Database(object):
     """
     Database wrapper for reading and writing posts and comments to a database.
     Currently implements a SQLite database.
     """
 
+    COMMENT_FIELDS = Comment.get_fields()
+
+    POST_FIELDS = Post.get_fields()
+
     ENTRY_TABLE = "entries"
 
-    ENTRY_COLUMNS = {"id", "permalink", "root_id", "up_votes", "up_ratio",
-                     "time_submitted", "time_updated", "posted_by", "title",
-                     "subreddit", "external_url", "text_content", "parent_id",
-                     "gilded", "deleted"}
+    ENTRY_COLUMNS = {**COMMENT_FIELDS, **POST_FIELDS}
 
     def __init__(self, database_file: str, debug_mode: bool=False):
         """
@@ -35,34 +44,57 @@ class Database:
         self._database.row_factory = sqlite3.Row
         atexit.register(self._close)
 
-    def add_update_entry(self, entry_data: dict):
+    def add_update_entry(self, entry: Entry):
         """
-        Add a post to the database or update if it already exists.
+        Add an entry to the database or update if it already exists.
         """
 
-        for column in entry_data.keys():
-            if column not in self.ENTRY_COLUMNS:
-                raise UnknownColumnError(column=column, table=self.ENTRY_TABLE)
-
-        entry = self.get_entry(entry_data["id"])
-        
-        if entry is None:
-            self._add_entry(entry_data)
+        if self._entry_exists(entry):
+            self._update_entry(entry)
         else:
-            self._update_entry(entry_data)
+            self._add_entry(entry)
 
-    def get_entry(self, entry_id: str) -> sqlite3.Row:
+    @staticmethod
+    def create_db(filename: str):
+        """
+        Create a new, pre-formatted database
+        """
+
+        connection = sqlite3.connect(filename)
+
+        cursor = connection.cursor()
+
+        queries = ("DROP TABLE IF EXISTS {}".format(Database.ENTRY_TABLE),
+                   """
+                   CREATE TABLE {} (
+                   id text PRIMARY KEY, permalink text UNIQUE, root_id text,
+                   up_votes integer, up_ratio real, time_submitted integer,
+                   time_updated integer, posted_by text, title text,
+                   subreddit text, external_url text, text_content text,
+                   parent_id text, gilded integer, deleted integer,
+                   FOREIGN KEY(parent_id) REFERENCES entries(id)
+                   )
+                   """.format(Database.ENTRY_TABLE))
+
+        for query in queries:
+            cursor.execute(query)
+
+        connection.commit()
+        connection.close()
+
+    def get_entry(self, entry_id: str) -> Entry:
         """
         Retrieve an item from the database where column=value.
         """
 
         sql_statement = "SELECT * FROM {} WHERE id=?".format(self.ENTRY_TABLE)
-        return self._execute_sql(sql_statement, (entry_id,)).fetchone()
+        row = self._execute_sql(sql_statement, (entry_id,)).fetchone()
+        return Database._row_to_entry(row)
 
     def get_entries(self, up_vote_range: IntRange=None,
                     up_ratio_range: IntRange=None,
                     time_submitted_range: DateRange=None,
-                    **kwargs) -> List[sqlite3.Row]:
+                    **kwargs) -> List[Entry]:
         """
         Retrieve multiple items from the database matching all supplied
         conditions. Conditions should be in SQL syntax. values supplies
@@ -85,7 +117,7 @@ class Database:
             if up_vote_range[1] is not None:
                 conditions.append("up_votes<=:up_vote_range_end")
                 values["up_vote_range_end"] = up_vote_range[1]
-                
+
         if up_ratio_range is not None:
             if up_ratio_range[0] is not None:
                 conditions.append("up_ratio>=:up_ratio_range_start")
@@ -93,7 +125,7 @@ class Database:
             if up_ratio_range[1] is not None:
                 conditions.append("up_ratio<=:up_ratio_range_end")
                 values["up_ratio_range_end"] = up_ratio_range[1]
-                
+
         if time_submitted_range is not None:
             if time_submitted_range[0] is not None:
                 conditions.append("time_submitted>=:time_submitted_range_start")
@@ -106,21 +138,41 @@ class Database:
 
         sql_statement = "SELECT * FROM {table} WHERE {conditions}"
         conditions = " AND ".join(conditions)
-        return self._execute_sql(sql_statement.format(table=self.ENTRY_TABLE,
+        rows = self._execute_sql(sql_statement.format(table=self.ENTRY_TABLE,
                                                       conditions=conditions),
                                  values).fetchall()
+        return [Database._row_to_entry(row) for row in rows]
 
-    def _add_entry(self, entry_data: dict):
+    def get_latest_post(self, subreddit: str) -> Entry:
+
+        sql_statement = """
+        SELECT id, MAX(time_submitted) FROM {table}
+        WHERE permalink IS NOT NULL
+        AND subreddit=?
+        """.format(table=Database.ENTRY_TABLE)
+
+        params = subreddit.lower(),
+
+        result = self._execute_sql(sql_statement, params).fetchone()
+
+        if result is None:
+            return None
+
+        latest_id = result[0]
+
+        return self.get_entry(latest_id)
+
+    def _add_entry(self, entry: Entry):
         """
         Add an item to the database
         """
 
         sql_statement = "INSERT INTO {table} ({columns}) VALUES ({values})"
-        columns, placeholders = self._dict_to_sql(entry_data, "i")
+        columns, placeholders = self._dict_to_sql(entry.dict, "i")
         self._execute_sql(sql_statement.format(table=self.ENTRY_TABLE,
                                                columns=columns,
                                                values=placeholders),
-                          entry_data, commit=True)
+                          entry.dict, commit=True)
 
     def _close(self):
         """
@@ -128,36 +180,6 @@ class Database:
         """
 
         self._database.close()
-
-    @staticmethod
-    def create_db(filename: str):
-        """
-        Create a new, pre-formatted database
-        """
-
-        connection = sqlite3.connect(filename)
-
-        cursor = connection.cursor()
-
-        queries = ("DROP TABLE IF EXISTS posts",
-                   "DROP TABLE IF EXISTS comments",
-                   "DROP TABLE IF EXISTS entries",
-                   """
-                   CREATE TABLE entries (
-                   id text PRIMARY KEY, permalink text UNIQUE, root_id text,
-                   up_votes integer, up_ratio real, time_submitted integer,
-                   time_updated integer, posted_by text, title text, subreddit text,
-                   external_url text, text_content text, parent_id text, gilded integer,
-                   deleted integer,
-                   FOREIGN KEY(parent_id) REFERENCES entries(id)
-                   )
-                   """)
-
-        for query in queries:
-            cursor.execute(query)
-
-        connection.commit()
-        connection.close()
 
     @staticmethod
     def _dict_to_sql(dictionary: dict,
@@ -180,6 +202,19 @@ class Database:
         elif mode is "u":
             return ", ".join(["{}=:{}".format(i, i) for i in dictionary.keys()])
 
+    def _entry_exists(self, entry: Entry) -> bool:
+        """
+        Check if an entry exists in the database
+        """
+
+        sql_statement = "SELECT COUNT(*) FROM {table} WHERE id=:id".format(
+            table=Database.ENTRY_TABLE
+        )
+
+        row = self._execute_sql(sql_statement, {"id": entry.id}).fetchone()
+
+        return row[0] == 1
+
     def _execute_sql(self, sql: str,
                      params=(),
                      commit: bool=False) -> sqlite3.Cursor:
@@ -198,16 +233,23 @@ class Database:
             self._database.commit()
         return cursor
 
-    def _update_entry(self, entry_dict: dict):
+    @staticmethod
+    def _row_to_entry(row: sqlite3.Row) -> Entry:
+        if row is None:
+            return None
+        factory = CommentFactory if row["permalink"] is None else PostFactory
+        return factory.from_row(row)
+
+    def _update_entry(self, entry: Entry):
         """
         Update an existing entry in the database.
         """
 
         sql_statement = "UPDATE {table} SET {columns} WHERE id=:id"
-        columns = self._dict_to_sql(entry_dict, "u")
+        columns = self._dict_to_sql(entry.dict, "u")
         self._execute_sql(sql_statement.format(table=self.ENTRY_TABLE,
                                                columns=columns),
-                          entry_dict, commit=True)
+                          entry.dict, commit=True)
 
 
 class DatabaseError(Exception):
@@ -221,7 +263,7 @@ class DatabaseError(Exception):
         """
 
         self.message = message
-        Exception.__init__(self, message)
+        super().__init__(message)
 
 
 class UnknownColumnError(DatabaseError):
@@ -232,6 +274,25 @@ class UnknownColumnError(DatabaseError):
     _FORMAT = "No such column `{column}` in table `{table}`"
 
     def __init__(self, column: str, table: str):
-        DatabaseError.__init__(self, self._FORMAT.format(column=column, table=table))
-        
+        super().__init__(self._FORMAT.format(column=column, table=table))
 
+
+class DatabaseConfigModule(ConfigModule):
+
+    def initialize(self):
+
+        parser = self._get_subparser()
+        parser.add_argument("name",
+                            help="File name of the SQLite database to create")
+
+    def get_runner(self) -> Callable:
+
+        return create_db
+
+
+def create_db():
+
+    config = Config.get_instance()
+    Database.create_db(config["name"])
+
+    print("Created `{}` successfully".format(config["name"]))

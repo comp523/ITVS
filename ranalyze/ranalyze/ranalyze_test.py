@@ -10,7 +10,7 @@ import os
 import sys
 import unittest
 
-from . import ranalyze
+from . import scrape
 from .config import Config
 from .config import Database
 from .config import MissingParameterError
@@ -91,7 +91,7 @@ class RanalyzeTest(unittest.TestCase):
 
         end = datetime.datetime.strptime("2016-9-23", "%Y-%m-%d").date()
         start = end - datetime.timedelta(days=14)
-        for actual in ranalyze.fetch_data(["itvs_testing"], (start, end)):
+        for actual in scrape.fetch_data(["itvs_testing"], (start, end)):
             if not actual["id"] in self.EXPECTED_SUBREDDIT_DATA.keys():
                 self.fail("No expected data for entry "+actual["id"])
             if "title" in actual.keys():
@@ -140,7 +140,7 @@ class RanalyzeTest(unittest.TestCase):
         config["date_range"] = {"after":"1969-01-01"}
 
         sys.argv = [
-            "ranalyze.py",
+            "scrape.py",
             "-d", "db-file.db",
             "-s", "itvs_testing",
             "-a", "1969-01-01"
