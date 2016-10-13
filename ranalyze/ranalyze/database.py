@@ -91,8 +91,8 @@ class Database(object):
         row = self._execute_sql(sql_statement, (entry_id,)).fetchone()
         return Database._row_to_entry(row)
 
-    def get_entries(self, up_vote_range: IntRange=None,
-                    up_ratio_range: IntRange=None,
+    def get_entries(self, columns: List[str]=None, distinct: bool=False,
+                    up_vote_range: IntRange=None, up_ratio_range: IntRange=None,
                     time_submitted_range: DateRange=None,
                     **kwargs) -> List[Entry]:
         """
@@ -107,8 +107,23 @@ class Database(object):
         for key, value in kwargs.items():
             if key not in self.ENTRY_COLUMNS:
                 raise UnknownColumnError(column=key, table=self.ENTRY_TABLE)
-            conditions.append("{column}=:{column}".format(column=key))
-            values[key] = value
+            operand = value[0] if type(value) is tuple else "="
+            value = value[1] if type(value) is tuple else value
+            if type(value) is list:
+                conditions.append("({})".format(" OR ".join([
+                    "{column} {operand} :{column}_{i}".format(
+                        column=key,
+                        operand=operand,
+                        i=i) for i in range(len(value))
+                ])))
+                for i in range(len(value)):
+                    values["{}_{}".format(key, i)] = value[i]
+            else:
+                conditions.append("{column} {operand} :{column}".format(
+                    column=key,
+                    operand=operand
+                ))
+                values[key] = value
 
         if up_vote_range is not None:
             if up_vote_range[0] is not None:
@@ -136,10 +151,18 @@ class Database(object):
                 timestamp = date_to_timestamp(time_submitted_range[1])
                 values["time_submitted_range_end"] = timestamp
 
-        sql_statement = "SELECT * FROM {table} WHERE {conditions}"
+        columns = "*" if columns is None else ", ".join(columns)
+
+        select = "SELECT"
+        if distinct:
+            select += " DISTINCT"
+
+        sql_statement = "{select} {columns} FROM {table} WHERE {conditions}"
         conditions = " AND ".join(conditions)
         rows = self._execute_sql(sql_statement.format(table=self.ENTRY_TABLE,
-                                                      conditions=conditions),
+                                                      conditions=conditions,
+                                                      columns=columns,
+                                                      select=select),
                                  values).fetchall()
         return [Database._row_to_entry(row) for row in rows]
 

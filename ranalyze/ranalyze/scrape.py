@@ -31,7 +31,7 @@ from .entry import (
 from .progress import Progress
 
 
-class ScrapeConfig(DictConfigModule):
+class ScrapeConfigModule(DictConfigModule):
 
     _arguments_dict = {
         "subreddit selection": {
@@ -55,13 +55,6 @@ class ScrapeConfig(DictConfigModule):
             ("-c", "--config-file"): {
                 "help": "load configuration from file",
                 "type": str
-            }
-        },
-        "development": {
-            ("--debug",): {
-                "help": SUPPRESS,
-                "dest": "debug",
-                "action": "store_true"
             }
         }
     }
@@ -153,7 +146,7 @@ def main():
 
     subreddits = chain(*config["subreddits"])
 
-    database = Database(config["database_file"], config["debug"])
+    database = Database(config["database_file"])
 
     for post in fetch_data(subreddits, database):
         database.add_update_entry(post)
