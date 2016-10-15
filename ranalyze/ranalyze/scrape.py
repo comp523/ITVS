@@ -138,7 +138,6 @@ def fetch_post(permalink: str, database: Database) -> Iterable[Entry]:
     For use in updating and importing from csv
     """
     # api wrapper connection
-    entry = database.get_entry(entry_id)
     reddit = praw.Reddit(user_agent="Documenting ecig subs")
     post = reddit.get_submission(entry.permalink)
     yield(PostFactory.from_praw(post))
