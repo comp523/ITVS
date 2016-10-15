@@ -131,7 +131,7 @@ def fetch_data(subreddit_set: set, database: Database) -> Iterable[Entry]:
                 comment_count += 1
                 Progress.update(comments=comment_count)
 
-def fetch_post(permalink: str, database: Database) -> Iterable[Entry]:
+def fetch_post(permalink: str) -> Iterable[Entry]:
     """
     Fetches posts by permalink
     Yields both post and child comment instances
