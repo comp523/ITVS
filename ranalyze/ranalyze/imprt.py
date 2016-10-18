@@ -14,7 +14,7 @@ from .config import (
     Config,
     DictConfigModule
 )
-from .database import Database
+from .database.database import Database
 from .scrape import fetch_post
 
 
