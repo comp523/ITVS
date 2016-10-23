@@ -3,7 +3,7 @@ Main control flow for the package
 """
 
 from .config import Config
-from .database import DatabaseConfigModule
+from .database.database import DatabaseConfigModule
 from .scrape import ScrapeConfigModule
 from .search import SearchConfigModule
 from .imprt import ImportConfig

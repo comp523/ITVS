@@ -21,7 +21,7 @@ from .config import (
     DictConfigModule,
     YAMLSource
 )
-from .database import Database
+from .database.database import Database
 from .entry import (
     Comment,
     CommentFactory,
