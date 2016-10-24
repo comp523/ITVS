@@ -6,11 +6,13 @@ Analysis tool to traverse a set of subreddits extracting post information includ
  - Number of upvotes/downvotes
 """
 import datetime
+import os
 import sys
 import unittest
 
-from . import ranalyze
+from . import scrape
 from .config import Config
+from .config import Database
 from .config import MissingParameterError
 
 
@@ -19,7 +21,8 @@ class RanalyzeTest(unittest.TestCase):
     Unit tests for the ranalyze module
     """
     EXPECTED_SUBREDDIT_DATA = {
-        "541kdo":{ # id
+        "541kdo":{
+            "id":"541kdo",
             "permalink":"https://www.reddit.com/r/itvs_testing/comments/541kdo/radical_place_to_discuss_vaping/",
             "up_votes":1,
             #"up_ratio":1,
@@ -32,7 +35,8 @@ class RanalyzeTest(unittest.TestCase):
             "text_content":"",
             "gilded":False
         },
-        "d7y3d8z":{ # id
+        "d7y3d8z":{
+            "id":"d7y3d8z",
             "root_id":"541kdo",
             "up_votes":1,
             "time_submitted":1474583379,
@@ -41,7 +45,8 @@ class RanalyzeTest(unittest.TestCase):
             "parent_id":"t3_541kdo",
             "gilded":False,
         },
-        "d82mfzb":{ # id
+        "d82mfzb":{
+            "id":"d82mfzb",
             "root_id":"541kdo",
             "up_votes":1,
             "time_submitted":1474898358,
@@ -50,7 +55,8 @@ class RanalyzeTest(unittest.TestCase):
             "parent_id":"t1_d7y3d8z",
             "gilded":False,
         },
-        "541k35":{ # id
+        "541k35":{
+            "id":"541k35",
             "permalink":"https://www.reddit.com/r/itvs_testing/comments/541k35/vaping_is_so_cool/",
             "up_votes":1,
             #"up_ratio":1,
@@ -64,6 +70,7 @@ class RanalyzeTest(unittest.TestCase):
             "gilded":False
            },
         "d7y2u6h":{ # id
+            "id":"d7y2u6h",
             "root_id":"541k35",
             "up_votes":1,
             "time_submitted":1474582611,
@@ -79,9 +86,12 @@ class RanalyzeTest(unittest.TestCase):
         Tests the ranalyze.fetch_data() function against a private
         subreddit (r/itvs_testing) with known content
         """
+
+        print("Testing Reddit API interface")
+
         end = datetime.datetime.strptime("2016-9-23", "%Y-%m-%d").date()
         start = end - datetime.timedelta(days=14)
-        for actual in ranalyze.fetch_data(["itvs_testing"], (start, end)):
+        for actual in scrape.fetch_data(["itvs_testing"], (start, end)):
             if not actual["id"] in self.EXPECTED_SUBREDDIT_DATA.keys():
                 self.fail("No expected data for entry "+actual["id"])
             if "title" in actual.keys():
@@ -92,10 +102,15 @@ class RanalyzeTest(unittest.TestCase):
             for key in expected.keys():
                 self.assertEqual(actual[key], expected[key])
 
+        print("Tested Reddit API interface")
+
     def test_config(self):
         """
         Tests config.py configuration loading
         """
+
+        print("Testing configuration parameters")
+
         backup = sys.argv[:]
 
         config = {
@@ -106,39 +121,85 @@ class RanalyzeTest(unittest.TestCase):
         }
         try:
             Config._validate_config(config)
-            self.fail("argument database_file was missing, but config validation succeeded");
-        except MissingParameterError as error:
+            self.fail("argument database_file was missing, but config validation succeeded")
+        except MissingParameterError:
             pass
-        
+
         config["database_file"] = "db-file.db"
         try:
             Config._validate_config(config)
-            self.fail("argument subreddit was missing, but config validation succeeded");
+            self.fail("argument subreddit was missing, but config validation succeeded")
         except MissingParameterError as error:
             pass
         config["subreddits"] = ["itvs_testing"]
         try:
             Config._validate_config(config)
-            self.fail("argument date_range.after was missing, but config validation succeeded");
+            self.fail("argument date_range.after was missing, but config validation succeeded")
         except MissingParameterError as error:
             pass
         config["date_range"] = {"after":"1969-01-01"}
-        
-        
+
         sys.argv = [
-            "ranalyze.py",
+            "scrape.py",
             "-d", "db-file.db",
-            "-s","itvs_testing",
-            "-a","1969-01-01"
+            "-s", "itvs_testing",
+            "-a", "1969-01-01"
         ]
-        
-        
-        print("Using arguments",sys.argv)
-        
+
+        print("Using arguments", sys.argv)
+
         Config.initialize()
         config = Config.get_config()
-        
+
         sys.argv = backup
+
+        print("Tested configuration parameters")
+
+    def test_db(self):
+
+        print("Testing Database interface")
+
+        db_file = "testing.db"
+
+        try:
+            # Remove the previous test file if it exists
+            os.remove(db_file)
+        except OSError:
+            pass
+
+        Database.create_db(db_file)
+
+        database = Database(db_file, False)
+
+        data_copy = {}
+        for key, entry in self.EXPECTED_SUBREDDIT_DATA.items():
+            data_copy[key] = entry.copy()
+
+        # add test subreddit data to the DB
+        for key, entry in data_copy.items():
+            database.add_update_entry(entry)
+
+        # verify that the db is correct
+        for key, entry in data_copy.items():
+            db_entry = database.get_entry(key)
+            for fieldname, field in entry.items():
+                self.assertEqual(field, db_entry[fieldname])
+
+        # change the upvotes on every expected entry
+        for key, entry in data_copy.items():
+            data_copy[key]["up_votes"] = 1337
+
+        # update the db with the new expected data
+        for key, entry in data_copy.items():
+            database.add_update_entry(entry)
+
+        # verify that the db update correctly
+        for key, entry in data_copy.items():
+            db_entry = database.get_entry(key)
+            for fieldname, field in entry.items():
+                self.assertEqual(field, db_entry[fieldname])
+
+        print("Tested Database interface")
 
 if __name__ == '__main__':
     unittest.main()

@@ -14,6 +14,8 @@ class Progress:
 
     format = ""
 
+    _used = False
+
     def __init__(self):
         """
         Disable initialization
@@ -23,9 +25,13 @@ class Progress:
 
         raise NotImplementedError(message=error_message)
 
-
     @staticmethod
     @atexit.register
+    def _atexit_freeze():
+        if Progress._used:
+            Progress.freeze()
+
+    @staticmethod
     def freeze():
         """
         Freeze the current progress. Future calls to update will be on the
@@ -39,6 +45,8 @@ class Progress:
         """
         Update the progress with new values
         """
+
+        Progress._used = True
 
         # Update any params specified in kwargs
         Progress._params.update(kwargs)

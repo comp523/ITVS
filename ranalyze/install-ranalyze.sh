@@ -9,6 +9,3 @@ then
     hash -r
 fi
 conda env create
-echo "export PATH=\"$(pwd)/bin:\$PATH\"" >> $HOME/.bashrc
-chmod +x bin/ranalyze
-chmod +x bin/ranalyze-make-db
