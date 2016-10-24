@@ -14,26 +14,33 @@ title: ITVS | ranalyze
 **NOTE:** only Linux is supported.
 
 1. Open a bash terminal
-2. Download the latest update  
+2. Navigate to your preferred installation directory  
+    `cd ~`
+3. Download the latest update  
     `wget -O itvs.tgz https://github.com/comp523/ITVS/tarball/master`
-3. Extract the archive  
+4. Extract the archive  
     `tar -xzf itvs.tgz`
-4. Navigate to the ranalyze folder  
+5. Navigate to the ranalyze folder  
     `cd comp523-ITVS-*/ranalyze`
-5. Run the installer  
+6. Run the installer  
     `bash install-ranalyze.sh`
-    
-### To create a database
-
-1. Open a bash terminal
-2. Run  
-    `ranalyze-make-db db_name.db`
 
 ***
  
 ## Command Line Interface
 
+### Commands
+
+To run commands in the module, you must be in the ranalyze folder:  
+`python -m ranalyze command [options]`
+
+ - `create-db` - Create a formatted database for use with ranalyze
+ - `import` - Import a list of Reddit post/comment permalinks to a local database
+ - `scrape` - Scrape Reddit for new posts and comments
+ - `search` - Search a local database for specific keywords
+
 ### Usage
+
 
 ```
 ranalyze [-h] [-d DATABASE_FILE] [-s SUBREDDITS [SUBREDDITS ...]]
