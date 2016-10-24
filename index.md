@@ -23,9 +23,8 @@ show_back_to_top: true
  - [Functional Specification](#use-cases)
  - [Design Doc](/ITVS/design), which includes the architecture diagram
  - [Test Plan](/ITVS/testing)
- - [User Manual](/ITVS/ranalyze)
+ - [User Manual/Executable Code/Instructions](/ITVS/ranalyze)
  - [Version-controlled Repository]({{ site.git.project_url }})
- - Executable Code and Instructions
  
 ## Sub-Components
  - **[ranalyze](/ITVS/ranalyze):** Analysis tool to traverse a set of subreddits extracting post information.
