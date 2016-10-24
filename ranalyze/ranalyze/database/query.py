@@ -11,8 +11,9 @@ class Condition:
 
     _param_counter = 0
 
+    params = {}
+
     def __init__(self, *args):
-        self.params = {}
         self.sql = ""
         nargs = len(args)
         if nargs > 0:
@@ -23,9 +24,15 @@ class Condition:
                 if operand == "=":
                     operand = "IS"
             else:
-                param = ":_c{}".format(Condition._param_counter)
-                Condition._param_counter += 1
-                self.params[param[1:]] = value  # slice the colon from param
+                if value in Condition.params.values():
+                    keys = Condition.params.keys()
+                    values = Condition.params.values()
+                    param_id = list(keys)[list(values).index(value)]
+                    param = ":{}".format(param_id)
+                else:
+                    param = ":_c{}".format(Condition._param_counter)
+                    Condition._param_counter += 1
+                    self.params[param[1:]] = value  # slice the colon from param
             self.sql = "{} {} {}".format(column, operand, param)
 
     def __and__(self, other: 'Condition') -> 'Condition':
@@ -47,6 +54,13 @@ class Condition:
         else:
             condition.sql = "({} OR {})".format(self.sql, other.sql)
         condition.params = {**self.params, **other.params}
+        return condition
+
+    def __invert__(self):
+
+        condition = Condition()
+        condition.sql = "NOT ({})".format(self.sql)
+        condition.params = self.params
         return condition
 
 
@@ -123,7 +137,7 @@ class UpdateQuery(Query):
     """
     """
 
-    FORMAT = "UPDATE {table} SET {columns} {where}"
+    FORMAT = "UPDATE {table} SET ({columns}) WHERE {where}"
 
     def __init__(self, table: str, values: dict, where: Condition):
 

@@ -177,7 +177,7 @@ class Config(object):
         module.initialize()
         self.modules.append(module)
 
-    def parse(self, args: List[str]=sys.argv) -> Callable:
+    def parse(self, args: List[str]=None) -> Callable:
         """
         Parse configuration from the command line first. Once the valid,
         registered sub-command is determined. Configuration parameters from
@@ -189,7 +189,8 @@ class Config(object):
            - Lists are concatenated
         """
 
-        parsed = self.parser.parse_args(args)
+        parsed = (self.parser.parse_args(args) if args
+                  else self.parser.parse_args())
 
         # find corresponding submodule
 

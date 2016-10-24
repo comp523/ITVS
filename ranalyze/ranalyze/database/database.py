@@ -109,7 +109,10 @@ class Database(object):
 
         query = SelectQuery(table=Database.ENTRY_TABLE,
                             where=Condition("id", entry_id))
-        return self.execute_query(query)[0]
+        result = self.execute_query(query)
+        if len(result) > 0:
+            return result[0]
+        return None
 
     def get_latest_post(self, subreddit: str) -> Entry:
 
