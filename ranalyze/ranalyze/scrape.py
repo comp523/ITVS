@@ -139,7 +139,7 @@ def fetch_post(permalink: str) -> Iterable[Entry]:
     """
     # api wrapper connection
     reddit = praw.Reddit(user_agent="Documenting ecig subs")
-    post = reddit.get_submission(entry.permalink)
+    post = reddit.get_submission(permalink)
     yield(PostFactory.from_praw(post))
     for comment in traverse_comments(post.comments):
         yield(comment)
