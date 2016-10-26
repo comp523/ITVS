@@ -70,14 +70,6 @@ class SearchConfigModule(DictConfigModule):
         return main
 
 
-from enum import Enum
-import abc
-import re
-from typing import Tuple, Type
-
-QUOTE_PATTERN = re.compile(r"^([\"'])(?P<text>.*)\1$")
-
-
 class ASTNode(object, metaclass=abc.ABCMeta):
     def __init__(self, data, *children: Tuple['ASTNode']):
         self.children = children
