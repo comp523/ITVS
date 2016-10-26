@@ -83,15 +83,16 @@ class Query(object, metaclass=abc.ABCMeta):
 class InsertQuery(Query):
     """"""
 
-    FORMAT = "INSERT INTO {table} {columns} VALUES {values}"
+    FORMAT = "INSERT INTO {table} ({columns}) VALUES ({values})"
 
     def __init__(self, table: str, values: dict):
 
         params = {key: "_i{}".format(i) for i, key in enumerate(values)}
         self._params = {param: values[key] for key, param in params.items()}
+        values = ", ".join([":{}".format(v) for v in params.values()])
         self._sql = InsertQuery.FORMAT.format(table=table,
-                                              columns=params.keys(),
-                                              values=params.values())
+                                              columns=", ".join(params.keys()),
+                                              values=values)
 
     @property
     def sql(self) -> str:
