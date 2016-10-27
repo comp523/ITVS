@@ -6,10 +6,8 @@ import abc
 import re
 
 from csv import DictWriter
-from enum import Enum
 from json import dumps
 from sys import stdout
-from typing import Tuple, Type
 from .config import Config, DictConfigModule
 from .database.database import Database
 from .database.query import Condition, SelectQuery
@@ -71,233 +69,208 @@ class SearchConfigModule(DictConfigModule):
 
 
 class ASTNode(object, metaclass=abc.ABCMeta):
-    def __init__(self, data, *children: Tuple['ASTNode']):
-        self.children = children
+    def __init__(self, data, left_child: 'ASTNode' = None,
+                 right_child: 'ASTNode' = None):
         self.data = data
+        self.left_child = left_child
+        self.right_child = right_child
 
 
 class OperatorNode(ASTNode, metaclass=abc.ABCMeta):
-    """
-    Base class for nodes that serve as an operator
-    """
+    NAME = None
 
-    @staticmethod
-    @abc.abstractmethod
-    def operate(*operands):
-        """
-        Subclasses should implement this to perform their specific Pythonic
-        operational equivalent to one or more operands.
-        """
-        pass
+    def __gt__(self, other):
+        if not isinstance(other, OperatorNode):
+            message = "unorderable types {} > {}".format(self.__class__,
+                                                         other.__class__)
+            raise TypeError(message)
+        return OPERATOR_PRECEDENCE[self.__class__] > OPERATOR_PRECEDENCE[
+            other.__class__]
 
+    def __lt__(self, other):
+        if not isinstance(other, OperatorNode):
+            message = "unorderable types {} < {}".format(self.__class__,
+                                                         other.__class__)
+            raise TypeError(message)
+        return OPERATOR_PRECEDENCE[self.__class__] < OPERATOR_PRECEDENCE[
+            other.__class__]
 
-class InfixNode(OperatorNode, metaclass=abc.ABCMeta):
-    """
-    Base class for infix operator nodes
-    """
-    pass
+    def __ge__(self, other):
+        if not isinstance(other, OperatorNode):
+            message = "unorderable types {} >= {}".format(self.__class__,
+                                                          other.__class__)
+            raise TypeError(message)
+        return OPERATOR_PRECEDENCE[self.__class__] >= OPERATOR_PRECEDENCE[
+            other.__class__]
 
-
-class PrefixNode(OperatorNode, metaclass=abc.ABCMeta):
-    """
-    Base class for prefix, unary operator nodes.
-    """
-    pass
-
-
-class AndNode(InfixNode):
-    def __init__(self, *children: Tuple[ASTNode]):
-        super().__init__(Operator.AND, *children)
-
-    @staticmethod
-    def operate(*operands):
-        result = operands[0]
-        for operand in operands[1:]:
-            result &= operand
-        return result
+    def __le__(self, other):
+        if not isinstance(other, OperatorNode):
+            message = "unorderable types {} <= {}".format(self.__class__,
+                                                          other.__class__)
+            raise TypeError(message)
+        return OPERATOR_PRECEDENCE[self.__class__] <= OPERATOR_PRECEDENCE[
+            other.__class__]
 
 
-class NotNode(PrefixNode):
-    def __init__(self, child: ASTNode):
-        super().__init__(Operator.NOT, child)
+class AndNode(OperatorNode):
+    NAME = "AND"
 
-    @staticmethod
-    def operate(*operands):
-        return ~operands[0]
+    def __init__(self, left_child: ASTNode = None, right_child: ASTNode = None):
+        super().__init__(AndNode.NAME, left_child, right_child)
 
 
-class OrNode(InfixNode):
-    def __init__(self, *children: Tuple[ASTNode]):
-        super().__init__(Operator.OR, *children)
+class OrNode(OperatorNode):
+    NAME = "OR"
 
-    @staticmethod
-    def operate(*operands):
-        result = operands[0]
-        for operand in operands[1:]:
-            result |= operand
-        return result
+    def __init__(self, left_child: ASTNode = None, right_child: ASTNode = None):
+        super().__init__(OrNode.NAME, left_child, right_child)
 
 
 class TextNode(ASTNode):
-    def __init__(self, data):
+    def __init__(self, data: str):
         super().__init__(data)
 
 
-class Operator(Enum):
-    NOT = NotNode
-    AND = AndNode
-    OR = OrNode
+class NotNode(ASTNode):
+    NAME = "NOT"
 
-    def __init__(self, node_type: Type[ASTNode]):
-        self.node_type = node_type
-        self.precedence = [OrNode, AndNode, NotNode].index(node_type)
+    def __init__(self, child: ASTNode = None):
+        super().__init__(NotNode.NAME, child)
 
-    def __gt__(self, other):
-        if self.__class__ is other.__class__:
-            return self.precedence > other.precedence
+OPERATOR_PRECEDENCE = {
+    AndNode: 2,
+    OrNode: 1
+    # NOT Tokens are parsed separately, no need to assign precedence
+}
 
-    def __lt__(self, other):
-        if self.__class__ is other.__class__:
-            return self.precedence < other.precedence
+OPERATOR_TOKENS = {
+    AndNode.NAME: AndNode,
+    OrNode.NAME: OrNode,
+    NotNode.NAME: NotNode
+}
 
-    def __ge__(self, other):
-        if self.__class__ is other.__class__:
-            return self.precedence >= other.precedence
+OPERATOR_ACTIONS = {
+    AndNode: lambda a, b: a & b,
+    OrNode: lambda a, b: a | b,
+    NotNode: lambda a, b=None: ~a
+}
 
-    def __le__(self, other):
-        if self.__class__ is other.__class__:
-            return self.precedence <= other.precedence
+QUOTES = "'\""
 
 
-class ExpressionAST(object):
+def expression_to_tree(expression: str) -> ASTNode:
     """
-    Syntax tree for representing search logic
+    A recursive decent parser using the shunting-yard algorithm to convert
+    a well-formed expression string into an abstract syntax tree. The root
+    node of this tree is returned.
     """
 
-    def __init__(self, root_node: ASTNode):
-        self.root_node = root_node
+    # break string into tokens, parsing parenthesized sub-expressions
 
-    @staticmethod
-    def from_expression(expression: str) -> 'ExpressionAST':
-        """
-        Convert an expression string into a full ExpressionTree.
-        Expression strings must be in the following format:
-        """
-        # TODO: describe syntax
+    tokens = []
+    current_token = ""
+    in_quotes = False
+    paren_count = 0
+    paren_start = None
 
-        node_list = []
+    for i, c in enumerate(expression):
 
-        # split the expression into a list of tokens and subtrees
-        # parenthesized content is isolated and parsed into a subtree first
-
-        paren_start = None
-        paren_count = 0
-        append_next = False
-
-        for i, c in enumerate(expression):
-
-            if c == "(":
-                append_next = False
-                if paren_count == 0:
-                    paren_start = i
-                paren_count += 1
-
-            elif c == ")":
-                append_next = False
-                paren_count -= 1
-                if paren_count == 0:  # process the parenthesized content
-                    sub_expression = expression[paren_start + 1:i]
-                    sub_tree = ExpressionAST.from_expression(sub_expression)
-                    node_list.append(sub_tree.root_node)
-                elif paren_count < 0:
-                    raise RuntimeError(
-                        "Unbalanced right parentheses in search expression")
-
-            elif paren_count > 0:  # don't append what's in the parentheses
-                continue
-
-            elif c == " ":  # start a new node next time
-                append_next = True
-
-            elif (not node_list
-                  or isinstance(node_list[-1], ASTNode)
-                  or append_next):  # start a new node with c
-                append_next = False
-                node_list.append(c)
-
-            else:  # add c to the current node
-                node_list[-1] += c
-
-        if paren_count != 0:
-            raise RuntimeError(
-                "Unbalanced left parentheses in search expression")
-
-        # convert string tokens to operators and TextNodes
-
-        for i, node in enumerate(node_list):
-
-            if isinstance(node, ASTNode):
-                continue
-
-            match = QUOTE_PATTERN.match(node)
-
-            if node.upper() in Operator.__members__:
-                node_list[i] = Operator[node.upper()].name
-            elif match:
-                node_list[i] = TextNode(match.group("text"))
+        if c in QUOTES and paren_count == 0:
+            if in_quotes:
+                tokens.append(current_token + c)
+                current_token = ""
+                in_quotes = False
             else:
-                raise RuntimeError(
-                    "Invalid token `{}` in search expression".format(node))
+                in_quotes = True
+                if current_token:
+                    tokens.append(current_token)
+                current_token = c
+        elif c == " " and not in_quotes and paren_count == 0:
+            if current_token:
+                tokens.append(current_token)
+            current_token = ""
+        elif c == "(":
+            paren_count += 1
+            if paren_count == 1:
+                paren_start = i
+        elif c == ")":
+            paren_count -= 1
+            if paren_count == -1:
+                raise RuntimeError("Unbalanced right parenthesis in expression")
+            if paren_count == 0:
+                tokens.append(expression_to_tree(expression[paren_start + 1:i]))
+                current_token = ""
+        elif paren_count == 0:
+            current_token += c
 
-        # parse prefix operators
+    if paren_count > 0:
+        raise RuntimeError("Unbalanced left parenthesis in expression")
 
-        output_stack = []
+    # convert string tokens to ASTNodes
 
-        node_list.reverse()
+    nodes = []
 
-        while node_list:
-            node = node_list.pop()
-            if node in Operator.__members__:
-                operator = Operator[node]
-                if issubclass(operator.node_type, PrefixNode):
-                    node = operator.node_type(node_list.pop())
-            output_stack.append(node)
+    for token in tokens:
 
-        node_list = output_stack
+        if isinstance(token, ASTNode):
+            nodes.append(token)
+            continue
 
-        # Shunting-Yard Algorithm to parse infix operators
+        # noinspection PyTypeChecker
+        match = QUOTE_PATTERN.match(token)
 
-        operand_stack = []
-        operator_stack = []
+        if token.upper() in OPERATOR_TOKENS:
+            nodes.append(OPERATOR_TOKENS[token.upper()]())
+        elif match:
+            nodes.append(TextNode(match.group("text")))
+        else:
+            raise RuntimeError(
+                "Invalid token `{}` in expression string".format(token))
 
-        while node_list:
-            node = node_list.pop()
-            try:
-                operator = Operator[node]
-                if operator_stack and operator_stack[-1] >= operator:
-                    operand_stack.append(operator_stack.pop())
-                operator_stack.append(operator)
-            except KeyError:
-                operand_stack.append(node)
+    # parse NOT tokens
 
-        operator_stack.reverse()
-        operand_stack.extend(operator_stack)
+    infix_nodes = []
 
-        output_stack = []
+    nodes.reverse()
 
-        operand_stack.reverse()
+    while nodes:
+        node = nodes.pop()
+        if isinstance(node, NotNode):
+            node.left_child = nodes.pop()
+        infix_nodes.append(node)
 
-        while operand_stack:
-            node = operand_stack.pop()
-            if isinstance(node, Operator):
-                if issubclass(node.node_type, InfixNode):
-                    node = node.node_type(output_stack.pop(),
-                                          output_stack.pop())
-                else:
-                    node = node.node_type(output_stack.pop())
-            output_stack.append(node)
+    # set up nodes as a stack
 
-        return ExpressionAST(output_stack.pop())
+    infix_nodes.reverse()
+
+    # shunting-yard
+
+    operator_stack = []
+    operand_stack = []
+
+    while infix_nodes:
+        node = infix_nodes.pop()
+        if isinstance(node, OperatorNode):
+            if operator_stack and operator_stack[-1] >= node:
+                operand_stack.append(operator_stack.pop())
+            operator_stack.append(node)
+        else:
+            operand_stack.append(node)
+
+    operand_stack.extend(operator_stack[::-1])
+
+    operand_stack.reverse()
+
+    output_stack = []
+
+    while operand_stack:
+        node = operand_stack.pop()
+        if isinstance(node, OperatorNode):
+            node.left_child = output_stack.pop()
+            node.right_child = output_stack.pop()
+        output_stack.append(node)
+
+    return output_stack.pop()
 
 
 def multi_column_condition(columns, operand, value) -> Condition:
@@ -310,24 +283,21 @@ def multi_column_condition(columns, operand, value) -> Condition:
     return condition
 
 
-def tree_to_condition(tree: ExpressionAST) -> Condition:
+def tree_to_condition(node: ASTNode) -> Condition:
     """
-    Convert an ExpressionTree to a Condition
+    Recursively convert an ASTNode to a Condition
     """
 
-    def node_to_condition(node: ASTNode) -> Condition:
-        """
-        Recursively convert an individual ExpressionNode to a Condition
-        """
-
-        if isinstance(node, TextNode):
-            value = "%{}%".format(node.data)
-            return multi_column_condition(KEYWORD_COLUMNS, "LIKE", value)
-        elif isinstance(node, OperatorNode):
-            return node.operate(*(node_to_condition(child) for child
-                                in node.children))
-
-    return node_to_condition(tree.root_node)
+    if isinstance(node, TextNode):
+        value = "%{}%".format(node.data)
+        return multi_column_condition(KEYWORD_COLUMNS, "LIKE", value)
+    elif node.__class__ in OPERATOR_ACTIONS:
+        action = OPERATOR_ACTIONS[node.__class__]
+        a = tree_to_condition(node.left_child)
+        b = tree_to_condition(node.right_child) if node.right_child else None
+        return action(a, b)
+    else:
+        raise RuntimeError("Unrecognized node type `{}`".format(node.__class__))
 
 
 def main():
@@ -345,7 +315,7 @@ def main():
                                                        word)
             condition |= keyword_condition
     elif config["expression"]:
-        tree = ExpressionAST.from_expression(config["expression"])
+        tree = expression_to_tree(config["expression"])
         condition = tree_to_condition(tree)
 
     if config["subreddit"]:
