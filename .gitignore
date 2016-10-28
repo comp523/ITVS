@@ -2,6 +2,10 @@
 .idea/
 #Python module cache
 *.pyc
+#Python setuputils
+ranalyze/build
+ranalyze/dist
+ranalyze/ranalyze.egg-info
 #Old virtual environment
 venv/
 #Jekyll site folders

@@ -3,18 +3,16 @@ Tool to import a set of permalinks from a csv into the database
 """
 
 import csv
-import praw
 from argparse import SUPPRESS
-from itertools import chain
 from typing import (
-    Callable,
-    Iterable
+    Callable
 )
+
+from .database import Database
 from .config import (
     Config,
     DictConfigModule
 )
-from .database.database import Database
 from .scrape import fetch_post
 
 

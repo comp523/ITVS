@@ -4,15 +4,14 @@ Submodule providing database search functionality
 
 import abc
 import re
-
 from csv import DictWriter
 from json import dumps
 from sys import stdout
-from .config import Config, DictConfigModule
-from .database.database import Database
-from .database.query import Condition, SelectQuery
-from .utils import iso_to_date
 
+from ranalyze.ranalyze.query import Condition, SelectQuery
+from .config import Config, DictConfigModule
+from .database import Database
+from .utils import iso_to_date
 
 KEYWORD_COLUMNS = {"text_content", "title"}
 
@@ -202,6 +201,9 @@ def expression_to_tree(expression: str) -> ASTNode:
                 current_token = ""
         elif paren_count == 0:
             current_token += c
+
+    if current_token:
+        tokens.append(current_token)
 
     if paren_count > 0:
         raise RuntimeError("Unbalanced left parenthesis in expression")
