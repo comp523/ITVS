@@ -6,22 +6,21 @@ Tool to traverse a set of subreddits extracting post/comment information includi
  - Number of upvotes/downvotes
 """
 
-import datetime
-import praw
-
-from argparse import SUPPRESS
 from itertools import chain
 from typing import (
     Callable,
     Iterable
 )
+
+import praw
+
+from .database import Database
 from .common_types import DateRange
 from .config import (
     Config,
     DictConfigModule,
     YAMLSource
 )
-from .database.database import Database
 from .entry import (
     Comment,
     CommentFactory,

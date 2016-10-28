@@ -4,10 +4,10 @@ Database abstraction class for handling storage of Posts and Comments
 
 import atexit
 import sqlite3
-
 from typing import Callable
-from ..config import Config, ConfigModule
-from ..entry import (
+
+from .config import Config, ConfigModule
+from .entry import (
     Comment,
     CommentFactory,
     Entry,
