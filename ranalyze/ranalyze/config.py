@@ -139,7 +139,7 @@ class Config(object):
 
         self.modules = []
         self.parser = ArgumentParser("ranalyze")
-        self.sub_parsers = self.parser.add_subparsers(dest="submodule_name")
+        self.sub_parsers = self.parser.add_subparsers(dest="function")
         self._config = {}
 
     def __getitem__(self, item):
@@ -197,8 +197,11 @@ class Config(object):
         submodule = None
 
         for module in self.modules:
-            if module.name == parsed.submodule_name:
+            if module.name == parsed.function:
                 submodule = module
+
+        if not submodule:
+            self.parser.error("no function selected")
 
         self._config = vars(parsed)
 

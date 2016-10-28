@@ -203,6 +203,9 @@ def expression_to_tree(expression: str) -> ASTNode:
         elif paren_count == 0:
             current_token += c
 
+    if current_token:
+        tokens.append(current_token)
+
     if paren_count > 0:
         raise RuntimeError("Unbalanced left parenthesis in expression")
 
