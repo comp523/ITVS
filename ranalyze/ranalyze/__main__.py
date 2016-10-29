@@ -2,12 +2,11 @@
 Main control flow for the package
 """
 
+from .database import DatabaseConfigModule
 from .config import Config
-from .database.database import DatabaseConfigModule
+from .imprt import ImportConfig
 from .scrape import ScrapeConfigModule
 from .search import SearchConfigModule
-from .imprt import ImportConfig
-
 
 def main():
 

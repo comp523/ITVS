@@ -4,17 +4,14 @@ Submodule providing database search functionality
 
 import abc
 import re
-
 from csv import DictWriter
-from enum import Enum
 from json import dumps
 from sys import stdout
-from typing import Tuple, Type
-from .config import Config, DictConfigModule
-from .database.database import Database
-from .database.query import Condition, SelectQuery
-from .utils import iso_to_date
 
+from ranalyze.ranalyze.query import Condition, SelectQuery
+from .config import Config, DictConfigModule
+from .database import Database
+from .utils import iso_to_date
 
 KEYWORD_COLUMNS = {"text_content", "title"}
 
@@ -70,193 +67,212 @@ class SearchConfigModule(DictConfigModule):
         return main
 
 
-class ExpressionNode(object, metaclass=abc.ABCMeta):
-
-    def __init__(self, data, *children: Tuple['ExpressionNode']):
-        self.children = children
+class ASTNode(object, metaclass=abc.ABCMeta):
+    def __init__(self, data, left_child: 'ASTNode' = None,
+                 right_child: 'ASTNode' = None):
         self.data = data
+        self.left_child = left_child
+        self.right_child = right_child
 
 
-class OperatorNode(ExpressionNode, metaclass=abc.ABCMeta):
-    """
-    Base class for nodes that serve as an operator
-    """
+class OperatorNode(ASTNode, metaclass=abc.ABCMeta):
+    NAME = None
 
-    @staticmethod
-    @abc.abstractmethod
-    def operate(*operands):
-        """
-        Subclasses should implement this to perform their specific Pythonic
-        operational equivalent to one or more operands.
-        """
-        pass
+    def __gt__(self, other):
+        if not isinstance(other, OperatorNode):
+            message = "unorderable types {} > {}".format(self.__class__,
+                                                         other.__class__)
+            raise TypeError(message)
+        return OPERATOR_PRECEDENCE[self.__class__] > OPERATOR_PRECEDENCE[
+            other.__class__]
 
+    def __lt__(self, other):
+        if not isinstance(other, OperatorNode):
+            message = "unorderable types {} < {}".format(self.__class__,
+                                                         other.__class__)
+            raise TypeError(message)
+        return OPERATOR_PRECEDENCE[self.__class__] < OPERATOR_PRECEDENCE[
+            other.__class__]
 
-class InfixNode(OperatorNode, metaclass=abc.ABCMeta):
-    """
-    Base class for infix operator nodes
-    """
-    pass
+    def __ge__(self, other):
+        if not isinstance(other, OperatorNode):
+            message = "unorderable types {} >= {}".format(self.__class__,
+                                                          other.__class__)
+            raise TypeError(message)
+        return OPERATOR_PRECEDENCE[self.__class__] >= OPERATOR_PRECEDENCE[
+            other.__class__]
 
-
-class PrefixNode(OperatorNode, metaclass=abc.ABCMeta):
-    """
-    Base class for prefix, unary operator nodes.
-    """
-    pass
-
-
-class AndNode(InfixNode):
-
-    def __init__(self, *children: Tuple[ExpressionNode]):
-        super().__init__(Operator.AND, *children)
-
-    @staticmethod
-    def operate(*operands):
-        result = operands[0]
-        for operand in operands[1:]:
-            result &= operand
-        return result
+    def __le__(self, other):
+        if not isinstance(other, OperatorNode):
+            message = "unorderable types {} <= {}".format(self.__class__,
+                                                          other.__class__)
+            raise TypeError(message)
+        return OPERATOR_PRECEDENCE[self.__class__] <= OPERATOR_PRECEDENCE[
+            other.__class__]
 
 
-class NotNode(PrefixNode):
+class AndNode(OperatorNode):
+    NAME = "AND"
 
-    def __init__(self, child: ExpressionNode):
-        super().__init__(Operator.NOT, child)
-
-    @staticmethod
-    def operate(*operands):
-        return ~operands[0]
+    def __init__(self, left_child: ASTNode = None, right_child: ASTNode = None):
+        super().__init__(AndNode.NAME, left_child, right_child)
 
 
-class OrNode(InfixNode):
+class OrNode(OperatorNode):
+    NAME = "OR"
 
-    def __init__(self, *children: Tuple[ExpressionNode]):
-        super().__init__(Operator.OR, *children)
-
-    @staticmethod
-    def operate(*operands):
-        result = operands[0]
-        for operand in operands[1:]:
-            result |= operand
-        return result
+    def __init__(self, left_child: ASTNode = None, right_child: ASTNode = None):
+        super().__init__(OrNode.NAME, left_child, right_child)
 
 
-class TextNode(ExpressionNode):
-    def __init__(self, data):
+class TextNode(ASTNode):
+    def __init__(self, data: str):
         super().__init__(data)
 
 
-class Operator(Enum):
-    NOT = NotNode
-    AND = AndNode
-    OR = OrNode
+class NotNode(ASTNode):
+    NAME = "NOT"
 
-    def __init__(self, node_type: Type[ExpressionNode]):
-        self.node_type = node_type
+    def __init__(self, child: ASTNode = None):
+        super().__init__(NotNode.NAME, child)
+
+OPERATOR_PRECEDENCE = {
+    AndNode: 2,
+    OrNode: 1
+    # NOT Tokens are parsed separately, no need to assign precedence
+}
+
+OPERATOR_TOKENS = {
+    AndNode.NAME: AndNode,
+    OrNode.NAME: OrNode,
+    NotNode.NAME: NotNode
+}
+
+OPERATOR_ACTIONS = {
+    AndNode: lambda a, b: a & b,
+    OrNode: lambda a, b: a | b,
+    NotNode: lambda a, b=None: ~a
+}
+
+QUOTES = "'\""
 
 
-class ExpressionTree(object):
+def expression_to_tree(expression: str) -> ASTNode:
     """
-    Syntax tree for representing search logic
+    A recursive decent parser using the shunting-yard algorithm to convert
+    a well-formed expression string into an abstract syntax tree. The root
+    node of this tree is returned.
     """
 
-    def __init__(self, root_node: ExpressionNode):
-        self.root_node = root_node
+    # break string into tokens, parsing parenthesized sub-expressions
 
-    @staticmethod
-    def from_expression(expression: str) -> 'ExpressionTree':
-        """
-        Convert an expression string into a full ExpressionTree.
-        Expression strings must be in the following format:
-        """
-        # TODO: describe syntax
+    tokens = []
+    current_token = ""
+    in_quotes = False
+    paren_count = 0
+    paren_start = None
 
-        node_list = []
+    for i, c in enumerate(expression):
 
-        # split the expression into a list of tokens and subtrees
-        # parenthesized content is isolated and parsed into a subtree first
+        if c in QUOTES and paren_count == 0:
+            if in_quotes:
+                tokens.append(current_token + c)
+                current_token = ""
+                in_quotes = False
+            else:
+                in_quotes = True
+                if current_token:
+                    tokens.append(current_token)
+                current_token = c
+        elif c == " " and not in_quotes and paren_count == 0:
+            if current_token:
+                tokens.append(current_token)
+            current_token = ""
+        elif c == "(":
+            paren_count += 1
+            if paren_count == 1:
+                paren_start = i
+        elif c == ")":
+            paren_count -= 1
+            if paren_count == -1:
+                raise RuntimeError("Unbalanced right parenthesis in expression")
+            if paren_count == 0:
+                tokens.append(expression_to_tree(expression[paren_start + 1:i]))
+                current_token = ""
+        elif paren_count == 0:
+            current_token += c
 
-        paren_start = None
-        paren_count = 0
-        append_next = False
+    if current_token:
+        tokens.append(current_token)
 
-        for i, c in enumerate(expression):
+    if paren_count > 0:
+        raise RuntimeError("Unbalanced left parenthesis in expression")
 
-            if c == "(":
-                append_next = False
-                if paren_count == 0:
-                    paren_start = i
-                paren_count += 1
+    # convert string tokens to ASTNodes
 
-            elif c == ")":
-                append_next = False
-                paren_count -= 1
-                if paren_count == 0:  # process the parenthesized content
-                    sub_expression = expression[paren_start + 1:i]
-                    sub_tree = ExpressionTree.from_expression(sub_expression)
-                    node_list.append(sub_tree.root_node)
+    nodes = []
 
-            elif paren_count > 0:  # don't append what's in the parentheses
-                continue
+    for token in tokens:
 
-            elif c == " ":  # start a new node next time
-                append_next = True
+        if isinstance(token, ASTNode):
+            nodes.append(token)
+            continue
 
-            elif (not node_list
-                  or isinstance(node_list[-1], ExpressionNode)
-                  or append_next):  # start a new node with c
-                append_next = False
-                node_list.append(c)
+        # noinspection PyTypeChecker
+        match = QUOTE_PATTERN.match(token)
 
-            else:  # add c to the current node
-                node_list[-1] += c
+        if token.upper() in OPERATOR_TOKENS:
+            nodes.append(OPERATOR_TOKENS[token.upper()]())
+        elif match:
+            nodes.append(TextNode(match.group("text")))
+        else:
+            raise RuntimeError(
+                "Invalid token `{}` in expression string".format(token))
 
-        if paren_count != 0:
-            raise RuntimeError("Unbalanced parenthesis in search expression")
+    # parse NOT tokens
 
-        # convert text to TextNodes
-        for i, node in enumerate(node_list):
+    infix_nodes = []
 
-            try:
-                match = QUOTE_PATTERN.match(node)
-                node_list[i] = TextNode(match.group("text"))
-            except (AttributeError, TypeError):
-                continue
+    nodes.reverse()
 
-        # clean up operator tokens
-        for i, node in enumerate(node_list):
+    while nodes:
+        node = nodes.pop()
+        if isinstance(node, NotNode):
+            node.left_child = nodes.pop()
+        infix_nodes.append(node)
 
-            try:
-                node_list[i] = Operator[node.upper()].name
-            except (AttributeError, KeyError):
-                continue
+    # set up nodes as a stack
 
-        # while there are operators in the node_list
-        while set(node_list).intersection(Operator.__members__.keys()):
+    infix_nodes.reverse()
 
-            # move through each operator in order
-            for operator in Operator:
+    # shunting-yard
 
-                # convert the node and its operands to one OperatorNode
-                if operator.name in node_list:
-                    node_index = node_list.index(operator.name)
+    operator_stack = []
+    operand_stack = []
 
-                    if issubclass(operator.node_type, InfixNode):
-                        node_list[node_index] = operator.node_type(
-                            node_list[node_index - 1],
-                            node_list[node_index + 1])
-                        del node_list[node_index + 1]
-                        del node_list[node_index - 1]
+    while infix_nodes:
+        node = infix_nodes.pop()
+        if isinstance(node, OperatorNode):
+            if operator_stack and operator_stack[-1] >= node:
+                operand_stack.append(operator_stack.pop())
+            operator_stack.append(node)
+        else:
+            operand_stack.append(node)
 
-                    elif issubclass(operator.node_type, PrefixNode):
-                        node_list[node_index] = operator.node_type(
-                            node_list[node_index + 1])
-                        del node_list[node_index + 1]
+    operand_stack.extend(operator_stack[::-1])
 
-                    break
+    operand_stack.reverse()
 
-        return ExpressionTree(node_list[0])
+    output_stack = []
+
+    while operand_stack:
+        node = operand_stack.pop()
+        if isinstance(node, OperatorNode):
+            node.left_child = output_stack.pop()
+            node.right_child = output_stack.pop()
+        output_stack.append(node)
+
+    return output_stack.pop()
 
 
 def multi_column_condition(columns, operand, value) -> Condition:
@@ -269,24 +285,21 @@ def multi_column_condition(columns, operand, value) -> Condition:
     return condition
 
 
-def tree_to_condition(tree: ExpressionTree) -> Condition:
+def tree_to_condition(node: ASTNode) -> Condition:
     """
-    Convert an ExpressionTree to a Condition
+    Recursively convert an ASTNode to a Condition
     """
 
-    def node_to_condition(node: ExpressionNode) -> Condition:
-        """
-        Recursively convert an individual ExpressionNode to a Condition
-        """
-
-        if isinstance(node, TextNode):
-            value = "%{}%".format(node.data)
-            return multi_column_condition(KEYWORD_COLUMNS, "LIKE", value)
-        elif isinstance(node, OperatorNode):
-            return node.operate(*(node_to_condition(child) for child
-                                in node.children))
-
-    return node_to_condition(tree.root_node)
+    if isinstance(node, TextNode):
+        value = "%{}%".format(node.data)
+        return multi_column_condition(KEYWORD_COLUMNS, "LIKE", value)
+    elif node.__class__ in OPERATOR_ACTIONS:
+        action = OPERATOR_ACTIONS[node.__class__]
+        a = tree_to_condition(node.left_child)
+        b = tree_to_condition(node.right_child) if node.right_child else None
+        return action(a, b)
+    else:
+        raise RuntimeError("Unrecognized node type `{}`".format(node.__class__))
 
 
 def main():
@@ -304,7 +317,7 @@ def main():
                                                        word)
             condition |= keyword_condition
     elif config["expression"]:
-        tree = ExpressionTree.from_expression(config["expression"])
+        tree = expression_to_tree(config["expression"])
         condition = tree_to_condition(tree)
 
     if config["subreddit"]:
@@ -336,7 +349,6 @@ def main():
     else:
         if entries:
             keys = config["columns"] if config["columns"] else entries[0].keys()
-            print(keys)
             writer = DictWriter(stdout, fieldnames=keys)
             writer.writeheader()
             writer.writerows(entries)
