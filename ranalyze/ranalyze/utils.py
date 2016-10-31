@@ -2,7 +2,6 @@
 Common utilities
 """
 
-from .common_types import Date
 from datetime import datetime, date
 from math import floor
 

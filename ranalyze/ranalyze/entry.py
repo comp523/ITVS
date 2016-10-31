@@ -6,12 +6,10 @@ import abc
 
 from datetime import datetime
 from sqlite3 import Row
-from typing import Tuple, Type
-from .common_types import PrawEntry
 from .utils import date_to_timestamp
 
 
-class Entry(object, metaclass=abc.ABCMeta):
+class Entry(object, metaclass):
     """
     Base class for all database entries
     """
@@ -39,16 +37,16 @@ class Entry(object, metaclass=abc.ABCMeta):
         return self._attrs[item]
 
     @property
-    def dict(self) -> dict:
+    def dict(self):
         return self._attrs.copy()
 
     @staticmethod
     @abc.abstractmethod
-    def get_fields() -> dict:
+    def get_fields():
         pass
 
 
-class EntryFactory(object, metaclass=abc.ABCMeta):
+class EntryFactory(object, metaclass):
     """
     Base class for all Entry factories
     """
@@ -64,7 +62,7 @@ class EntryFactory(object, metaclass=abc.ABCMeta):
     }
 
     @classmethod
-    def from_praw(cls, praw_obj: PrawEntry) -> Entry:
+    def from_praw(cls, praw_obj):
         """
         Creates an Entry from a PrawEntry object
         """
@@ -78,7 +76,7 @@ class EntryFactory(object, metaclass=abc.ABCMeta):
         return target(**attrs)
 
     @classmethod
-    def from_row(cls, row: Row) -> Entry:
+    def from_row(cls, row):
         """
         Creates an Entry from an sqlite.Row object
         """
@@ -88,7 +86,7 @@ class EntryFactory(object, metaclass=abc.ABCMeta):
 
     @staticmethod
     @abc.abstractmethod
-    def _get_properties() -> Tuple[Type, dict, dict]:
+    def _get_properties():
         """
         Subclass implemented method. Returns the target class, field dictionary,
         and praw conversion map (in that order)
@@ -108,7 +106,7 @@ class Comment(Entry):
     }
 
     @staticmethod
-    def get_fields() -> dict:
+    def get_fields():
         return Comment._FIELDS
 
 
@@ -127,7 +125,7 @@ class CommentFactory(EntryFactory):
     _TARGET = Comment
 
     @staticmethod
-    def _get_properties() -> Tuple[Type, dict, dict]:
+    def _get_properties():
         return (
             CommentFactory._TARGET,
             Comment.get_fields(),
@@ -169,7 +167,7 @@ class PostFactory(EntryFactory):
     _TARGET = Post
 
     @staticmethod
-    def _get_properties() -> Tuple[Type, dict, dict]:
+    def _get_properties():
         return PostFactory._TARGET, Post.get_fields(), PostFactory._PRAW_MAP
 
 
