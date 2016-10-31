@@ -5,7 +5,7 @@ Module for parsing configuration from various sources.
 import abc
 
 from argparse import ArgumentParser
-import yaml
+from configparser import ConfigParser
 
 
 class AlternateSource(object, metaclass=abc.ABCMeta):
@@ -22,22 +22,21 @@ class AlternateSource(object, metaclass=abc.ABCMeta):
         """
 
 
-class YAMLSource(AlternateSource):
+class PythonConfigSource(AlternateSource):
     """
     Implements an AlternateSource parsed from a YAML configuration file
     """
 
-    def __init__(self, yaml_filename):
+    def __init__(self, config_filename):
 
-        self._yaml_filename = yaml_filename
+        self._config_filename = config_filename
 
     @property
     def config_dict(self):
 
-        with open(self._yaml_filename) as file:
-            yaml_data = yaml.load(file)
-
-        return yaml_data
+        config = ConfigParser()
+        config.read(self._config_filename)
+        return {key: value for key, value in config.items()}
 
 
 class ConfigError(BaseException):

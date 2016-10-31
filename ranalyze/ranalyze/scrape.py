@@ -13,7 +13,7 @@ from .database import Database
 from .config import (
     Config,
     DictConfigModule,
-    YAMLSource
+    PythonConfigSource
 )
 from .entry import (
     CommentFactory,
@@ -160,7 +160,7 @@ def main():
     config = Config.get_instance()
 
     if config["config_file"] is not None:
-        config.add_source(YAMLSource(config["config_file"]))
+        config.add_source(PythonConfigSource(config["config_file"]))
 
     subreddits = chain(*config["subreddits"])
 
