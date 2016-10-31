@@ -3,10 +3,8 @@ Module for parsing configuration from various sources.
 """
 
 import abc
-import sys
 
 from argparse import ArgumentParser
-from typing import Callable, List
 import yaml
 
 
@@ -17,7 +15,7 @@ class AlternateSource(object, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def config_dict(self) -> dict:
+    def config_dict(self):
         """
         Subclasses should implement this method to parse and return their
         configuration parameters as a dictionary.
@@ -29,12 +27,12 @@ class YAMLSource(AlternateSource):
     Implements an AlternateSource parsed from a YAML configuration file
     """
 
-    def __init__(self, yaml_filename: str):
+    def __init__(self, yaml_filename):
 
         self._yaml_filename = yaml_filename
 
     @property
-    def config_dict(self) -> dict:
+    def config_dict(self):
 
         with open(self._yaml_filename) as file:
             yaml_data = yaml.load(file)
@@ -47,7 +45,7 @@ class ConfigError(BaseException):
     Class for handling errors in processing or accessing configuration values
     """
 
-    def __init__(self, message: str):
+    def __init__(self, message):
 
         self.message = message
 
@@ -63,7 +61,7 @@ class ConfigModule(object, metaclass=abc.ABCMeta):
         self.name = name
 
     @abc.abstractmethod
-    def get_runner(self) -> Callable:
+    def get_runner(self):
         """
         Subclasses should implement this function to return a reference to their
         respective main methods (or module 'runners')
@@ -78,7 +76,7 @@ class ConfigModule(object, metaclass=abc.ABCMeta):
         """
         pass
 
-    def _get_subparser(self) -> ArgumentParser:
+    def _get_subparser(self):
 
         if not hasattr(self, "_subparser"):
             config = Config.get_instance()
@@ -93,7 +91,7 @@ class DictConfigModule(ConfigModule, metaclass=abc.ABCMeta):
     dictionary
     """
 
-    def __init__(self, name: str):
+    def __init__(self, name):
         super().__init__(name)
 
     def initialize(self):
@@ -103,7 +101,7 @@ class DictConfigModule(ConfigModule, metaclass=abc.ABCMeta):
         DictConfigModule._add_arguments_from_dict(parser, self._arguments_dict)
 
     @staticmethod
-    def _add_arguments_from_dict(parser: ArgumentParser, arguments: dict):
+    def _add_arguments_from_dict(parser, arguments):
         """
         Adds all arguments to a parser from a pre-formatted dict.
 
@@ -123,7 +121,7 @@ class DictConfigModule(ConfigModule, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def _arguments_dict(self) -> dict:
+    def _arguments_dict(self):
         """
         Subclasses should implement this to pass the arguments dictionary,
         formatted as specified in DictConfigModule._add_arguments_from_dict
@@ -146,7 +144,7 @@ class Config(object):
 
         return self._config[item]
 
-    def add_source(self, source: AlternateSource, overwrite: bool=False):
+    def add_source(self, source, overwrite=False):
         """
         Add an AlternateSource to the configuration. If overwrite is set to
         true, then conflicting values from the new alternate source will
@@ -160,7 +158,7 @@ class Config(object):
             elif key not in self._config or overwrite:
                 self._config[key] = value
 
-    def error(self, message: str):
+    def error(self, message):
 
         self.parser.error(message)
 
@@ -172,12 +170,12 @@ class Config(object):
 
         return Config._instance
 
-    def register_module(self, module: ConfigModule):
+    def register_module(self, module):
 
         module.initialize()
         self.modules.append(module)
 
-    def parse(self, args: List[str]=None) -> Callable:
+    def parse(self, args=None):
         """
         Parse configuration from the command line first. Once the valid,
         registered sub-command is determined. Configuration parameters from
