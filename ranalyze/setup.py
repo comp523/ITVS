@@ -3,8 +3,8 @@
 import sys
 from setuptools import setup
 
-if sys.version_info < (3, 5, 2):
-    sys.exit('Sorry, Python < 3.5.2 is not supported')
+if sys.version_info < (3, 3):
+    sys.exit('Sorry, Python < 3.3 is not supported')
 
 setup(name='ranalyze',
       version='0.1',
@@ -15,6 +15,6 @@ setup(name='ranalyze',
           "pyyaml==3.12",
           "flask==0.11.1"
       ],
-      packages=["ranalyze", "ranalyze.database"]
+      packages=["ranalyze"]
       )
 

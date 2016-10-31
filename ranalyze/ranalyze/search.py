@@ -8,7 +8,7 @@ from csv import DictWriter
 from json import dumps
 from sys import stdout
 
-from ranalyze.ranalyze.query import Condition, SelectQuery
+from .query import Condition, SelectQuery
 from .config import Config, DictConfigModule
 from .database import Database
 from .utils import iso_to_date
@@ -157,7 +157,7 @@ OPERATOR_ACTIONS = {
 QUOTES = "'\""
 
 
-def expression_to_tree(expression: str) -> ASTNode:
+def expression_to_tree(expression):
     """
     A recursive decent parser using the shunting-yard algorithm to convert
     a well-formed expression string into an abstract syntax tree. The root
@@ -275,7 +275,7 @@ def expression_to_tree(expression: str) -> ASTNode:
     return output_stack.pop()
 
 
-def multi_column_condition(columns, operand, value) -> Condition:
+def multi_column_condition(columns, operand, value):
     """
     Generate an or-joined condition with a single value on multiple columns
     """
@@ -285,7 +285,7 @@ def multi_column_condition(columns, operand, value) -> Condition:
     return condition
 
 
-def tree_to_condition(node: ASTNode) -> Condition:
+def tree_to_condition(node):
     """
     Recursively convert an ASTNode to a Condition
     """

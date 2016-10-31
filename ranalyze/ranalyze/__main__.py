@@ -8,6 +8,7 @@ from .imprt import ImportConfig
 from .scrape import ScrapeConfigModule
 from .search import SearchConfigModule
 
+
 def main():
 
     config = Config.get_instance()

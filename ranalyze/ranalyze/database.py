@@ -4,17 +4,20 @@ Database abstraction class for handling storage of Posts and Comments
 
 import atexit
 import sqlite3
-from typing import Callable
 
 from .config import Config, ConfigModule
 from .entry import (
     Comment,
     CommentFactory,
-    Entry,
     Post,
     PostFactory
 )
-from .query import Condition, InsertQuery, SelectQuery, Query, UpdateQuery
+from .query import (
+    Condition,
+    InsertQuery,
+    SelectQuery,
+    UpdateQuery
+)
 
 
 class Database(object):
@@ -31,7 +34,7 @@ class Database(object):
 
     ENTRY_COLUMNS = {**COMMENT_FIELDS, **POST_FIELDS}
 
-    def __init__(self, database_file: str, debug_mode: bool=False):
+    def __init__(self, database_file, debug_mode=False):
         """
         Opens the connection to the database.
         """
@@ -43,7 +46,7 @@ class Database(object):
         self._database.row_factory = sqlite3.Row
         atexit.register(self._close)
 
-    def add_update_entry(self, entry: Entry):
+    def add_update_entry(self, entry):
         """
         Add an entry to the database or update if it already exists.
         """
@@ -54,7 +57,7 @@ class Database(object):
             self._add_entry(entry)
 
     @staticmethod
-    def create_db(filename: str):
+    def create_db(filename):
         """
         Create a new, pre-formatted database
         """
@@ -81,9 +84,7 @@ class Database(object):
         connection.commit()
         connection.close()
 
-    def execute_query(self, query: Query,
-                      commit: bool=False,
-                      transpose: bool=True):
+    def execute_query(self, query, commit=False, transpose=True):
         """
         Executes a given Query, optionally committing changes. Results are
         transposed by default.
@@ -102,7 +103,7 @@ class Database(object):
             results = [Database._row_to_entry(e) for e in results]
         return results
 
-    def get_entry(self, entry_id: str) -> Entry:
+    def get_entry(self, entry_id):
         """
         Retrieve an item from the database where column=value.
         """
@@ -114,7 +115,7 @@ class Database(object):
             return result[0]
         return None
 
-    def get_latest_post(self, subreddit: str) -> Entry:
+    def get_latest_post(self, subreddit):
 
         condition = (Condition("permalink", "IS NOT", None)
                      & Condition("subreddit", subreddit.lower()))
@@ -132,7 +133,7 @@ class Database(object):
 
         return self.get_entry(latest_id)
 
-    def _add_entry(self, entry: Entry):
+    def _add_entry(self, entry):
         """
         Add an item to the database
         """
@@ -148,7 +149,7 @@ class Database(object):
 
         self._database.close()
 
-    def _entry_exists(self, entry: Entry) -> bool:
+    def _entry_exists(self, entry):
         """
         Check if an entry exists in the database
         """
@@ -160,13 +161,13 @@ class Database(object):
         return result[0] == 1
 
     @staticmethod
-    def _row_to_entry(row: sqlite3.Row) -> Entry:
+    def _row_to_entry(row):
         if row is None:
             return None
         factory = CommentFactory if row["permalink"] is None else PostFactory
         return factory.from_row(row)
 
-    def _update_entry(self, entry: Entry):
+    def _update_entry(self, entry):
         """
         Update an existing entry in the database.
         """
@@ -183,7 +184,7 @@ class DatabaseError(Exception):
     Exceptions raised for errors in database I/O.
     """
 
-    def __init__(self, message: str):
+    def __init__(self, message):
         """
         Generate a new DatabaseError with a given message
         """
@@ -199,7 +200,7 @@ class UnknownColumnError(DatabaseError):
 
     _FORMAT = "No such column `{column}` in table `{table}`"
 
-    def __init__(self, column: str, table: str):
+    def __init__(self, column, table):
         super().__init__(self._FORMAT.format(column=column, table=table))
 
 
@@ -211,7 +212,7 @@ class DatabaseConfigModule(ConfigModule):
         parser.add_argument("name",
                             help="File name of the SQLite database to create")
 
-    def get_runner(self) -> Callable:
+    def get_runner(self):
 
         return create_db
 
