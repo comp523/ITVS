@@ -40,7 +40,7 @@ class Condition:
             condition.sql = self.sql if self.sql else other.sql
         else:
             condition.sql = "({} AND {})".format(self.sql, other.sql)
-        condition.params = {**self.params, **other.params}
+        condition.params = dict(self.params, **other.params)
         return condition
 
     def __or__(self, other):
@@ -50,7 +50,7 @@ class Condition:
             condition.sql = self.sql if self.sql else other.sql
         else:
             condition.sql = "({} OR {})".format(self.sql, other.sql)
-        condition.params = {**self.params, **other.params}
+        condition.params = dict(self.params, **other.params)
         return condition
 
     def __invert__(self):
