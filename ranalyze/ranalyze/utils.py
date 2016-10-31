@@ -2,21 +2,20 @@
 Common utilities
 """
 
-from .common_types import Date
 from datetime import datetime, date
 from math import floor
 
 EPOCH = datetime.utcfromtimestamp(0)
 
 
-def date_to_timestamp(date: Date) -> int:
+def date_to_timestamp(date):
     """
     convert datetime.datetime or datetime.date object to Unix timestamp
     """
     return floor((date - EPOCH).total_seconds())
 
 
-def dict_deep_merge(dest: dict, src: dict):
+def dict_deep_merge(dest, src):
 
     for key in src.keys():
         if key in dest and type(dest[key]) is dict:
@@ -27,7 +26,7 @@ def dict_deep_merge(dest: dict, src: dict):
             dest[key] = src[key]
 
 
-def iso_to_date(iso: str) -> date:
+def iso_to_date(iso):
     """
     Convert ISO formatted date string to datetime.date object
     """
