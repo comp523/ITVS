@@ -9,7 +9,7 @@ from sqlite3 import Row
 from .utils import date_to_timestamp
 
 
-class Entry(object, metaclass):
+class Entry(object, metaclass=abc.ABCMeta):
     """
     Base class for all database entries
     """
@@ -46,7 +46,7 @@ class Entry(object, metaclass):
         pass
 
 
-class EntryFactory(object, metaclass):
+class EntryFactory(object, metaclass=abc.ABCMeta):
     """
     Base class for all Entry factories
     """

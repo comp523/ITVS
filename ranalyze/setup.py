@@ -15,6 +15,6 @@ setup(name='ranalyze',
           "pyyaml==3.12",
           "flask==0.11.1"
       ],
-      packages=["ranalyze", "ranalyze.database"]
+      packages=["ranalyze"]
       )
 
