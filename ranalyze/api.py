@@ -6,9 +6,9 @@ to run:
 import flask
 import os
 import sys
-from ranalyze import search
-from ranalyze import utils
-from ranalyze.database import database
+from .ranalyze import search
+from .ranalyze import utils
+from .ranalyze.database import database
 
 app = flask.Flask(__name__)
 CONFIG_FILE = None
