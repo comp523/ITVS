@@ -98,11 +98,11 @@ class Comment(Entry):
     Class for comment entries into the database
     """
 
-    _FIELDS = {
-        **Entry._BASE_FIELDS,
-        "root_id": str,
-        "parent_id": str
-    }
+    _FIELDS = dict(
+        Entry._BASE_FIELDS,
+        root_id=str,
+        parent_id=str
+    )
 
     @staticmethod
     def get_fields():
@@ -115,11 +115,11 @@ class CommentFactory(EntryFactory):
     """
 
     # Converts praw.objects.Comment attributes to Comment attributes
-    _PRAW_MAP = {
-        **EntryFactory._BASE_PRAW_MAP,
-        "root_id": lambda c: c.submission.fullname,
-        "text_content": lambda c: c.body
-    }
+    _PRAW_MAP = dict(
+        EntryFactory._BASE_PRAW_MAP,
+        root_id=lambda c: c.submission.fullname,
+        text_content=lambda c: c.body
+    )
 
     _TARGET = Comment
 
@@ -137,13 +137,13 @@ class Post(Entry):
     Class for post entries into the database
     """
 
-    _FIELDS = {
-        **Entry._BASE_FIELDS,
-        "permalink": str,
-        "up_ratio": float,
-        "title": str,
-        "external_url": str,
-    }
+    _FIELDS = dict(
+        Entry._BASE_FIELDS,
+        permalink=str,
+        up_ratio=float,
+        title=str,
+        external_url=str,
+    )
 
     @staticmethod
     def get_fields() -> dict:
@@ -156,12 +156,12 @@ class PostFactory(EntryFactory):
     """
 
     # Converts praw.objects.Submission attributes to Post attributes
-    _PRAW_MAP = {
-        **EntryFactory._BASE_PRAW_MAP,
-        "external_url": lambda s: s.url,
-        "text_content": lambda s: s.selftext,
-        "up_ratio": lambda s: 0  # TODO: Implement up_ratio?
-    }
+    _PRAW_MAP = dict(
+        EntryFactory._BASE_PRAW_MAP,
+        external_url=lambda s: s.url,
+        text_content=lambda s: s.selftext,
+        up_ratio=lambda s: 0  # TODO: Implement up_ratio?
+    )
 
     _TARGET = Post
 
