@@ -4,9 +4,6 @@ Tool to import a set of permalinks from a csv into the database
 
 import csv
 from argparse import SUPPRESS
-from typing import (
-    Callable
-)
 
 from .database import Database
 from .config import (
@@ -40,10 +37,10 @@ class ImportConfig(DictConfigModule):
             }
         }
     }
-    def get_runner(self) -> Callable:
+
+    def get_runner(self):
         
         return main
-
 
 
 def main():
