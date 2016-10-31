@@ -7,6 +7,7 @@ try:
     with open(virtualenv) as f:
       code = compile(f.read(), "somefile.py", 'exec')
       exec(code, dict(__file__=virtualenv))
+
 except IOError:
     pass
 #
