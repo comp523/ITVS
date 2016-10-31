@@ -4,9 +4,6 @@ SQL Query Builder
 
 import abc
 
-from typing import List, Union
-
-
 class Condition:
 
     _param_counter = 0
@@ -35,7 +32,7 @@ class Condition:
                     self.params[param[1:]] = value  # slice the colon from param
             self.sql = "{} {} {}".format(column, operand, param)
 
-    def __and__(self, other: 'Condition') -> 'Condition':
+    def __and__(self, other):
 
         condition = Condition()
         # Logical XOR to check if only one condition is empty
@@ -46,7 +43,7 @@ class Condition:
         condition.params = {**self.params, **other.params}
         return condition
 
-    def __or__(self, other: 'Condition') -> 'Condition':
+    def __or__(self, other):
 
         condition = Condition()
         if bool(self.sql) is not bool(other.sql):
@@ -71,12 +68,12 @@ class Query(object, metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def sql(self) -> str:
+    def sql(self):
         pass
 
     @property
     @abc.abstractmethod
-    def params(self) -> dict:
+    def params(self):
         pass
 
 
@@ -85,7 +82,7 @@ class InsertQuery(Query):
 
     FORMAT = "INSERT INTO {table} ({columns}) VALUES ({values})"
 
-    def __init__(self, table: str, values: dict):
+    def __init__(self, table, values):
 
         params = {key: "_i{}".format(i) for i, key in enumerate(values)}
         self._params = {param: values[key] for key, param in params.items()}
@@ -95,11 +92,11 @@ class InsertQuery(Query):
                                               values=values)
 
     @property
-    def sql(self) -> str:
+    def sql(self):
         return self._sql
 
     @property
-    def params(self) -> dict:
+    def params(self):
         return self._params
 
 
@@ -108,10 +105,7 @@ class SelectQuery(Query):
 
     FORMAT = "{select} {columns} FROM {table} {where}"
 
-    def __init__(self, table: str,
-                 columns: Union[str, List[str]]="*",
-                 where: Condition=None,
-                 distinct: bool=False):
+    def __init__(self, table, columns, where=None, distinct=False):
 
         if type(columns) is list:
             columns = ", ".join(columns)
@@ -126,11 +120,11 @@ class SelectQuery(Query):
                                               where=where)
 
     @property
-    def sql(self) -> str:
+    def sql(self):
         return self._sql
 
     @property
-    def params(self) -> dict:
+    def params(self):
         return self._params
 
 
@@ -140,7 +134,7 @@ class UpdateQuery(Query):
 
     FORMAT = "UPDATE {table} SET ({columns}) WHERE {where}"
 
-    def __init__(self, table: str, values: dict, where: Condition):
+    def __init__(self, table, values, where):
 
         params = {key: "_u{}".format(i) for i, key in enumerate(values.keys())}
         columns = ", ".join(["{}=:{}".format(key, param)
@@ -152,9 +146,9 @@ class UpdateQuery(Query):
                                               where=where.sql)
 
     @property
-    def sql(self) -> str:
+    def sql(self):
         return self._sql
 
     @property
-    def params(self) -> dict:
+    def params(self):
         return self._params

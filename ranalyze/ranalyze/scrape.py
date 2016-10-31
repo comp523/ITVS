@@ -6,9 +6,8 @@ Tool to traverse a set of subreddits extracting post/comment information includi
  - Number of upvotes/downvotes
 """
 
-from itertools import chain
-
 import praw
+from itertools import chain
 
 from .database import Database
 from .config import (
@@ -17,9 +16,8 @@ from .config import (
     YAMLSource
 )
 from .entry import (
-    Comment,
     CommentFactory,
-    Entry,
+    Post,
     PostFactory
 )
 from .progress import Progress
@@ -57,7 +55,8 @@ class ScrapeConfigModule(DictConfigModule):
 
         return main
 
-def traverse_comments(top_level_comments: Iterable[praw.objects.Comment]):
+
+def traverse_comments(top_level_comments):
     """
     Iterate through all comments, extracting desired properties.
     :yield: each subsequent comment
@@ -71,6 +70,7 @@ def traverse_comments(top_level_comments: Iterable[praw.objects.Comment]):
         # be expanded
         comment_stack.extend(next_comment.replies)
         yield(CommentFactory.from_praw(next_comment))
+
 
 def fetch_data(subreddit_set, database):
     """
@@ -120,10 +120,11 @@ def fetch_data(subreddit_set, database):
             post.replace_more_comments(limit=None)
 
             for comment in traverse_comments(post.comments):
-                yield(comment) # yields all post comments
+                yield(comment)  # yields all post comments
 
                 comment_count += 1
                 Progress.update(comments=comment_count)
+
 
 def fetch_post(permalink):
     """
@@ -138,15 +139,17 @@ def fetch_post(permalink):
     for comment in traverse_comments(post.comments):
         yield(comment)
 
+
 def update_posts(database, date_range):
     """
     Updates all posts in the database in a specified range
     """
-    posts = filter(lambda entry: entry is Post, # only posts
-        database.get_entries(time_submitted_range = date_range))
+    posts = filter(lambda entry: isinstance(entry, Post),  # only posts
+                   database.get_entries(time_submitted_range=date_range))
     for post in posts:
         for entry in fetch_post(post.permalink):
             database.add_update_entry(entry)
+
 
 def main():
     """

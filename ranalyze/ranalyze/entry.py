@@ -5,7 +5,6 @@ Provides Entry base class, as well as Comment and Post subclasses.
 import abc
 
 from datetime import datetime
-from sqlite3 import Row
 from .utils import date_to_timestamp
 
 

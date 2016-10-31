@@ -8,7 +8,7 @@ from csv import DictWriter
 from json import dumps
 from sys import stdout
 
-from ranalyze.ranalyze.query import Condition, SelectQuery
+from .query import Condition, SelectQuery
 from .config import Config, DictConfigModule
 from .database import Database
 from .utils import iso_to_date
@@ -67,7 +67,7 @@ class SearchConfigModule(DictConfigModule):
         return main
 
 
-class ASTNode(object, metaclass):
+class ASTNode(object, metaclass=abc.ABCMeta):
     def __init__(self, data, left_child: 'ASTNode' = None,
                  right_child: 'ASTNode' = None):
         self.data = data
@@ -75,7 +75,7 @@ class ASTNode(object, metaclass):
         self.right_child = right_child
 
 
-class OperatorNode(ASTNode, metaclass):
+class OperatorNode(ASTNode, metaclass=abc.ABCMeta):
     NAME = None
 
     def __gt__(self, other):

@@ -9,11 +9,15 @@ from .config import Config, ConfigModule
 from .entry import (
     Comment,
     CommentFactory,
-    Entry,
     Post,
     PostFactory
 )
-from .query import Condition, InsertQuery, SelectQuery, Query, UpdateQuery
+from .query import (
+    Condition,
+    InsertQuery,
+    SelectQuery,
+    UpdateQuery
+)
 
 
 class Database(object):
@@ -30,7 +34,7 @@ class Database(object):
 
     ENTRY_COLUMNS = {**COMMENT_FIELDS, **POST_FIELDS}
 
-    def __init__(self, database_file, debug_mode):
+    def __init__(self, database_file, debug_mode=False):
         """
         Opens the connection to the database.
         """
@@ -80,9 +84,7 @@ class Database(object):
         connection.commit()
         connection.close()
 
-    def execute_query(self, query,
-                      commit,
-                      transpose):
+    def execute_query(self, query, commit=False, transpose=True):
         """
         Executes a given Query, optionally committing changes. Results are
         transposed by default.

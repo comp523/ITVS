@@ -2,7 +2,7 @@
 Common utilities
 """
 
-from datetime import datetime, date
+from datetime import datetime
 from math import floor
 
 EPOCH = datetime.utcfromtimestamp(0)
