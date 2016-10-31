@@ -32,7 +32,7 @@ class Database(object):
 
     ENTRY_TABLE = "entries"
 
-    ENTRY_COLUMNS = {**COMMENT_FIELDS, **POST_FIELDS}
+    ENTRY_COLUMNS = dict(COMMENT_FIELDS, **POST_FIELDS)
 
     def __init__(self, database_file, debug_mode=False):
         """
