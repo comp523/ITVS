@@ -1,0 +1,1 @@
+#!/bin/bashecho "Starting ranalyze_update"echo `pwd`cd {$OPENSHIFT_REPO_DIR}/ranalyzeecho `pwd`echo "Ranalyze has been updated"
