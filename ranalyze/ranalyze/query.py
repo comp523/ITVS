@@ -105,7 +105,7 @@ class SelectQuery(Query):
 
     FORMAT = "{select} {columns} FROM {table} {where}"
 
-    def __init__(self, table, columns, where=None, distinct=False):
+    def __init__(self, table, columns="*", where=None, distinct=False):
 
         if type(columns) is list:
             columns = ", ".join(columns)

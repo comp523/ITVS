@@ -2,13 +2,17 @@
 A simple Flask API giving HTTP access to the command line functionality
 to run: 
     python api.py [database file] [scrape config file]
+    OR 
+    if config.txt and a scraped 'results.db' file have been created 
+    python api.py
 """
 import flask
 import os
 import sys
-from ranalyze import search
-from ranalyze import utils
-from ranalyze.database import database
+from csv import DictWriter
+from ranalyze.ranalyze import search
+from ranalyze.ranalyze import utils
+from ranalyze.ranalyze import database
 
 app = flask.Flask(__name__)
 CONFIG_FILE = None
@@ -28,11 +32,16 @@ def static_files(filename):
     """
     return flask.send_from_directory(app.static_folder, filename)
 
-@app.route('/simple_search/', methods=['POST'])
+@app.route('/simple_search/', methods=['GET', 'POST'])
 def simple_search():
     """
     Search wtihout expressions
+    on GET: return csv of most recent simple search
+    on POST: return JSON of search
     """
+    if flask.request.method == 'GET':
+        return flask.send_file('simple_result.csv')
+
     condition = search.Condition()
     request = flask.request.get_json(force=True, silent=True)
     if 'keywords' in request:
@@ -61,22 +70,29 @@ def simple_search():
                         columns="*")
     rows = DATABASE.execute_query(query, transpose=False)
     entries = [dict(zip(e.keys(), e)) for e in rows]
+    keys = entries[0].keys()
+    
+    with open('simple_result.csv', 'w') as return_file: 
+        writer = DictWriter(return_file, fieldnames=keys)
+        writer.writeheader()
+        writer.writerows(entries)
+    
     return flask.jsonify(entries)
 
-@app.route('/advanced_search/', methods=['POST'])
+@app.route('/advanced_search/', methods=['GET', 'POST'])
 def advanced_search():
     """
-    Search with expressions
+    on GET: return CSV of most recent advanced search 
+    on POST: return JSON of advanced search
     """
+    if flask.request.method == 'GET':
+        return flask.send_file('advanced_result.csv')
+
     condition = search.Condition()
-    print(flask.request.get_json(force=True, silent=True))
     request = flask.request.get_json(force=True, silent=True)
     if 'expression' in request: 
-        print(request['expression'])
-        tree = search.ExpressionTree.from_expression(request["expression"])
-        print(tree.__dict__)
+        tree = search.expression_to_tree(request["expression"])
         condition = search.tree_to_condition(tree)
-        print(condition)
 
     if 'subreddits' in request: 
         subreddit_condition = search.Condition()
@@ -97,30 +113,41 @@ def advanced_search():
                         columns="*")
     rows = DATABASE.execute_query(query, transpose=False)
     entries = [dict(zip(e.keys(), e)) for e in rows]
+    keys = entries[0].keys()
+    
+    with open('advanced_result.csv', 'w') as return_file: 
+        writer = DictWriter(return_file, fieldnames=keys)
+        writer.writeheader()
+        writer.writerows(entries)
+
     return flask.jsonify(entries)
 
-@app.route('/scrape/', methods=['GET', 'POST'])
+@app.route('/scrape', methods=['GET', 'POST'])
 def scrape():
     """
-    on GET: returns JSON of the current 
+    on GET: returns JSON of the current subs being scraped
+    on POST: updates scrape config file
     """
     if flask.request.method == 'POST':
+        rv = []
         with open(CONFIG_FILE, 'w') as config_file:
-            print("Updating "+CONFIG_FILE)
             to_scrape = flask.request.get_json(force=True, silent=True)
             for i in to_scrape:
-                print(i)
-                config_file.write(i)
+                config_file.write(i+'\n')
+                rv.append(i)
+        return flask.jsonify(rv)
     else:
         with open(CONFIG_FILE) as config_file:
-            rv = [i for i in config_file]
+            rv = [i.replace('\n', '') for i in config_file]
             return flask.jsonify(rv);
-    
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print("Error: specify the database to connect to and a config file")
-        print("e.g.: python api.py database.db config.txt")
+        # default values
+        CONFIG_FILE = 'config.txt'
+        DATABASE = database.Database('results.db')
     else:
         DATABASE = database.Database(sys.argv[1])
         CONFIG_FILE = sys.argv[2]
-        app.run()
+    app.run()
