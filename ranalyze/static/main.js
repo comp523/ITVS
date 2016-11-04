@@ -1,35 +1,44 @@
 // Keeps track of which subreddits to add
 var subreddits = new Set();
-var removedSubreddits = new Set();
+
 function addScrapeJobListner() {
 	$(".scrape-job").on('click', function(event) {
-		if(removedSubreddits.has($(this).text())) {
-			removedSubreddits.delete($(this).text());
-			$(this).css('text-decoration', '');
-		} else {
-			removedSubreddits.add($(this).text());
+		if (subreddits.has($(this).text())) {
+			subreddits.delete($(this).text());
 			$(this).css('text-decoration', 'line-through');
+		} else { 
+			subreddits.add($(this).text());
+			$(this).css('text-decoration', '');
 		}
 	});
 }
 
-function addJob(subreddit) {
-
-}
-
 function updateScrapeConfig(subreddits) {
+	console.log(subreddits);
 	$.ajax({
 		method: 'POST',
 		url: '/scrape', 
 		data: JSON.stringify(subreddits),
-		success: getScrapeSettings()
+	}).done(function(res){
+		$('#scrape-job-list').empty();
+		console.log(res);
+		subreddits = new Set();
+		res.forEach(function(r) {
+			console.log(r);
+			subreddits.add(r);
+			$('#scrape-job-list').append(
+				'<li class="list-group-item scrape-job">'+
+				r+
+				'</li>');
+		});
+		addScrapeJobListner();
 	});
 }
 
 function getScrapeSettings() {
 	$.ajax('/scrape')
 	.done(function(res){
-		$('#scrape-jobs').empty();
+		$('#scrape-job-list').empty();
 		subreddits = new Set();
 		res.forEach(function(r) {
 			console.log(r);
@@ -47,10 +56,19 @@ function addSubredditToDom(subreddit) {
 	if (subreddits.has(subreddit)) return;
 	else {
 		subreddits.add(subreddit);
-		$('#scrape-job-list').append(
-				'<li class="list-group-item scrape-job">'
+		var newSubElement = $('<li class="list-group-item scrape-job">'
 				+subreddit
 				+'</li>');
+		$('#scrape-job-list').append(newSubElement);
+		newSubElement.on('click', function(event) {
+			if (subreddits.has(subreddit)) {
+				subreddits.delete(subreddit);
+				$(this).css('text-decoration', 'line-through');
+			} else { 
+				subreddits.add(subreddit);
+				$(this).css('text-decoration', '');
+			}
+		});
 	}
 }
 
@@ -88,6 +106,7 @@ function advancedSearch(searchConditions) {
 					+"</tr>"
 				);
 			});
+			$('#download-advanced-search').removeAttr('hidden');
 		}
 	});
 }
@@ -126,6 +145,7 @@ function simpleSearch(searchConditions) {
 					+"</tr>"
 				)
 			});
+			$('#download-simple-search').removeAttr('hidden');
 		}
 	});
 }
@@ -173,10 +193,18 @@ function addListeners() {
 $(document).ready(function() {
 	getScrapeSettings();
 	addListeners();
-	
+	$('#add-job').click(function() {
+		addSubredditToDom($("#new-job").val().trim());
+		$("#new-job").val('');
+	});
 	$('#save-jobs').click(function() {
-		var subreddits = $('#scrape-jobs').children().text().split('\n');
-		updateScrapeConfig(['abcd', 'efg']);
-		//updateScrapeConfig(subreddits);
+		console.log(subreddits);
+		var newState = [];
+		subreddits.forEach(function(s){
+			newState.push(s);
+		});
+		console.log('saving');
+		//updateScrapeConfig(['abcd', 'efg']);
+		updateScrapeConfig(newState);
 	});
 });
