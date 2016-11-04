@@ -11,4 +11,4 @@ venv/
 #Jekyll site folders
 _*/
 #SQLite databases
-*.db
+#*.db # for demo purposes including one
