@@ -10,9 +10,9 @@ import flask
 import os
 import sys
 from csv import DictWriter
-from ranalyze.ranalyze import search
-from ranalyze.ranalyze import utils
-from ranalyze.ranalyze import database
+from .ranalyze import search
+from .ranalyze import utils
+from .ranalyze import database
 
 app = flask.Flask(__name__)
 CONFIG_FILE = None
