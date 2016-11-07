@@ -3,7 +3,11 @@ Database abstraction class for handling storage of Posts and Comments
 """
 
 import atexit
-import sqlite3
+import os
+if os.environ['']:
+  import MySQLdb as dblib
+else:
+  import sqlite3 as dblib
 
 from .config import Config, ConfigModule
 from .entry import (
@@ -42,8 +46,8 @@ class Database(object):
         # Prints all sql statements if True
         self._debug_mode = debug_mode
 
-        self._database = sqlite3.connect(database_file)
-        self._database.row_factory = sqlite3.Row
+        self._database = dblib.connect(database_file)
+        self._database.row_factory = dblib.Row
         atexit.register(self._close)
 
     def add_update_entry(self, entry):
@@ -62,7 +66,7 @@ class Database(object):
         Create a new, pre-formatted database
         """
 
-        connection = sqlite3.connect(filename)
+        connection = dblib.connect(filename)
 
         cursor = connection.cursor()
 
