@@ -9,6 +9,7 @@ to run:
 import flask
 import os
 import sys
+from csv import DictWriter
 from .ranalyze import search
 from .ranalyze import utils
 from .ranalyze import database
