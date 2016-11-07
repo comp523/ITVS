@@ -15,12 +15,16 @@ except IOError:
 # line, it's possible required libraries won't be in your searchable path
 #
 
-from api import app as application
+import ranalyze.api
+from ranalyze.api import app as application
 
 #
 # Below for testing only
 #
 if __name__ == '__main__':
+    if 'OPENSHIFT_MYSQL_DB_HOST' in os.environ:
+        ranalyze.api.mysql_init();
+    
     from wsgiref.simple_server import make_server
     httpd = make_server('localhost', 8051, application)
     # Wait for a single request, serve it and quit.

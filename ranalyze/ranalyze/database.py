@@ -4,7 +4,7 @@ Database abstraction class for handling storage of Posts and Comments
 
 import atexit
 import os
-if os.environ['']:
+if 'OPENSHIFT_MYSQL_DB_HOST' in os.environ:
   import MySQLdb as dblib
 else:
   import sqlite3 as dblib
