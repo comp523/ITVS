@@ -20,6 +20,7 @@ show_back_to_top: true
  - [Prototype](https://github.com/comp523/ITVS/blob/master/prototype/reddit_json.py)
 
 ## Sprint Deliverables
+ - [Sprint Specific Goals](https://docs.google.com/document/d/15arvNZABIXEiAKEgw2eSmxvtJnDdouYsilIAH7qmzIA/edit?usp=sharing)
  - [Functional Specification](#use-cases)
  - [Design Doc](/ITVS/design), which includes the architecture diagram
  - [Test Plan](/ITVS/testing)
