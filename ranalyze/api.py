@@ -137,14 +137,17 @@ def scrape():
                 rv.append(i)
         return flask.jsonify(rv)
     else:
-        with open(CONFIG_FILE) as config_file:
+        if not os.path.isfile(CONFIG_FILE):
+            with open(fname, 'w'):
+                pass
+        with open(CONFIG_FILE, 'r') as config_file:
             rv = [i.replace('\n', '') for i in config_file]
             return flask.jsonify(rv);
 
 def mysql_init():
     global DATABASE, CONFIG_FILE
     DATABASE = database.Database(os.environ['OPENSHIFT_MYSQL_DB_URL'])
-    CONFIG_FILE = 'config.txt'
+    CONFIG_FILE = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'config.txt')
 
 if __name__ == '__main__':
     DATABASE = database.Database(sys.argv[1])
