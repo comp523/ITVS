@@ -138,7 +138,7 @@ def scrape():
         return flask.jsonify(rv)
     else:
         if not os.path.isfile(CONFIG_FILE):
-            with open(fname, 'w'):
+            with open(CONFIG_FILE, 'w'):
                 pass
         with open(CONFIG_FILE, 'r') as config_file:
             rv = [i.replace('\n', '') for i in config_file]
