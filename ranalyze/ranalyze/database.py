@@ -49,7 +49,7 @@ class Database(object):
         #self._database = dblib.connect(database_file)
         self._database = dblib.connect(host=os.environ['OPENSHIFT_MYSQL_DB_HOST'],
             port=int(os.environ['OPENSHIFT_MYSQL_DB_PORT']),
-            user=os.environ['OPENSHIFT_MYSQL_DB_USER'],
+            user=os.environ['OPENSHIFT_MYSQL_DB_USERNAME'],
             passwd=os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'],
             db='ranalyze')
         #mysql://admintfMgVT9:B4muI-pY5vEh@127.13.87.2:3306/
