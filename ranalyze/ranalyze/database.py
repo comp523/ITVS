@@ -47,7 +47,7 @@ class Database(object):
         self._debug_mode = debug_mode
 
         #self._database = dblib.connect(database_file)
-        self._database = dblib.connect(host='127.13.87.2', port='3306', user='admintfMgVT9', passwd='B4muI-pY5vEh', db='ranalyze')
+        self._database = dblib.connect(host='127.13.87.2', port=3306, user='admintfMgVT9', passwd='B4muI-pY5vEh', db='ranalyze')
         #mysql://admintfMgVT9:B4muI-pY5vEh@127.13.87.2:3306/
         self._database.row_factory = dblib.Row
         atexit.register(self._close)
