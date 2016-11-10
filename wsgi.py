@@ -18,6 +18,12 @@ except IOError:
 import ranalyze.api
 from ranalyze.api import app as application
 
+#os.environ['OPENSHIFT_MYSQL_DB_HOST'] = '127.13.87.2'
+#os.environ['OPENSHIFT_MYSQL_DB_PORT'] = '3306'
+#os.environ['OPENSHIFT_MYSQL_DB_USER'] = 'admintfMgVT9'
+#os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'] = 'B4muI-pY5vEh'
+#os.environ['OPENSHIFT_MYSQL_DB_URL'] = 'mysql://admintfMgVT9:B4muI-pY5vEh@127.13.87.2:3306/'
+
 if 'OPENSHIFT_MYSQL_DB_HOST' in os.environ:
     ranalyze.api.mysql_init();
 

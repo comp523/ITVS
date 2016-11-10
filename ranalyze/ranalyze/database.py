@@ -4,10 +4,10 @@ Database abstraction class for handling storage of Posts and Comments
 
 import atexit
 import os
-if 'OPENSHIFT_MYSQL_DB_HOST' in os.environ:
-  import MySQLdb as dblib
-else:
-  import sqlite3 as dblib
+#if 'OPENSHIFT_MYSQL_DB_HOST' in os.environ:
+import MySQLdb as dblib
+#else:
+#  import sqlite3 as dblib
 
 from .config import Config, ConfigModule
 from .entry import (
@@ -47,7 +47,11 @@ class Database(object):
         self._debug_mode = debug_mode
 
         #self._database = dblib.connect(database_file)
-        self._database = dblib.connect(host='127.13.87.2', port=3306, user='admintfMgVT9', passwd='B4muI-pY5vEh', db='ranalyze')
+        self._database = dblib.connect(host=os.environ['OPENSHIFT_MYSQL_DB_HOST'],
+            port=int(os.environ['OPENSHIFT_MYSQL_DB_PORT']),
+            user=os.environ['OPENSHIFT_MYSQL_DB_USER'],
+            passwd=os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'],
+            db='ranalyze')
         #mysql://admintfMgVT9:B4muI-pY5vEh@127.13.87.2:3306/
         self._database.row_factory = dblib.Row
         atexit.register(self._close)
