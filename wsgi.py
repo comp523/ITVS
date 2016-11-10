@@ -22,6 +22,8 @@ from ranalyze.api import app as application
 # Below for testing only
 #
 if __name__ == '__main__':
+    print("Environment: ")
+    print(os.environ)
     if 'OPENSHIFT_MYSQL_DB_HOST' in os.environ:
         ranalyze.api.mysql_init();
     
