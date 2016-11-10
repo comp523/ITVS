@@ -18,14 +18,15 @@ except IOError:
 import ranalyze.api
 from ranalyze.api import app as application
 
+print("Environment: ")
+print(os.environ)
+if 'OPENSHIFT_MYSQL_DB_HOST' in os.environ:
+    ranalyze.api.mysql_init();
+
 #
 # Below for testing only
 #
 if __name__ == '__main__':
-    print("Environment: ")
-    print(os.environ)
-    if 'OPENSHIFT_MYSQL_DB_HOST' in os.environ:
-        ranalyze.api.mysql_init();
     
     from wsgiref.simple_server import make_server
     httpd = make_server('localhost', 8051, application)
