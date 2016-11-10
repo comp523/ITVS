@@ -143,7 +143,6 @@ def scrape():
 
 def mysql_init():
     global DATABASE, CONFIG_FILE
-    print("INITIALIZING")
     DATABASE = database.Database(os.environ['OPENSHIFT_MYSQL_DB_URL'])
     CONFIG_FILE = 'config.txt'
 

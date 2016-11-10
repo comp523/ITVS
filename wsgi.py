@@ -18,8 +18,6 @@ except IOError:
 import ranalyze.api
 from ranalyze.api import app as application
 
-print("Environment: ")
-print(os.environ)
 if 'OPENSHIFT_MYSQL_DB_HOST' in os.environ:
     ranalyze.api.mysql_init();
 
