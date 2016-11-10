@@ -142,6 +142,7 @@ def scrape():
             return flask.jsonify(rv);
 
 def mysql_init():
+    global DATABASE, CONFIG_FILE
     DATABASE = database.Database(os.environ['OPENSHIFT_MYSQL_DB_URL'])
     CONFIG_FILE = 'config.txt'
 
