@@ -52,8 +52,8 @@ class Database(object):
             user=os.environ['OPENSHIFT_MYSQL_DB_USERNAME'],
             passwd=os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'],
             db='ranalyze')
-        #mysql://admintfMgVT9:B4muI-pY5vEh@127.13.87.2:3306/
-        self._database.row_factory = dblib.Row
+        # DEPRECATED sqlite code
+        # self._database.row_factory = dblib.Row
         atexit.register(self._close)
 
     def add_update_entry(self, entry):
@@ -104,7 +104,7 @@ class Database(object):
             print("SQL:", query.sql)
             print("params:", query.params)
 
-        cursor = self._database.cursor()
+        cursor = self._database.cursor(dblib.cursors.DictCursor)
         cursor.execute(query.sql, query.params)
         results = cursor.fetchall()
         if commit:
