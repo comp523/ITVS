@@ -141,7 +141,7 @@ class Database(object):
         print(query.params)
         result = self.execute_query(query, transpose=False)[0]
 
-        if result is None or len(result) == 0:
+        if result['id'] is None:
             return None
 
         latest_id = result[0]
@@ -173,7 +173,7 @@ class Database(object):
                             columns="COUNT(*)",
                             where=Condition("id", entry.id))
         result = self.execute_query(query, transpose=False)[0]
-        return result[0] == 1
+        return result['COUNT(*)'] == 1
 
     @staticmethod
     def _row_to_entry(row):
