@@ -25,11 +25,12 @@ class Condition:
                     keys = Condition.params.keys()
                     values = Condition.params.values()
                     param_id = list(keys)[list(values).index(value)]
-                    param = ":{}".format(param_id)
+                    param = "%({})s".format(param_id)
                 else:
-                    param = ":_c{}".format(Condition._param_counter)
+                    param_id = "p{}".format(Condition._param_counter)
+                    param = "%({})s".format(param_id)
                     Condition._param_counter += 1
-                    self.params[param[1:]] = value  # slice the colon from param
+                    self.params[param_id] = value  # slice the colon from param
             self.sql = "{} {} {}".format(column, operand, param)
 
     def __and__(self, other):
@@ -86,7 +87,7 @@ class InsertQuery(Query):
 
         params = {key: "_i{}".format(i) for i, key in enumerate(values)}
         self._params = {param: values[key] for key, param in params.items()}
-        values = ", ".join([":{}".format(v) for v in params.values()])
+        values = ", ".join(["%({})s".format(v) for v in params.values()])
         self._sql = InsertQuery.FORMAT.format(table=table,
                                               columns=", ".join(params.keys()),
                                               values=values)
@@ -137,7 +138,7 @@ class UpdateQuery(Query):
     def __init__(self, table, values, where):
 
         params = {key: "_u{}".format(i) for i, key in enumerate(values.keys())}
-        columns = ", ".join(["{}=:{}".format(key, param)
+        columns = ", ".join(["{}=%({})s".format(key, param)
                              for key, param in params.items()])
         self._params = {param: values[key] for key, param in params.items()}
         self._params.update(where.params)

@@ -83,17 +83,17 @@ class Database(object):
         queries = ("DROP TABLE IF EXISTS {}".format(Database.ENTRY_TABLE),
                    """
                    CREATE TABLE {} (
-                   id text PRIMARY KEY, permalink text UNIQUE, root_id text,
+                   id varchar(255) PRIMARY KEY, permalink text, root_id text,
                    up_votes integer, up_ratio real, time_submitted integer,
                    time_updated integer, posted_by text, title text,
                    subreddit text, external_url text, text_content text,
-                   parent_id text, gilded integer, deleted integer,
+                   parent_id varchar(255), gilded integer, deleted integer,
                    FOREIGN KEY(parent_id) REFERENCES entries(id)
                    )
                    """.format(Database.ENTRY_TABLE))
 
         for query in queries:
-            cursor.execute(query)
+            cursor.execute(query, query.params)
 
         connection.commit()
         connection.close()
@@ -137,7 +137,8 @@ class Database(object):
         query = SelectQuery(table=Database.ENTRY_TABLE,
                             columns=["id", "MAX(time_submitted)"],
                             where=condition)
-        print(query)
+        print(query.sql)
+        print(query.params)
         result = self.execute_query(query, transpose=False)[0]
 
         if result is None:

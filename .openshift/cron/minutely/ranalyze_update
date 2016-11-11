@@ -1,1 +1,6 @@
-#!/bin/bashcd ~/app-root/repo/ranalyzepython -m ranalyze create-db ranalyzepython -m ranalyze scrape -s vaping
+#!/bin/bash
+cd ~/app-root/repo/ranalyze
+python -m ranalyze create-db ranalyze
+python -m ranalyze scrape -s vaping
+
+
