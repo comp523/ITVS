@@ -144,7 +144,7 @@ class Database(object):
         if result['id'] is None:
             return None
 
-        latest_id = result[0]
+        latest_id = result['id']
 
         return self.get_entry(latest_id)
 
