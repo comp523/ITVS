@@ -9,62 +9,12 @@ from json import dumps
 from sys import stdout
 
 from .query import Condition, SelectQuery
-from .config import Config, DictConfigModule
-from .database import Database
+from .database import *
 from .utils import iso_to_date
 
 KEYWORD_COLUMNS = {"text_content", "title"}
 
 QUOTE_PATTERN = re.compile(r"^([\"'])(?P<text>.*)\1$")
-
-
-class SearchConfigModule(DictConfigModule):
-
-    _arguments_dict = {
-        "database": {
-            ("-d", "--database-file"): {
-                "help": "SQLite database to search",
-                "required": True,
-                "type": str
-            }
-        },
-        "search criteria": {
-            ("-a", "--after"): {
-                "help": "only search posts on or after a specified date"
-            },
-            ("-b", "--before"): {
-                "help": "only search posts on or before a specified date"
-            },
-            ("-e", "--expression"): {
-                "help": ("search using a boolean expression in the"
-                         " form:\n[not] \"KEYWORD1\" [and|or] [not]"
-                         " \"KEYWORD2\"")
-            },
-            ("-k", "--keyword"): {
-                "action": "append",
-                "help": "specify search keywords/phrases"
-            },
-            ("-s", "--subreddit"): {
-                "action": "append",
-                "help": "restrict search to specified subreddits"
-            }
-        },
-        "output": {
-            ("-c", "--columns"): {
-                "help": "space-delimited list of columns to include in results",
-                "nargs": "+"
-            },
-            ("-f", "--format"): {
-                "choices": ["json", "csv"],
-                "default": "json",
-                "help": ("can be used to specify output format, available. "
-                         "default is json")
-            }
-        }
-    }
-
-    def get_runner(self):
-        return main
 
 
 class ASTNode(object, metaclass=abc.ABCMeta):
@@ -302,53 +252,45 @@ def tree_to_condition(node):
         raise RuntimeError("Unrecognized node type `{}`".format(node.__class__))
 
 
-def main():
+def search(keyword=None, expression=None,
+           subreddit=None, after=None, before=None):
+    """
 
-    config = Config.get_instance()
-    database = Database(config["database_file"])
+    :param keyword: str|list[str]
+    :param expression: str
+    :param subreddit: str|list[str]
+    :param after: datetime.datetime|datetime.date
+    :param before: datetime.datetime|datetime.date
+    :return: list[.models.entry]
+    """
 
     condition = Condition()  # Empty initial condition
 
-    if config["keyword"]:
-        keywords = ["%{}%".format(k) for k in config["keyword"]]
-        for word in keywords:
-            keyword_condition = multi_column_condition(KEYWORD_COLUMNS,
-                                                       "LIKE",
-                                                       word)
-            condition |= keyword_condition
-    elif config["expression"]:
-        tree = expression_to_tree(config["expression"])
+    if keyword:
+        keyword = [keyword] if type(keyword) is str else keyword
+        for word in keyword:
+            condition |= multi_column_condition(KEYWORD_COLUMNS,
+                                                "LIKE",
+                                                "%{}%".format(word))
+    elif expression:
+        tree = expression_to_tree(expression)
         condition = tree_to_condition(tree)
 
-    if config["subreddit"]:
+    if subreddit:
+        subreddit = [subreddit] if type(subreddit) is str else subreddit
         subreddit_condition = Condition()
-        for sub in config["subreddit"]:
+        for sub in subreddit:
             subreddit_condition |= Condition("subreddit", sub)
         condition &= subreddit_condition
 
-    if config["after"]:
-        date = iso_to_date(config["after"])
-        condition &= Condition("time_submitted", ">=", date)
+    if after:
+        condition &= Condition("time_submitted", ">=", after)
 
-    if config["before"]:
-        date = iso_to_date(config["before"])
-        condition &= Condition("time_submitted", "<=", date)
+    if before:
+        condition &= Condition("time_submitted", "<=", before)
 
-    columns = ", ".join(config["columns"]) if config["columns"] else "*"
-
-    query = SelectQuery(table=Database.ENTRY_TABLE,
+    query = SelectQuery(table=ENTRY_TABLE,
                         distinct=True,
-                        where=condition,
-                        columns=columns)
+                        where=condition)
 
-    rows = database.execute_query(query, transpose=False)
-    entries = [dict(zip(e.keys(), e)) for e in rows]
-
-    if config["format"] == "json":
-        print(dumps(entries))
-    else:
-        if entries:
-            keys = config["columns"] if config["columns"] else entries[0].keys()
-            writer = DictWriter(stdout, fieldnames=keys)
-            writer.writeheader()
-            writer.writerows(entries)
+    return execute_query(query)

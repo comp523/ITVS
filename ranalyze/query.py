@@ -4,6 +4,7 @@ SQL Query Builder
 
 import abc
 
+
 class Condition:
 
     _param_counter = 0

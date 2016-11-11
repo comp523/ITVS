@@ -8,7 +8,78 @@ from datetime import datetime
 from .utils import date_to_timestamp
 
 
-class Entry(object, metaclass=abc.ABCMeta):
+class ModelObject(object, metaclass=abc.ABCMeta):
+
+    def __init__(self, **kwargs):
+        object.__setattr__(self, "_attrs",
+                           {key: (kwargs[key] if key in kwargs else None)
+                            for key in self.get_fields()})
+
+    @staticmethod
+    @abc.abstractmethod
+    def get_fields():
+        pass
+
+    def __getattr__(self, item):
+        if item not in self.get_fields():
+            raise NoSuchAttributeError(class_name=type(self).__name__,
+                                       attribute=item)
+        return self._attrs[item]
+
+    def __setattr__(self, key, value):
+        if key not in self.get_fields():
+            raise NoSuchAttributeError(class_name=type(self).__name__,
+                                       attribute=key)
+        self._attrs[key] = value
+
+    @property
+    def dict(self):
+        return self._attrs.copy()
+
+
+class ModelFactory(object, metaclass=abc.ABCMeta):
+
+    @classmethod
+    def from_row(cls, row):
+        data = {key: row[key] for key in row.keys()}
+        target = cls._get_target()
+        return target(**data)
+
+    @staticmethod
+    @abc.abstractmethod
+    def _get_target():
+        """
+        :rtype: Callable
+        :return: Target class of the factory
+        """
+        pass
+
+
+class WordDay(ModelObject):
+
+    _FIELDS = {
+        "id": int,
+        "word": str,
+        "day": int,
+        "month": int,
+        "year": int,
+        "total": int,
+        "entries": int
+    }
+
+    @staticmethod
+    def get_fields():
+        return WordDay._FIELDS
+
+
+class WordDayFactory(ModelFactory):
+
+    @staticmethod
+    def _get_target():
+        return WordDay
+
+
+class Entry(ModelObject, metaclass=abc.ABCMeta):
     """
     Base class for all database entries
     """
@@ -25,27 +96,8 @@ class Entry(object, metaclass=abc.ABCMeta):
         "deleted": bool
     }
 
-    def __init__(self, **kwargs):
-        self._attrs = {key: (kwargs[key] if key in kwargs else None)
-                       for key in self.get_fields()}
 
-    def __getattr__(self, item):
-        if item not in self.get_fields():
-            raise NoSuchAttributeError(class_name=type(self).__name__,
-                                       attribute=item)
-        return self._attrs[item]
-
-    @property
-    def dict(self):
-        return self._attrs.copy()
-
-    @staticmethod
-    @abc.abstractmethod
-    def get_fields():
-        pass
-
-
-class EntryFactory(object, metaclass=abc.ABCMeta):
+class EntryFactory(ModelFactory, metaclass=abc.ABCMeta):
     """
     Base class for all Entry factories
     """
@@ -66,7 +118,9 @@ class EntryFactory(object, metaclass=abc.ABCMeta):
         Creates an Entry from a PrawEntry object
         """
         attrs = {}
-        target, fields, praw_map = cls._get_properties()
+        target = cls._get_target()
+        fields = target.get_fields()
+        praw_map = cls._get_praw_map()
         for key in fields:
             if key in praw_map:
                 attrs[key] = praw_map[key](praw_obj)
@@ -74,21 +128,14 @@ class EntryFactory(object, metaclass=abc.ABCMeta):
                 attrs[key] = getattr(praw_obj, key)
         return target(**attrs)
 
-    @classmethod
-    def from_row(cls, row):
-        """
-        Creates an Entry from an sqlite.Row object
-        """
-        data = {key: row[key] for key in row.keys()}
-        target = cls._get_properties()[0]
-        return target(**data)
 
     @staticmethod
     @abc.abstractmethod
-    def _get_properties():
+    def _get_praw_map():
         """
-        Subclass implemented method. Returns the target class, field dictionary,
-        and praw conversion map (in that order)
+        :rtype: dict
+        :return: Dictionary mapping praw object attributes to functions
+         which convert them to Entry attributes
         """
         pass
 
@@ -121,15 +168,13 @@ class CommentFactory(EntryFactory):
         text_content=lambda c: c.body
     )
 
-    _TARGET = Comment
+    @staticmethod
+    def _get_target():
+        return Comment
 
     @staticmethod
-    def _get_properties():
-        return (
-            CommentFactory._TARGET,
-            Comment.get_fields(),
-            CommentFactory._PRAW_MAP
-        )
+    def _get_praw_map():
+        return CommentFactory._PRAW_MAP
 
 
 class Post(Entry):
@@ -146,7 +191,7 @@ class Post(Entry):
     )
 
     @staticmethod
-    def get_fields() -> dict:
+    def get_fields():
         return Post._FIELDS
 
 
@@ -163,11 +208,13 @@ class PostFactory(EntryFactory):
         up_ratio=lambda s: 0  # TODO: Implement up_ratio?
     )
 
-    _TARGET = Post
+    @staticmethod
+    def _get_target():
+        return Post
 
     @staticmethod
-    def _get_properties():
-        return PostFactory._TARGET, Post.get_fields(), PostFactory._PRAW_MAP
+    def _get_praw_map():
+        return PostFactory._PRAW_MAP
 
 
 class NoSuchAttributeError(AttributeError):

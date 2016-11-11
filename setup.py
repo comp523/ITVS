@@ -9,11 +9,11 @@ if sys.version_info < (3, 3):
 setup(name='ranalyze',
       version='0.1',
       install_requires=[
-          "nose==1.3.7",
           "praw==3.5.0",
           "pylint==1.5.4",
-          "pyyaml==3.12",
-          "flask==0.11.1"
+          "lazy-object-proxy==1.2.1",
+          "flask==0.11.1",
+          "mysqlclient==1.3.9"
       ],
       packages=["ranalyze"]
       )

@@ -15,8 +15,8 @@ except IOError:
 # line, it's possible required libraries won't be in your searchable path
 #
 
-import ranalyze.api
-from ranalyze.api import app as application
+import ranalyze.ranalyze.api
+from ranalyze.ranalyze.api import app as application
 
 #os.environ['OPENSHIFT_MYSQL_DB_HOST'] = '127.13.87.2'
 #os.environ['OPENSHIFT_MYSQL_DB_PORT'] = '3306'
@@ -25,7 +25,7 @@ from ranalyze.api import app as application
 #os.environ['OPENSHIFT_MYSQL_DB_URL'] = 'mysql://admintfMgVT9:B4muI-pY5vEh@127.13.87.2:3306/'
 
 if 'OPENSHIFT_MYSQL_DB_HOST' in os.environ:
-    ranalyze.api.mysql_init();
+    ranalyze.ranalyze.api.mysql_init()
 
 #
 # Below for testing only
