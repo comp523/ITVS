@@ -69,7 +69,7 @@ def simple_search():
                         where=condition,
                         columns="*")
     rows = DATABASE.execute_query(query, transpose=False)
-    entries = [dict(zip(e.keys(), e)) for e in rows]
+    entries = rows #[dict(zip(e.keys(), e)) for e in rows]
     keys = entries[0].keys()
     
     with open(os.environ['OPENSHIFT_DATA_DIR']+'/simple_result.csv', 'w') as return_file: 
@@ -112,7 +112,7 @@ def advanced_search():
                         where=condition,
                         columns="*")
     rows = DATABASE.execute_query(query, transpose=False)
-    entries = [dict(zip(e.keys(), e)) for e in rows]
+    entries = rows #[dict(zip(e.keys(), e)) for e in rows]
     keys = entries[0].keys()
     
     with open(os.environ['OPENSHIFT_DATA_DIR']+'/advanced_result.csv', 'w') as return_file: 
