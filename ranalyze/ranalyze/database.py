@@ -141,7 +141,7 @@ class Database(object):
         print(query.params)
         result = self.execute_query(query, transpose=False)[0]
 
-        if result is None or if len(result) == 0:
+        if result is None or len(result) == 0:
             return None
 
         latest_id = result[0]
