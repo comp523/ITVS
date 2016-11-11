@@ -40,7 +40,7 @@ def simple_search():
     on POST: return JSON of search
     """
     if flask.request.method == 'GET':
-        return flask.send_file('$OPENSHIFT_DATA_DIR/simple_result.csv')
+        return flask.send_file(os.environ['OPENSHIFT_DATA_DIR']+'/simple_result.csv')
 
     condition = search.Condition()
     request = flask.request.get_json(force=True, silent=True)
@@ -72,7 +72,7 @@ def simple_search():
     entries = [dict(zip(e.keys(), e)) for e in rows]
     keys = entries[0].keys()
     
-    with open('$OPENSHIFT_DATA_DIR/simple_result.csv', 'w') as return_file: 
+    with open(os.environ['OPENSHIFT_DATA_DIR']+'/simple_result.csv', 'w') as return_file: 
         writer = DictWriter(return_file, fieldnames=keys)
         writer.writeheader()
         writer.writerows(entries)
@@ -86,7 +86,7 @@ def advanced_search():
     on POST: return JSON of advanced search
     """
     if flask.request.method == 'GET':
-        return flask.send_file('$OPENSHIFT_DATA_DIR/advanced_result.csv')
+        return flask.send_file(os.environ['OPENSHIFT_DATA_DIR']+'/advanced_result.csv')
 
     condition = search.Condition()
     request = flask.request.get_json(force=True, silent=True)
@@ -115,7 +115,7 @@ def advanced_search():
     entries = [dict(zip(e.keys(), e)) for e in rows]
     keys = entries[0].keys()
     
-    with open('$OPENSHIFT_DATA_DIR/advanced_result.csv', 'w') as return_file: 
+    with open(os.environ['OPENSHIFT_DATA_DIR']+'/advanced_result.csv', 'w') as return_file: 
         writer = DictWriter(return_file, fieldnames=keys)
         writer.writeheader()
         writer.writerows(entries)
