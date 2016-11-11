@@ -93,7 +93,7 @@ class Database(object):
                    """.format(Database.ENTRY_TABLE))
 
         for query in queries:
-            cursor.execute(query, query.params)
+            cursor.execute(query)
 
         connection.commit()
         connection.close()
@@ -141,7 +141,7 @@ class Database(object):
         print(query.params)
         result = self.execute_query(query, transpose=False)[0]
 
-        if result is None:
+        if result is None or if len(result) == 0:
             return None
 
         latest_id = result[0]
