@@ -41,20 +41,22 @@ class ImportConfig(DictConfigModule):
     def get_runner(self):
         
         return main
+def importfile(fname):
+    database = Database(config["database_file"], config["debug"])
+    
+    with open(fname, newline='') as importcsv:
+        csvreader = csv.reader(importcsv)
+        for row in csvreader:
+            for cell in row:
+                for entry in fetch_post(cell):
+                    database.add_update_entry(entry)
 
 
 def main():
     """
     Read in csv file, put permalinks in csv file in the database.
     """
-
-    config = Config.get_instance()
-
-    database = Database(config["database_file"], config["debug"])
+    if __name__ == '__main__':
+        config = Config.get_instance()
+        importfile(config['import'])
     
-    with open(config["import"], newline='') as importcsv:
-        csvreader = csv.reader(importcsv)
-        for row in csvreader:
-            for cell in row:
-                for entry in fetch_post(cell):
-                    database.add_update_entry(entry)

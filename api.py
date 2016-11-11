@@ -13,6 +13,7 @@ from csv import DictWriter
 from ranalyze import search
 from ranalyze import utils
 from ranalyze import database
+from ranalyze import imprt
 
 app = flask.Flask(__name__)
 CONFIG_FILE = None
@@ -141,6 +142,17 @@ def scrape():
             rv = [i.replace('\n', '') for i in config_file]
             return flask.jsonify(rv);
 
+@app.route('/fileimport', methods=['GET', 'POST'])
+def fileimport():
+    """
+    on POST: imports a csv file into the database
+    """
+    if flask.request.method == 'POST':
+        f = flask.request.files['file']
+        f.save('import.csv')
+        imprt.importfile('import.csv')
+        os.remove('import.csv')
+        return 'file uploaded successfully'
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
