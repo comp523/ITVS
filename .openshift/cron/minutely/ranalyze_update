@@ -1,5 +1,5 @@
 #!/bin/bash
 cd ~/app-root/repo/ranalyze
-python -m ranalyze scrape -s vaping
+while read in; python -m ranalyze scrape -s "$in"; done < $OPENSHIFT_DATA_DIR/config.txt
 
 
