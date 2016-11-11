@@ -137,7 +137,7 @@ class Database(object):
         query = SelectQuery(table=Database.ENTRY_TABLE,
                             columns=["id", "MAX(time_submitted)"],
                             where=condition)
-
+        print(query)
         result = self.execute_query(query, transpose=False)[0]
 
         if result is None:
