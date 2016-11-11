@@ -189,7 +189,7 @@ class Database(object):
 
         query = UpdateQuery(table=Database.ENTRY_TABLE,
                             values=entry.dict,
-                            where=Condition("id", entry))
+                            where=Condition("id", entry.id))
 
         self.execute_query(query, commit=True)
 

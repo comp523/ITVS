@@ -133,7 +133,7 @@ class UpdateQuery(Query):
     """
     """
 
-    FORMAT = "UPDATE {table} SET ({columns}) WHERE {where}"
+    FORMAT = "UPDATE {table} SET {columns} WHERE {where}"
 
     def __init__(self, table, values, where):
 
