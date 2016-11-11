@@ -1,1 +1,1 @@
-#!$OPENSHIFT_PYTHON_DIR/virtenv/venv/bin/pythonfrom ranalyze.ranalyze import scrapeprint("Scraping with ranalyze")scrape.main()
+#!/bin/bashcd ~/app-root/repo/ranalyzepython -m ranalyze create-db ranalyzepython -m ranalyze scrape -s vaping

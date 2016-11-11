@@ -72,7 +72,11 @@ class Database(object):
         Create a new, pre-formatted database
         """
 
-        connection = dblib.connect(filename)
+        connection = dblib.connect(host=os.environ['OPENSHIFT_MYSQL_DB_HOST'],
+            port=int(os.environ['OPENSHIFT_MYSQL_DB_PORT']),
+            user=os.environ['OPENSHIFT_MYSQL_DB_USERNAME'],
+            passwd=os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'],
+            db='ranalyze')
 
         cursor = connection.cursor()
 
