@@ -26,12 +26,11 @@ class Condition:
                     keys = Condition.params.keys()
                     values = Condition.params.values()
                     param_id = list(keys)[list(values).index(value)]
-                    param = "%({})s".format(param_id)
+                    param = ":{}".format(param_id)
                 else:
-                    param_id = "p{}".format(Condition._param_counter)
-                    param = "%({})s".format(param_id)
+                    param = ":_c{}".format(Condition._param_counter)
                     Condition._param_counter += 1
-                    self.params[param_id] = value  # slice the colon from param
+                    self.params[param[1:]] = value  # slice the colon from param
             self.sql = "{} {} {}".format(column, operand, param)
 
     def __and__(self, other):
@@ -88,7 +87,7 @@ class InsertQuery(Query):
 
         params = {key: "_i{}".format(i) for i, key in enumerate(values)}
         self._params = {param: values[key] for key, param in params.items()}
-        values = ", ".join(["%({})s".format(v) for v in params.values()])
+        values = ", ".join([":{}".format(v) for v in params.values()])
         self._sql = InsertQuery.FORMAT.format(table=table,
                                               columns=", ".join(params.keys()),
                                               values=values)
@@ -105,9 +104,16 @@ class InsertQuery(Query):
 class SelectQuery(Query):
     """"""
 
-    FORMAT = "{select} {columns} FROM {table} {where}"
+    FORMAT = "{select} {columns} FROM {table} {where} {group} {order} {limit}"
 
-    def __init__(self, table, columns="*", where=None, distinct=False):
+    def __init__(self, table, columns="*", where=None, distinct=False,
+                 order=None, limit=None, group=None):
+
+        limit = "LIMIT {}".format(limit) if limit else ""
+
+        order = "ORDER BY {}".format(order) if order else ""
+
+        group = "GROUP BY {}".format(group) if group else ""
 
         if type(columns) is list:
             columns = ", ".join(columns)
@@ -119,7 +125,10 @@ class SelectQuery(Query):
         self._sql = SelectQuery.FORMAT.format(select=select,
                                               columns=columns,
                                               table=table,
-                                              where=where)
+                                              where=where,
+                                              group=group,
+                                              order=order,
+                                              limit=limit)
 
     @property
     def sql(self):
@@ -139,7 +148,7 @@ class UpdateQuery(Query):
     def __init__(self, table, values, where):
 
         params = {key: "_u{}".format(i) for i, key in enumerate(values.keys())}
-        columns = ", ".join(["{}=%({})s".format(key, param)
+        columns = ", ".join(["{}=:{}".format(key, param)
                              for key, param in params.items()])
         self._params = {param: values[key] for key, param in params.items()}
         self._params.update(where.params)

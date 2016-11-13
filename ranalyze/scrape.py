@@ -91,7 +91,7 @@ def update_posts(date_range):
 
     for post in posts:
         for entry in fetch_post(post.permalink):
-            add_update_entry(entry)
+            add_update_object(entry)
 
 
 def scrape(subreddits):
@@ -103,4 +103,4 @@ def scrape(subreddits):
     connect()
 
     for post in fetch_data(subreddits):
-        add_update_entry(post)
+        add_update_object(post)

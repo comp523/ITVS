@@ -7,16 +7,17 @@ to run:
     python api.py
 """
 import flask
-import os
 import sys
+import os
 from csv import DictWriter
-from ranalyze.ranalyze import search
-from ranalyze.ranalyze import utils
-from ranalyze.ranalyze import database
+from .search import search
+from .utils import iso_to_date
+from .database import connect
 
 app = flask.Flask(__name__)
 CONFIG_FILE = None
 DATABASE = None
+
 
 @app.route('/')
 def index():
@@ -25,12 +26,14 @@ def index():
     """
     return flask.send_from_directory(app.static_folder, 'index.html')
 
+
 @app.route('/<path:filename>')
 def static_files(filename):
     """
     Routing for static files
     """
     return flask.send_from_directory(app.static_folder, filename)
+
 
 @app.route('/simple_search/', methods=['GET', 'POST'])
 def simple_search():
@@ -42,34 +45,14 @@ def simple_search():
     if flask.request.method == 'GET':
         return flask.send_file(os.environ['OPENSHIFT_DATA_DIR']+'/simple_result.csv')
 
-    condition = search.Condition()
     request = flask.request.get_json(force=True, silent=True)
-    if 'keywords' in request:
-        keywords = ["%{}%".format(k) for k in request["keywords"]]
-        for keyword in keywords:
-            keyword_condition = search.multi_column_condition(search.KEYWORD_COLUMNS,
-                                                       "LIKE",
-                                                       keyword)
-            condition |= keyword_condition
-    if 'subreddits' in request: 
-        subreddit_condition = search.Condition()
-        for subreddit in request['subreddits']:
-            subreddit_condition |= search.Condition('subreddit', subreddit)
-        condition &= subreddit_condition
 
-    if 'after' in request: 
-        date = utils.iso_to_date(request["after"])
-        condition &= search.Condition("time_submitted", ">=", date)
+    for date_key in ("after", "before"):
+        if date_key in request:
+            request[date_key] = iso_to_date(request[date_key])
 
-    if 'before' in request:
-        date = utils.iso_to_date(request["before"])
-        condition &= search.Condition("time_submitted", "<=", date)
-    query = database.SelectQuery(table=database.Database.ENTRY_TABLE,
-                        distinct=True,
-                        where=condition,
-                        columns="*")
-    rows = DATABASE.execute_query(query, transpose=False)
-    entries = rows #[dict(zip(e.keys(), e)) for e in rows]
+    entries = search(**request)
+
     keys = entries[0].keys()
     
     with open(os.environ['OPENSHIFT_DATA_DIR']+'/simple_result.csv', 'w') as return_file: 
@@ -78,6 +61,7 @@ def simple_search():
         writer.writerows(entries)
     
     return flask.jsonify(entries)
+
 
 @app.route('/advanced_search/', methods=['GET', 'POST'])
 def advanced_search():
@@ -88,39 +72,24 @@ def advanced_search():
     if flask.request.method == 'GET':
         return flask.send_file(os.environ['OPENSHIFT_DATA_DIR']+'/advanced_result.csv')
 
-    condition = search.Condition()
     request = flask.request.get_json(force=True, silent=True)
-    if 'expression' in request: 
-        tree = search.expression_to_tree(request["expression"])
-        condition = search.tree_to_condition(tree)
 
-    if 'subreddits' in request: 
-        subreddit_condition = search.Condition()
-        for subreddit in request['subreddits']:
-            subreddit_condition |= search.Condition('subreddit', subreddit)
-        condition &= subreddit_condition
+    for date_key in ("after", "before"):
+        if date_key in request:
+            request[date_key] = iso_to_date(request[date_key])
 
-    if 'after' in request: 
-        date = utils.iso_to_date(request["after"])
-        condition &= search.Condition("time_submitted", ">=", date)
+    entries = search(**request)
 
-    if 'before' in request:
-        date = utils.iso_to_date(request["before"])
-        condition &= search.Condition("time_submitted", "<=", date)
-    query = database.SelectQuery(table=database.Database.ENTRY_TABLE,
-                        distinct=True,
-                        where=condition,
-                        columns="*")
-    rows = DATABASE.execute_query(query, transpose=False)
-    entries = rows #[dict(zip(e.keys(), e)) for e in rows]
     keys = entries[0].keys()
-    
-    with open(os.environ['OPENSHIFT_DATA_DIR']+'/advanced_result.csv', 'w') as return_file: 
+
+    with open(os.environ['OPENSHIFT_DATA_DIR'] + '/advanced_result.csv',
+              'w') as return_file:
         writer = DictWriter(return_file, fieldnames=keys)
         writer.writeheader()
         writer.writerows(entries)
 
     return flask.jsonify(entries)
+
 
 @app.route('/scrape', methods=['GET', 'POST'])
 def scrape():
@@ -142,15 +111,17 @@ def scrape():
                 pass
         with open(CONFIG_FILE, 'r') as config_file:
             rv = [i.replace('\n', '') for i in config_file]
-            return flask.jsonify(rv);
+            return flask.jsonify(rv)
+
 
 def mysql_init():
-    global DATABASE, CONFIG_FILE
-    DATABASE = database.Database(os.environ['OPENSHIFT_MYSQL_DB_URL'])
+    global CONFIG_FILE
+    connect()
     CONFIG_FILE = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'config.txt')
 
+
 if __name__ == '__main__':
-    DATABASE = database.Database(sys.argv[1])
+    connect()
     CONFIG_FILE = sys.argv[2]
     app.run()
 

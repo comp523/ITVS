@@ -30,10 +30,11 @@ ENTRY_TABLE = "entries"
 
 ENTRY_COLUMNS = dict(COMMENT_FIELDS, **POST_FIELDS)
 
+FREQUENCY_TABLE = "frequency"
+
 _database = None
 
 
-@staticmethod
 def connect(**kwargs):
     """
     Opens the connection to the database.
@@ -54,15 +55,16 @@ def connect(**kwargs):
         _database = dblib.connect(**kwargs)
 
 
-def add_update_entry( entry):
+def add_update_object(obj, table):
     """
     Add an entry to the database or update if it already exists.
+    :param table:
     """
 
-    if _entry_exists(entry):
-        _update_entry(entry)
+    if object_exists(obj, table):
+        _update_object(obj, table)
     else:
-        _add_entry(entry)
+        _add_object(obj, table)
 
 
 def create_db():
@@ -96,6 +98,7 @@ def create_db():
     connection.commit()
     connection.close()
 
+
 def execute_query(query, commit=False, transpose=True):
     """
     Executes a given Query, optionally committing changes. Results are
@@ -108,7 +111,7 @@ def execute_query(query, commit=False, transpose=True):
     if commit:
         _database.commit()
     if transpose:
-        results = [_row_to_entry(e) for e in results]
+        results = [_row_to_object(o) for o in results]
     return results
 
 
@@ -133,8 +136,7 @@ def get_latest_post(subreddit):
     query = SelectQuery(table=ENTRY_TABLE,
                         columns=["id", "MAX(time_submitted)"],
                         where=condition)
-    print(query.sql)
-    print(query.params)
+
     result = execute_query(query, transpose=False)[0]
 
     if result['id'] is None:
@@ -145,13 +147,13 @@ def get_latest_post(subreddit):
     return get_entry(latest_id)
 
 
-def _add_entry( entry):
+def _add_object(obj, table):
     """
     Add an item to the database
     """
 
-    query = InsertQuery(table=ENTRY_TABLE,
-                        values=entry.dict)
+    query = InsertQuery(table=table,
+                        values=obj.dict)
     execute_query(query, commit=True)
 
 
@@ -164,33 +166,44 @@ def _close():
     _database.close()
 
 
-def _entry_exists(entry):
+def object_exists(obj, table):
     """
     Check if an entry exists in the database
     """
 
-    query = SelectQuery(table=ENTRY_TABLE,
+    query = SelectQuery(table=table,
                         columns="COUNT(*)",
-                        where=Condition("id", entry.id))
+                        where=Condition("id", obj.id))
     result = execute_query(query, transpose=False)[0]
     return result['COUNT(*)'] == 1
 
 
-def _row_to_entry(row):
+def _row_to_object(row):
+    """
+
+    :param row:
+    :return:
+    :rtype: ModelObject
+    """
     if row is None:
         return None
-    factory = CommentFactory if row["permalink"] is None else PostFactory
+    elif "word" in row.keys():
+        factory = WordDayFactory
+    elif row["permalink"] is None:
+        factory = CommentFactory
+    else:
+        factory = PostFactory
     return factory.from_row(row)
 
 
-def _update_entry(entry):
+def _update_object(obj, table):
     """
     Update an existing entry in the database.
     """
 
-    query = UpdateQuery(table=ENTRY_TABLE,
-                        values=entry.dict,
-                        where=Condition("id", entry.id))
+    query = UpdateQuery(table=table,
+                        values=obj.dict,
+                        where=Condition("id", obj.id))
 
     execute_query(query, commit=True)
 

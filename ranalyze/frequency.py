@@ -1,6 +1,8 @@
 """
 """
 
+import re
+
 from datetime import datetime
 from types import SimpleNamespace
 from .database import *
@@ -36,15 +38,20 @@ BLACKLIST = {"i", "i'd", "i'll", "i'm", "i've", "a", "about",
              "your"}
 
 
+WORD_PATTERN = re.compile(r"[A-Za-z\-']+")
+
+
 granularity = SimpleNamespace(YEAR='year', MONTH='month', DAY='day')
 
 
 def digest_entry(entry):
-    database = Database.get_instance()
-    if not database.object_exists(entry, Database.ENTRY_TABLE):
+
+    connect()
+
+    if not object_exists(entry, ENTRY_TABLE):
         date = datetime.fromtimestamp(entry.time_submitted)
         words = [word.lower() for word in
-                 Database.WORD_PATTERN.findall(entry.text_content)
+                 WORD_PATTERN.findall(entry.text_content)
                  if word.lower() not in BLACKLIST]
         for word in set(words):
             num_occurrences = words.count(word)
@@ -52,9 +59,9 @@ def digest_entry(entry):
             condition &= Condition("day", date.day)
             condition &= Condition("year", date.year)
             condition &= Condition("word", word)
-            select_query = SelectQuery(table=Database.FREQUENCY_TABLE,
+            select_query = SelectQuery(table=FREQUENCY_TABLE,
                                        where=condition)
-            results = database.execute_query(select_query)
+            results = execute_query(select_query)
             if results:
                 word_day = results[0]
                 word_day.entries += 1
@@ -66,11 +73,11 @@ def digest_entry(entry):
                                    word=word,
                                    entries=1,
                                    total=num_occurrences)
-            database.add_update_object(word_day, Database.FREQUENCY_TABLE)
+            add_update_object(word_day, FREQUENCY_TABLE)
 
 
 def overview(gran, limit, day=None, month=None, year=None):
-    database = Database.get_instance()
+    connect()
     column_map = {
         "year": year,
         "month": month,
@@ -88,11 +95,11 @@ def overview(gran, limit, day=None, month=None, year=None):
     cols_clause = ("month, day, year, word,"
                    "sum(entries) as entries, sum(total) as total")
     query = SelectQuery(columns=cols_clause,
-                        table=Database.FREQUENCY_TABLE,
+                        table=FREQUENCY_TABLE,
                         where=date_condition,
                         order="(entries + total) DESC",
                         limit=limit,
                         group=gran
                         )
-    results = database.execute_query(query, transpose=False)
+    results = execute_query(query, transpose=False)
     return results
