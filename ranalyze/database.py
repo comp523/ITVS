@@ -52,7 +52,7 @@ def connect(**kwargs):
                 "db": 'ranalyze'
             }
 
-        _database = dblib.connect(**kwargs)
+        _database = dblib.connect(charset='utf8mb4', **kwargs)
 
 
 def add_update_object(obj, table):
@@ -91,12 +91,14 @@ def create_db():
                parent_id varchar(255), gilded integer, deleted integer,
                FOREIGN KEY(parent_id) REFERENCES entries(id)
                )
+               DEFAULT CHARACTER SET utf8mb4
                """.format(ENTRY_TABLE),
                """
                CREATE TABLE {} (
                id integer PRIMARY KEY AUTO_INCREMENT, word varchar(255), month integer,
                day integer, year integer, entries integer, total integer
                )
+               DEFAULT CHARACTER SET utf8mb4
                """.format(FREQUENCY_TABLE))
 
     for query in queries:
@@ -148,10 +150,10 @@ def get_latest_post(subreddit):
 
     result = execute_query(query, transpose=False)
 
-    if not result or result['id'] is None:
+    if not result or result[0]["id"] is None:
         return None
 
-    latest_id = result['id']
+    latest_id = result[0]["id"]
 
     return get_entry(latest_id)
 
