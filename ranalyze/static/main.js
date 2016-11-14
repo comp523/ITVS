@@ -77,7 +77,7 @@ function advancedSearch(searchConditions) {
     if(Object.keys(searchConditions).length === 0
         && searchConditions.constructor === Object) return;
     //$("#advanced-search-results>tbody").empty()
-    $("#advanced-search-results").DataTable().clear();
+    $("#advanced-search-results").DataTable().clear().draw();
     $.ajax({
         method: 'POST',
         url: '/advanced_search/',
@@ -107,7 +107,7 @@ function simpleSearch(searchConditions) {
     if(Object.keys(searchConditions).length === 0
         && searchConditions.constructor === Object) return;
     //$("#simple-search-results>tbody").empty();
-    $("#simple-search-results").DataTable().clear();
+    $("#simple-search-results").DataTable().clear().draw();
     //$("#simple-search-results");
     //$("#simple-search-results").DataTable();
     $.ajax({
