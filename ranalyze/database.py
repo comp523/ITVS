@@ -1,6 +1,7 @@
 """
 Database abstraction class for handling storage of Posts and Comments
 """
+# -*- coding: utf-8 -*-
 
 import atexit
 import os
@@ -52,7 +53,7 @@ def connect(**kwargs):
                 "db": 'ranalyze'
             }
 
-        _database = dblib.connect(charset='utf8', **kwargs)
+        _database = dblib.connect(charset='utf8mb4', **kwargs)
 
 
 def add_update_object(obj, table):
