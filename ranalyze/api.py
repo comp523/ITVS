@@ -68,7 +68,7 @@ def simple_search():
           for e_key, e_val in entry.items():
             entry_sanitized[e_key] = str(e_val).encode("utf-8")
           entries_sanitized.append(entry_sanitized)
-        writer.writerows(entries_sanitized))
+        writer.writerows(entries_sanitized)
     
     return flask.jsonify(entries)
 
@@ -96,7 +96,13 @@ def advanced_search():
               'w') as return_file:
         writer = DictWriter(return_file, fieldnames=keys)
         writer.writeheader()
-        writer.writerows(entries)
+        entries_sanitized = []
+        for entry in entries:
+          entry_sanitized = {}
+          for e_key, e_val in entry.items():
+            entry_sanitized[e_key] = str(e_val).encode("utf-8")
+          entries_sanitized.append(entry_sanitized)
+        writer.writerows(entries_sanitized)
 
     return flask.jsonify(entries)
 
