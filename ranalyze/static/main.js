@@ -101,42 +101,50 @@ function advancedSearch(searchConditions) {
     });
 }
 
-function simpleSearch(searchConditions) {
+function search(searchConditions, download) {
     // empty object, don't send request
-    if(Object.keys(searchConditions).length === 0
-        && searchConditions.constructor === Object) return;
-    $("#simple-search-results>tbody").empty();
-    $("#simple-search-results");
-    //$("#simple-search-results").DataTable();
-    $.ajax({
-        method: 'POST',
-        url: '/simple_search/',
-        data: JSON.stringify(searchConditions),
-        success: function(res) {
-            res.forEach(function(row) {
-                var type = "";
-                if(row.parent_id) {
-                    type = "comment";
-                } else {
-                    type = "post";
-                }
-                var permalink = row.permalink ?
-                    "<a target='_blank' href='"+row.permalink+"''><b>external link</b></a>"
-                    : "N/A";
-                $("#simple-search-results").DataTable().row.add(
-                    [type, permalink, row.subreddit, row.title, row.text_content]
-                ).draw(false);
-            });
-            $('#download-simple-search').removeAttr('hidden');
+    if (download) {
+        var url = "/search?",
+            components = ["download=true"]
+        for (var key in searchConditions) {
+            if (searchConditions.hasOwnProperty(key)) {
+                components.push(key + "=" + encodeURIComponent(searchConditions[key]));
+            }
         }
-    });
+        window.open(url + components.join("&"));
+    }
+    else {
+        $("#search-results").DataTable().clear().draw();
+        $.get('/search/', searchConditions,
+            function(res) {
+                res.forEach(function(row) {
+                    var type = "";
+                    if(row.parent_id) {
+                        type = "comment";
+                    } else {
+                        type = "post";
+                    }
+                    var permalink = row.permalink ?
+                        "<a target='_blank' href='"+row.permalink+"''><b>external link</b></a>"
+                        : "N/A";
+                    $("#search-results").DataTable().row.add(
+                        [type, permalink, row.subreddit, row.title, row.text_content]
+                    ).draw(false);
+                });
+            });
+    }
+
 }
 
 function getTrendingWords(){
+    var d = new Date(),
+        month = d.getMonth() + 1,
+        day = d.getDate();
     $.get("/frequency", {
         gran: "day",
         limit: "150",
-        month: (new Date()).getMonth() + 1
+        month: month,
+        day: day
     }, function(data){
         var words = data.map(function(item){
             return {
@@ -144,50 +152,36 @@ function getTrendingWords(){
                 weight: item.total + (1.5 * item.entries)
             };
         });
-        $("#tabcontainer").on("show.bs.tab", function(){
+        $("#tabcontainer").on("shown.bs.tab", function(){
             $("#word-frequency").jQCloud(words, {
                 autoResize: true
             });
         });
-
     })
 }
 
 function addListeners() {
-    // Simple Search Listener
-    $('#simple-search-button').click(function() {
-        var searchConditions = {};
-        if ($('#simple-search-keywords').val().length) {
-            searchConditions.keywords = $('#simple-search-keywords').val().split(' ');
-        }
-        if ($('#simple-search-subreddits').val().length) {
-            searchConditions.subreddits = $('#simple-search-subreddits').val().split(' ');
-        }
-        if ($('#simple-search-after').val().length) {
-            searchConditions.after = $('#simple-search-after').val().trim();
-        }
-        if ($('#simple-search-before').val().length) {
-            searchConditions.before = $('#simple-search-before').val().trim();
-        }
-        simpleSearch(searchConditions);
+    $("#enable-advanced").change(function(){
+        $("#query-label").html(this.checked ? "Expression" : "Keywords");
     });
-    // Advanced Search Listener
-    $('#advanced-search-button').click(function() {
+    $('#search-button, #search-download').click(function() {
         var searchConditions = {};
-        if ($('#advanced-search-expression').val().length) {
-            // unlike simple, don't split
-            searchConditions.expression = $('#advanced-search-expression').val();
+        var advanced = $("#enable-advanced")[0].checked;
+        if ($('#search-query').val()) {
+            var queryKey = advanced ? "expression" : "keywords";
+            searchConditions[queryKey] = $('#search-query').val();
         }
-        if ($('#advanced-search-subreddits').val().length) {
-            searchConditions.subreddits = $('#advanced-search-subreddits').val().split(' ');
+        if ($('#search-subreddits').val()) {
+            searchConditions.subreddits = $('#search-subreddits').val().split(' ');
         }
-        if ($('#advanced-search-after').val().length) {
-            searchConditions.after = $('#advanced-search-after').val().split(' ');
+        if ($('#search-after').val()) {
+            searchConditions.after = $('#search-after').val().split(' ');
         }
-        if ($('#advanced-search-before').val().length) {
-            searchConditions.before = $('#advanced-search-before').val().split(' ');
+        if ($('#search-before').val()) {
+            searchConditions.before = $('#search-before').val().split(' ');
         }
-        advancedSearch(searchConditions);
+        var download = $("#search-download").is(event.target);
+        search(searchConditions, download);
     });
 }
 
@@ -197,13 +191,9 @@ $(document).ready(function() {
     getScrapeSettings();
     getTrendingWords();
     addListeners();
-    $('#simple-search-after').datepicker();
-    $('#simple-search-before').datepicker();
-    $('#advanced-search-after').datepicker();
-    $('#advanced-search-before').datepicker();
+    $('#search-after, #search-before').datepicker();
 
-    $("#simple-search-results").DataTable();
-    $("#advanced-search-results").DataTable();
+    $("#search-results").DataTable();
 
     $('#add-job').click(function() {
         addSubredditToDom($("#new-job").val().trim());

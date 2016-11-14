@@ -7,11 +7,13 @@ to run:
     python api.py
 """
 import flask
-import sys
 import os
+import sys
+
 from csv import DictWriter
+from io import StringIO
 from .frequency import overview
-from .search import search
+from .search import search as search_db
 from .utils import iso_to_date
 from .database import connect, ENTRY_COLUMNS
 
@@ -39,59 +41,45 @@ def static_files(filename):
     return flask.send_from_directory(app.static_folder, filename)
 
 
-@app.route('/simple_search/', methods=['GET', 'POST'])
-def simple_search():
+@app.route('/search/')
+def search():
     """
     Search wtihout expressions
     on GET: return csv of most recent simple search
     on POST: return JSON of search
     """
-    if flask.request.method == 'GET':
-        return flask.send_file(os.environ['OPENSHIFT_DATA_DIR']+'/simple_result.csv')
 
-    request = flask.request.get_json(force=True, silent=True)
+    request = dict(flask.request.args)
+
+    download = False
+
+    if "download" in request:
+        download = bool(request["download"])
+        del request["download"]
+
+    if "keywords" in request:
+        print(request["keywords"])
 
     for date_key in ("after", "before"):
         if date_key in request:
             request[date_key] = iso_to_date(request[date_key])
 
-    entries = [e.dict for e in search(**request)]
+    entries = [e.dict for e in search_db(**request)]
 
-    keys = ENTRY_COLUMNS.keys()
-
-    with open(os.environ['OPENSHIFT_DATA_DIR']+'/simple_result.csv', 'w') as return_file: 
-        writer = DictWriter(return_file, fieldnames=keys)
-        writer.writeheader()
-        writer.writerows(entries)
+    if download:
+        keys = ENTRY_COLUMNS.keys()
+        with StringIO() as buffer:
+            writer = DictWriter(buffer, fieldnames=keys)
+            writer.writeheader()
+            writer.writerows(entries)
+            csv = buffer.getvalue()
+            response_options = {
+                "mimetype": 'text/csv',
+                "headers": {"Content-disposition":
+                            "attachment; filename=results.csv"}
+            }
+            return flask.Response(csv, **response_options)
     
-    return flask.jsonify(entries)
-
-
-@app.route('/advanced_search/', methods=['GET', 'POST'])
-def advanced_search():
-    """
-    on GET: return CSV of most recent advanced search 
-    on POST: return JSON of advanced search
-    """
-    if flask.request.method == 'GET':
-        return flask.send_file(os.environ['OPENSHIFT_DATA_DIR']+'/advanced_result.csv')
-
-    request = flask.request.get_json(force=True, silent=True)
-
-    for date_key in ("after", "before"):
-        if date_key in request:
-            request[date_key] = iso_to_date(request[date_key])
-
-    entries = [e.dict for e in search(**request)]
-
-    keys = ENTRY_COLUMNS.keys()
-
-    with open(os.environ['OPENSHIFT_DATA_DIR'] + '/advanced_result.csv',
-              'w') as return_file:
-        writer = DictWriter(return_file, fieldnames=keys)
-        writer.writeheader()
-        writer.writerows(entries)
-
     return flask.jsonify(entries)
 
 

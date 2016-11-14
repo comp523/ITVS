@@ -40,76 +40,41 @@
 		<button id='save-jobs'>Save Changes</button>
 	</div>
 	<div class="tab-pane" id="search">
-		<div id="searchcontainer" class="container">
-			<ul class="nav nav-tabs">
-				<li class="active">
-					<a href="#simple" data-toggle="tab">Simple</a>
-				</li>
-				<li>
-					<a href="#advanced" data-toggle="tab">Advanced</a>
-				</li>
-			</ul>
-			<div class="tab-content">
-				<div class='tab-pane active' id='simple'>
-					<h5>Keywords</h5>
-					<input type='text' id='simple-search-keywords'></input>
 
-					<h5>Subreddits</h5>
-					<input type='text' id='simple-search-subreddits'></input>
+			<h5 id="query-label">Keywords</h5>
+			<input type='text' id='search-query'>
 
-					<h5>After</h5>
-					<input type='text' id='simple-search-after'></input>
+			<h5>
+				<input type="checkbox" id="enable-advanced">
+				<label for="enable-advanced">Advanced Search</label>
+			</h5>
 
-					<h5>Before</h5>
-					<input type='text' id='simple-search-before'></input>
+			<h5>Subreddits</h5>
+			<input type='text' id='search-subreddits'>
 
-					<br>
-					<button id='simple-search-button'>Exectue Search</button>
-					<a href='/simple_search/' id='download-simple-search' hidden><button>Download as CSV</button></a>
-					<br>
-					<table id='simple-search-results'>
-						<thead>
-							<tr>
-								<th>Type</th>
-								<th>Permalink</th>
-								<th>Subreddit</th>
-								<th>Title</th>
-								<th>Text</th>
-							</tr>
-						</thead>
-						<tbody></tbody>
-					</table>
-				</div>
-				<div class='tab-pane' id='advanced'>
-					<h5>Expression</h5>
-					<input type='text' id='advanced-search-expression' name="Enter a query"></input>
-					<h5>Subreddits</h5>
-					<input type='text' id='advanced-search-subreddits' name="Enter a query"></input>
+			<h5>After</h5>
+			<input type='text' id='search-after'>
 
-					<h5>After</h5>
-					<input type='text' id='advanced-search-after'></input>
+			<h5>Before</h5>
+			<input type='text' id='search-before'>
 
-					<h5>Before</h5>
-					<input type='text' id='advanced-search-before'></input>
-					<br>
-					<button id='advanced-search-button'>Exectue Search</button>
-					<a href='/advanced_search/' id='download-advanced-search' hidden><button>Download as CSV</button></a>
-					<br>
-					<table id='advanced-search-results'>
-						<thead>
-							<tr>
-								<th>Type</th>
-								<th>Permalink</th>
-								<th>Subreddit</th>
-								<th>Title</th>
-								<th>Text</th>
-							</tr>
-						</thead>
-						<tbody></tbody>
-					</table>
-				</div>
-			</div>
-		</div>
+			<br>
+			<button id='search-button'>Execute Search</button>
+			<button id='search-download'>Download as CSV</button>
+			<br>
+			<table id='search-results'>
+				<thead>
+					<tr>
+						<th>Type</th>
+						<th>Permalink</th>
+						<th>Subreddit</th>
+						<th>Title</th>
+						<th>Text</th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+
 	</div>
 	<div class="tab-pane" id="word-frequency">
 		<div id="word-cloud"></div>
