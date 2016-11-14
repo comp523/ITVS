@@ -93,7 +93,7 @@ function advancedSearch(searchConditions) {
                     "<a target='_blank' href='"+row.permalink+"''><b>external link</b></a>"
                     : "N/A";
                 $("#advanced-search-results").DataTable().row.add(
-                    [type, permalink, row.subreddit, row.title, row.text_content]
+                    [type, permalink, row.subreddit, row.title ? row.title : "", row.text_content]
                 ).draw(false);
             });
             $('#download-advanced-search').removeAttr('hidden');
@@ -124,7 +124,7 @@ function simpleSearch(searchConditions) {
                     "<a target='_blank' href='"+row.permalink+"''><b>external link</b></a>"
                     : "N/A";
                 $("#simple-search-results").DataTable().row.add(
-                    [type, permalink, row.subreddit, row.title, row.text_content]
+                    [type, permalink, row.subreddit, row.title ? row.title : "", row.text_content]
                 ).draw(false);
             });
             $('#download-simple-search').removeAttr('hidden');
@@ -161,13 +161,13 @@ function addListeners() {
             searchConditions.keywords = $('#simple-search-keywords').val().split(' ');
         }
         if ($('#simple-search-subreddits').val().length) {
-            searchConditions.subreddits = $('#simple-search-subreddits').val().split(' ');
+            searchConditions.subreddit = $('#simple-search-subreddits').val().split(' ');
         }
         if ($('#simple-search-after').val().length) {
-            searchConditions.after = $('#simple-search-after').val().trim();
+            searchConditions.after = $('#simple-search-after').datepicker({dateFormat: 'yyyy-mm-dd'}).val().trim();
         }
         if ($('#simple-search-before').val().length) {
-            searchConditions.before = $('#simple-search-before').val().trim();
+            searchConditions.before = $('#simple-search-before').datepicker({dateFormat: 'yyyy-mm-dd'}).val().trim();
         }
         simpleSearch(searchConditions);
     });
@@ -179,13 +179,13 @@ function addListeners() {
             searchConditions.expression = $('#advanced-search-expression').val();
         }
         if ($('#advanced-search-subreddits').val().length) {
-            searchConditions.subreddits = $('#advanced-search-subreddits').val().split(' ');
+            searchConditions.subreddit = $('#advanced-search-subreddits').val().split(' ');
         }
         if ($('#advanced-search-after').val().length) {
-            searchConditions.after = $('#advanced-search-after').val().split(' ');
+            searchConditions.after = $('#advanced-search-after').datepicker({dateFormat: 'yyyy-mm-dd'}).val().split(' ');
         }
         if ($('#advanced-search-before').val().length) {
-            searchConditions.before = $('#advanced-search-before').val().split(' ');
+            searchConditions.before = $('#advanced-search-before').datepicker({dateFormat: 'yyyy-mm-dd'}).val().split(' ');
         }
         advancedSearch(searchConditions);
     });
