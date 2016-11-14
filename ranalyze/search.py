@@ -252,7 +252,7 @@ def tree_to_condition(node):
         raise RuntimeError("Unrecognized node type `{}`".format(node.__class__))
 
 
-def search(keyword=None, expression=None,
+def search(keywords=None, expression=None,
            subreddit=None, after=None, before=None):
     """
 
@@ -266,9 +266,9 @@ def search(keyword=None, expression=None,
 
     condition = Condition()  # Empty initial condition
 
-    if keyword:
-        keyword = [keyword] if type(keyword) is str else keyword
-        for word in keyword:
+    if keywords:
+        keywords = [keywords] if type(keywords) is str else keywords
+        for word in keywords:
             condition |= multi_column_condition(KEYWORD_COLUMNS,
                                                 "LIKE",
                                                 "%{}%".format(word))

@@ -3,13 +3,15 @@
 <head>
 	<!-- Latest compiled and minified CSS -->
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+<link rel="stylesheet" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css">
 <link rel="stylesheet" href="main.css">
 </head>
 <body>
 
 
 
-<div id="tabcontainer" class="container">	
+<div id="tabcontainer" class="container">
 <ul class="nav nav-tabs">
 	<li class="active">
 		<a href="#scrape-settings" data-toggle="tab">Scrape Settings</a>
@@ -63,7 +65,18 @@
 					<br>
 					<button id='simple-search-button'>Exectue Search</button>
 					<a href='/simple_search/' id='download-simple-search' hidden><button>Download as CSV</button></a>
+					<br>
 					<table id='simple-search-results'>
+						<thead>
+							<tr>
+								<th>Type</th>
+								<th>Permalink</th>
+								<th>Subreddit</th>
+								<th>Title</th>
+								<th>Text</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
 					</table>
 				</div>
 				<div class='tab-pane' id='advanced'>
@@ -81,7 +94,18 @@
 					<button id='advanced-search-button'>Exectue Search</button>
 					<a href='/advanced_search/' id='download-advanced-search' hidden><button>Download as CSV</button></a>
 					<br>
-					<table id='advanced-search-results'></table>
+					<table id='advanced-search-results'>
+						<thead>
+							<tr>
+								<th>Type</th>
+								<th>Permalink</th>
+								<th>Subreddit</th>
+								<th>Title</th>
+								<th>Text</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
 				</div>
 			</div>
 		</div>
@@ -102,6 +126,8 @@
 	<!-- Placed at the end of the document so the pages load faster -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
 <script src="main.js"></script>
 </body>
 </html>

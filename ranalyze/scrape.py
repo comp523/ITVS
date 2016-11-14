@@ -102,5 +102,8 @@ def scrape(subreddits):
 
     connect()
 
+    if type(subreddits) is str:
+        subreddits = [subreddits]
+
     for post in fetch_data(subreddits):
-        add_update_object(post)
+        add_update_object(post, ENTRY_TABLE)

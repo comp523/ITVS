@@ -20,16 +20,27 @@ class ModelObject(object, metaclass=abc.ABCMeta):
     def get_fields():
         pass
 
+    def keys(self):
+        return self.get_fields().keys()
+
     def __getattr__(self, item):
         if item not in self.get_fields():
-            raise NoSuchAttributeError(class_name=type(self).__name__,
-                                       attribute=item)
+            message = ("No such attribute `{attribute}` in class "
+                       "`{class_name}`").format(
+                class_name=type(self).__name__,
+                attribute=item
+            )
+            raise AttributeError(message)
         return self._attrs[item]
 
     def __setattr__(self, key, value):
         if key not in self.get_fields():
-            raise NoSuchAttributeError(class_name=type(self).__name__,
-                                       attribute=key)
+            message = ("No such attribute `{attribute}` in class "
+                       "`{class_name}`").format(
+                class_name=type(self).__name__,
+                attribute=key
+            )
+            raise AttributeError(message)
         self._attrs[key] = value
 
     @property

@@ -12,7 +12,7 @@ import os
 from csv import DictWriter
 from .search import search
 from .utils import iso_to_date
-from .database import connect
+from .database import connect, ENTRY_COLUMNS
 
 app = flask.Flask(__name__)
 CONFIG_FILE = None
@@ -51,10 +51,10 @@ def simple_search():
         if date_key in request:
             request[date_key] = iso_to_date(request[date_key])
 
-    entries = search(**request)
+    entries = [e.dict for e in search(**request)]
 
-    keys = entries[0].keys()
-    
+    keys = ENTRY_COLUMNS.keys()
+
     with open(os.environ['OPENSHIFT_DATA_DIR']+'/simple_result.csv', 'w') as return_file: 
         writer = DictWriter(return_file, fieldnames=keys)
         writer.writeheader()
@@ -78,9 +78,9 @@ def advanced_search():
         if date_key in request:
             request[date_key] = iso_to_date(request[date_key])
 
-    entries = search(**request)
+    entries = [e.dict for e in search(**request)]
 
-    keys = entries[0].keys()
+    keys = ENTRY_COLUMNS.keys()
 
     with open(os.environ['OPENSHIFT_DATA_DIR'] + '/advanced_result.csv',
               'w') as return_file:
@@ -114,10 +114,28 @@ def scrape():
             return flask.jsonify(rv)
 
 
-def mysql_init():
-    global CONFIG_FILE
-    connect()
-    CONFIG_FILE = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'config.txt')
+def env_shiv():
+    """
+    shiv the os.environ dictionary to work on local machines
+    """
+    try:
+        os.mkdir("/tmp/ranalyze")
+    except FileExistsError:
+        pass
+
+    os.environ.update({
+        "OPENSHIFT_DATA_DIR": "/tmp/ranalyze",
+        "OPENSHIFT_MYSQL_DB_HOST": os.environ["MYSQL_DB_HOST"],
+        "OPENSHIFT_MYSQL_DB_USERNAME": os.environ["MYSQL_DB_USER"],
+        "OPENSHIFT_MYSQL_DB_PASSWORD": os.environ["MYSQL_DB_PASSWORD"],
+        "OPENSHIFT_MYSQL_DB_PORT": os.environ["MYSQL_DB_PORT"]
+    })
+
+
+if "OPENSHIFT_DATA_DIR" not in os.environ:
+    env_shiv()
+connect()
+CONFIG_FILE = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'config.txt')
 
 
 if __name__ == '__main__':

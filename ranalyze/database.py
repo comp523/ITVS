@@ -105,6 +105,7 @@ def execute_query(query, commit=False, transpose=True):
     transposed by default.
     """
 
+    connect()
     cursor = _database.cursor(dblib.cursors.DictCursor)
     cursor.execute(query.sql, query.params)
     results = cursor.fetchall()
@@ -135,11 +136,12 @@ def get_latest_post(subreddit):
 
     query = SelectQuery(table=ENTRY_TABLE,
                         columns=["id", "MAX(time_submitted)"],
-                        where=condition)
+                        where=condition,
+                        group="id")
 
-    result = execute_query(query, transpose=False)[0]
+    result = execute_query(query, transpose=False)
 
-    if result['id'] is None:
+    if not result or result['id'] is None:
         return None
 
     latest_id = result['id']
@@ -162,8 +164,8 @@ def _close():
     """
     Close the database connection
     """
-
-    _database.close()
+    if _database:
+        _database.close()
 
 
 def object_exists(obj, table):

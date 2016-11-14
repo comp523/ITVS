@@ -9,30 +9,18 @@ try:
       exec(code, dict(__file__=virtualenv))
 
 except IOError:
+    print("This doesn't work")
     pass
 #
 # IMPORTANT: Put any additional includes below this line.  If placed above this
 # line, it's possible required libraries won't be in your searchable path
 #
 
-import ranalyze.ranalyze.api
-from ranalyze.ranalyze.api import app as application
+from ranalyze import flask_app
 
-#os.environ['OPENSHIFT_MYSQL_DB_HOST'] = '127.13.87.2'
-#os.environ['OPENSHIFT_MYSQL_DB_PORT'] = '3306'
-#os.environ['OPENSHIFT_MYSQL_DB_USERNAME'] = 'admintfMgVT9'
-#os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'] = 'B4muI-pY5vEh'
-#os.environ['OPENSHIFT_MYSQL_DB_URL'] = 'mysql://admintfMgVT9:B4muI-pY5vEh@127.13.87.2:3306/'
-
-if 'OPENSHIFT_MYSQL_DB_HOST' in os.environ:
-    ranalyze.ranalyze.api.mysql_init()
-
-#
-# Below for testing only
-#
 if __name__ == '__main__':
     
     from wsgiref.simple_server import make_server
-    httpd = make_server('localhost', 8051, application)
+    httpd = make_server('localhost', 8051, flask_app)
     # Wait for a single request, serve it and quit.
     httpd.serve_forever()
