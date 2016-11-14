@@ -76,7 +76,8 @@ function advancedSearch(searchConditions) {
     // empty object, don't send request
     if(Object.keys(searchConditions).length === 0
         && searchConditions.constructor === Object) return;
-    $("#advanced-search-results>tbody").empty()
+    //$("#advanced-search-results>tbody").empty()
+    $("#advanced-search-results").DataTable().clear();
     $.ajax({
         method: 'POST',
         url: '/advanced_search/',
@@ -105,8 +106,9 @@ function simpleSearch(searchConditions) {
     // empty object, don't send request
     if(Object.keys(searchConditions).length === 0
         && searchConditions.constructor === Object) return;
-    $("#simple-search-results>tbody").empty();
-    $("#simple-search-results");
+    //$("#simple-search-results>tbody").empty();
+    $("#simple-search-results").DataTable().clear();
+    //$("#simple-search-results");
     //$("#simple-search-results").DataTable();
     $.ajax({
         method: 'POST',
@@ -164,10 +166,10 @@ function addListeners() {
             searchConditions.subreddit = $('#simple-search-subreddits').val().split(' ');
         }
         if ($('#simple-search-after').val().length) {
-            searchConditions.after = $('#simple-search-after').datepicker({dateFormat: 'yyyy-mm-dd'}).val().trim();
+            searchConditions.after = $('#simple-search-after').val().trim();
         }
         if ($('#simple-search-before').val().length) {
-            searchConditions.before = $('#simple-search-before').datepicker({dateFormat: 'yyyy-mm-dd'}).val().trim();
+            searchConditions.before = $('#simple-search-before').val().trim();
         }
         simpleSearch(searchConditions);
     });
@@ -182,10 +184,10 @@ function addListeners() {
             searchConditions.subreddit = $('#advanced-search-subreddits').val().split(' ');
         }
         if ($('#advanced-search-after').val().length) {
-            searchConditions.after = $('#advanced-search-after').datepicker({dateFormat: 'yyyy-mm-dd'}).val().split(' ');
+            searchConditions.after = $('#advanced-search-after').val().split(' ');
         }
         if ($('#advanced-search-before').val().length) {
-            searchConditions.before = $('#advanced-search-before').datepicker({dateFormat: 'yyyy-mm-dd'}).val().split(' ');
+            searchConditions.before = $('#advanced-search-before').val().split(' ');
         }
         advancedSearch(searchConditions);
     });
@@ -197,10 +199,10 @@ $(document).ready(function() {
     getScrapeSettings();
     getTrendingWords();
     addListeners();
-    $('#simple-search-after').datepicker();
-    $('#simple-search-before').datepicker();
-    $('#advanced-search-after').datepicker();
-    $('#advanced-search-before').datepicker();
+    $('#simple-search-after').datepicker({dateFormat: 'yy-mm-dd'});
+    $('#simple-search-before').datepicker({dateFormat: 'yy-mm-dd'});
+    $('#advanced-search-after').datepicker({dateFormat: 'yy-mm-dd'});
+    $('#advanced-search-before').datepicker({dateFormat: 'yy-mm-dd'});
 
     $("#simple-search-results").DataTable();
     $("#advanced-search-results").DataTable();
