@@ -10,6 +10,7 @@ import flask
 import sys
 import os
 from csv import DictWriter
+from .frequency import overview
 from .search import search
 from .utils import iso_to_date
 from .database import connect, ENTRY_COLUMNS
@@ -17,6 +18,9 @@ from .database import connect, ENTRY_COLUMNS
 app = flask.Flask(__name__)
 CONFIG_FILE = None
 DATABASE = None
+
+print(app.static_folder)
+#exit()
 
 
 @app.route('/')
@@ -112,6 +116,25 @@ def scrape():
         with open(CONFIG_FILE, 'r') as config_file:
             rv = [i.replace('\n', '') for i in config_file]
             return flask.jsonify(rv)
+
+
+@app.route('/frequency', methods=['GET'])
+def frequency():
+    """
+    """
+
+    request = flask.request.args
+
+    options = {
+        "gran": request["gran"],
+        "limit": int(request["limit"])
+    }
+
+    for key in ("year", "month", "day"):
+        if key in request:
+            options[key] = int(request[key])
+
+    return flask.jsonify(overview(**options))
 
 
 def env_shiv():

@@ -9,6 +9,7 @@ Tool to traverse a set of subreddits extracting post/comment information includi
 import praw
 
 from .database import *
+from .frequency import digest_entry
 from .models import (
     CommentFactory,
     Post,
@@ -105,5 +106,6 @@ def scrape(subreddits):
     if type(subreddits) is str:
         subreddits = [subreddits]
 
-    for post in fetch_data(subreddits):
-        add_update_object(post, ENTRY_TABLE)
+    for entry in fetch_data(subreddits):
+        digest_entry(entry)
+        add_update_object(entry, ENTRY_TABLE)

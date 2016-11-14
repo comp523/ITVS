@@ -81,6 +81,7 @@ def create_db():
     cursor = connection.cursor()
 
     queries = ("DROP TABLE IF EXISTS {}".format(ENTRY_TABLE),
+               "DROP TABLE IF EXISTS {}".format(FREQUENCY_TABLE),
                """
                CREATE TABLE {} (
                id varchar(255) PRIMARY KEY, permalink text, root_id text,
@@ -90,7 +91,13 @@ def create_db():
                parent_id varchar(255), gilded integer, deleted integer,
                FOREIGN KEY(parent_id) REFERENCES entries(id)
                )
-               """.format(ENTRY_TABLE))
+               """.format(ENTRY_TABLE),
+               """
+               CREATE TABLE {} (
+               id integer PRIMARY KEY AUTO_INCREMENT, word varchar(255), month integer,
+               day integer, year integer, entries integer, total integer
+               )
+               """.format(FREQUENCY_TABLE))
 
     for query in queries:
         cursor.execute(query)

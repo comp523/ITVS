@@ -85,6 +85,8 @@ def overview(gran, limit, day=None, month=None, year=None):
     }
     date_condition = Condition()
     for key, value in column_map.items():
+        if not value:
+            continue
         sub_condition = Condition()
         try:
             for item in value:
@@ -92,14 +94,14 @@ def overview(gran, limit, day=None, month=None, year=None):
         except TypeError:
             sub_condition = Condition(key, value)
         date_condition &= sub_condition
-    cols_clause = ("month, day, year, word,"
-                   "sum(entries) as entries, sum(total) as total")
+    cols_clause = gran + ", sum(entries) as entries, sum(total) as total, word"
     query = SelectQuery(columns=cols_clause,
                         table=FREQUENCY_TABLE,
                         where=date_condition,
                         order="(entries + total) DESC",
                         limit=limit,
-                        group=gran
+                        group=gran+", word"
                         )
+    print(query.sql)
     results = execute_query(query, transpose=False)
     return results

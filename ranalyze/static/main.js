@@ -132,6 +132,27 @@ function simpleSearch(searchConditions) {
     });
 }
 
+function getTrendingWords(){
+    $.get("/frequency", {
+        gran: "day",
+        limit: "150",
+        month: (new Date()).getMonth() + 1
+    }, function(data){
+        var words = data.map(function(item){
+            return {
+                text: item.word,
+                weight: item.total + (1.5 * item.entries)
+            };
+        });
+        $("#tabcontainer").on("shown.bs.tab", function(){
+            $("#word-frequency").jQCloud(words, {
+                autoResize: true
+            });
+        });
+
+    })
+}
+
 function addListeners() {
     // Simple Search Listener
     $('#simple-search-button').click(function() {
@@ -143,10 +164,10 @@ function addListeners() {
             searchConditions.subreddits = $('#simple-search-subreddits').val().split(' ');
         }
         if ($('#simple-search-after').val().length) {
-            searchConditions.after = $('#simple-search-after').val().split(' ');
+            searchConditions.after = $('#simple-search-after').val().trim();
         }
         if ($('#simple-search-before').val().length) {
-            searchConditions.before = $('#simple-search-before').val().split(' ');
+            searchConditions.before = $('#simple-search-before').val().trim();
         }
         simpleSearch(searchConditions);
     });
@@ -174,6 +195,7 @@ function addListeners() {
 
 $(document).ready(function() {
     getScrapeSettings();
+    getTrendingWords();
     addListeners();
     $('#simple-search-after').datepicker();
     $('#simple-search-before').datepicker();

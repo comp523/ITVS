@@ -24,3 +24,7 @@ table, th, td {
    border: 1px solid black;
 }
 
+#word-cloud {
+    width: 100%;
+    height: 400px;
+}
