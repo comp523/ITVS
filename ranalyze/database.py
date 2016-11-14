@@ -53,7 +53,7 @@ def connect(**kwargs):
                 "db": 'ranalyze'
             }
 
-        _database = dblib.connect(charset='utf8mb4', **kwargs)
+        _database = dblib.connect(charset='utf8', **kwargs)
 
 
 def add_update_object(obj, table):
