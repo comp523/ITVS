@@ -144,7 +144,7 @@ function getTrendingWords(){
                 weight: item.total + (1.5 * item.entries)
             };
         });
-        $("#tabcontainer").on("shown.bs.tab", function(){
+        $("#tabcontainer").on("show.bs.tab", function(){
             $("#word-frequency").jQCloud(words, {
                 autoResize: true
             });
