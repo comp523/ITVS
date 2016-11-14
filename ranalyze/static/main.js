@@ -135,10 +135,14 @@ function simpleSearch(searchConditions) {
 }
 
 function getTrendingWords(){
+    var d = new Date(),
+        month = d.getMonth() + 1,
+        day = d.getDate();
     $.get("/frequency", {
         gran: "day",
         limit: "150",
-        month: (new Date()).getMonth() + 1
+        month: month,
+        day: day
     }, function(data){
         var words = data.map(function(item){
             return {
@@ -146,10 +150,10 @@ function getTrendingWords(){
                 weight: item.total + (1.5 * item.entries)
             };
         });
-        $("#tabcontainer").on("show.bs.tab", function(){
-            $("#word-frequency").jQCloud(words, {
-                autoResize: true
-            });
+        $("#tabcontainer").on("shown.bs.tab", function(){
+          $("#word-frequency").jQCloud(words, {
+            autoResize: true
+          });
         });
 
     })
