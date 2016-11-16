@@ -14,6 +14,7 @@ from .frequency import overview
 from .search import search
 from .utils import iso_to_date
 from .database import connect, ENTRY_COLUMNS
+from .imprt import importfile
 
 app = flask.Flask(__name__)
 CONFIG_FILE = None
