@@ -1,5 +1,5 @@
 from .api import app as flask_app
-from .imprt import imprt
+from .imprt import importfile
 from .scrape import scrape, update_posts
 from .search import search
 
