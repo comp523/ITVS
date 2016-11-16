@@ -1,30 +1,21 @@
-body {
-  padding : 10px ;
-  
+header {
+    text-align: center;
 }
 
-#tabcontainer h3 {
-  color : black;
-  background-color: white;
-  padding : 5px 15px;
+span.highlight {
+    display: inline-block;
+    background-color: yellow;
+    vertical-align: top !important;
 }
 
-#searchcontainer h3 {
-  padding-left: 1000px;
-  color : black;
-  background-color: white;
-  padding : 5px 15px;
+.clickable {
+    cursor: pointer;
 }
 
-table {
-    width: 100%;
+.md-errors-spacer {
+    display: none;
 }
 
-table, th, td {
-   border: 1px solid black;
-}
-
-#word-cloud {
-    width: 100%;
-    height: 400px;
+md-input-container {
+    /*margin: 8px 0;*/
 }

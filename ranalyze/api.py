@@ -13,9 +13,9 @@ import sys
 from csv import DictWriter
 from io import StringIO
 from .frequency import overview
-from .search import search as search_db
+from .search import search as search_db, SelectQuery
 from .utils import iso_to_date
-from .database import connect, ENTRY_COLUMNS
+from .database import connect, execute_query, ENTRY_COLUMNS, ENTRY_TABLE
 
 app = flask.Flask(__name__)
 CONFIG_FILE = None
@@ -49,22 +49,28 @@ def search():
     on POST: return JSON of search
     """
 
-    request = dict(flask.request.args)
+    request = flask.request.args
+
+    options = {}
 
     download = False
 
     if "download" in request:
         download = bool(request["download"])
-        del request["download"]
 
-    if "keywords" in request:
-        print(request["keywords"])
+    if "subreddits" in request:
+        options["subreddits"] = request["subreddits"]
+
+    if "advanced" in request and request["advanced"].lower() == "true":
+        options["expression"] = request["query"]
+    else:
+        options["keywords"] = request["query"].split()
 
     for date_key in ("after", "before"):
         if date_key in request:
-            request[date_key] = iso_to_date(request[date_key])
+            options[date_key] = iso_to_date(request[date_key])
 
-    entries = [e.dict for e in search_db(**request)]
+    entries = [e.dict for e in search_db(**options)]
 
     if download:
         keys = ENTRY_COLUMNS.keys()
@@ -106,7 +112,7 @@ def scrape():
             return flask.jsonify(rv)
 
 
-@app.route('/frequency', methods=['GET'])
+@app.route('/frequency/', methods=['GET'])
 def frequency():
     """
     """
@@ -124,6 +130,16 @@ def frequency():
 
     return flask.jsonify(overview(**options))
 
+
+@app.route('/subreddits/')
+def subreddits():
+
+    query = SelectQuery(table=ENTRY_TABLE,
+                        distinct=True,
+                        columns="subreddit")
+
+    return flask.jsonify([e['subreddit'] for e in
+                          execute_query(query, transpose=False)])
 
 def env_shiv():
     """

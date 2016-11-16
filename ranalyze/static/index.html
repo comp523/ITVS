@@ -1,100 +1,135 @@
 <!doctype html>
 <html>
-<head>
-	<!-- Latest compiled and minified CSS -->
-<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-<link rel="stylesheet" href="//cdn.datatables.net/1.10.12/css/jquery.dataTables.min.css">
-<link rel="stylesheet" href="//cdn.rawgit.com/mistic100/jQCloud/v2.0.2/dist/jqcloud.min.css">
-<link rel="stylesheet" href="main.css">
-</head>
-<body>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- Angular Material -->
+		<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+
+		<!-- Angular Material Data Table -->
+		<link rel="stylesheet" href="//cdn.rawgit.com/daniel-nagy/md-data-table/v0.10.9/dist/md-data-table.min.css">
+
+		<!-- Angular Word Cloud -->
+		<link rel="stylesheet" href="//cdn.rawgit.com/mistic100/jQCloud/v2.0.2/dist/jqcloud.min.css">
+
+		<!-- RanalyzeApp -->
+		<link rel="stylesheet" href="main.css">
+	</head>
+	<body ng-app="RanalyzeApp" ng-cloak>
+
+		<header>
+			<img class="md-padding" src="http://itvs.webfactional.com/wp-content/uploads/2013/10/itvs-logo.png">
+		</header>
+
+		<div ng-cloak layout="row" layout-align="space-around">
+			<md-content flex="95" ng-controller="mainController">
+				<md-tabs md-dynamic-height md-border-bottom md-selected="selectedIndex">
+					<md-tab label="search">
+						<md-content class="md-padding" ng-controller="searchController as ctrl">
+							<form ng-submit="ctrl.search()" name="search" layout="column" layout-align="start center">
+									<md-input-container>
+										<label>{{ form.advanced ? "Expression" : "Keywords" }}</label>
+										<input type="text" ng-model="form.query">
+									</md-input-container>
+									<div>
+										<md-tooltip md-direction="left">All subreddits are included by default</md-tooltip>
+										<md-chips
+											ng-model="form.subreddit"
+											md-autocomplete-snap
+											md-require-match="true">
+											<md-autocomplete
+												md-items="item in ctrl.filterSubs(ctrl.searchText)"
+												md-item-text="item"
+												md-search-text="ctrl.searchText"
+												placeholder="Subreddits">
+												{{ item }}
+											</md-autocomplete>
+										</md-chips>
+									</div>
+
+									<div layout="row">
+										<md-input-container>
+											<label>Start Date</label>
+											<md-datepicker ng-model="form.after"></md-datepicker>
+										</md-input-container>
+										<md-input-container>
+											<label>End Date</label>
+											<md-datepicker ng-model="form.before"></md-datepicker>
+										</md-input-container>
+									</div>
+
+								<md-switch ng-model="form.advanced">
+									Advanced Search
+								</md-switch>
+
+								<md-button ng-click="ctrl.search()" class="md-primary md-raised">Search</md-button>
+
+							</form>
+
+							<md-table-container>
+							    <table md-table>
+									<thead md-head md-order="table.order">
+										<tr md-row>
+											<th md-column md-order-by="time_submitted"><span>Posted</span></th>
+											<th md-column md-order-by="type"><span>Type</span></th>
+											<th md-column>Link</th>
+											<th md-column md-order-by="subreddit"><span>Subreddit</span></th>
+											<th md-column>Title</th>
+											<th md-column>Text</th>
+										</tr>
+									</thead>
+									<tbody md-body>
+										<tr md-row ng-repeat="entry in ctrl.entries | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
+											<td md-cell>{{1000*entry.time_submitted | date:'M/d/yy H:mm'}}</td>
+											<td md-cell>{{entry.type}}</td>
+											<td md-cell>
+												<a ng-href="{{entry.permalink}}" ng-if="entry.permalink">External Link</a>
+												<span ng-if="!entry.permalink">N/A</span>
+											</td>
+											<td md-cell>{{entry.subreddit}}</td>
+											<td md-cell>{{entry.title}}</td>
+											<td md-cell
+												md-highlight-text="ctrl.highlight"
+												md-highlight-flags="gi">{{entry.text_content}}</td>
+										</tr>
+									</tbody>
+								</table>
+							</md-table-container>
+							<md-table-pagination md-page="table.page" md-total="{{ctrl.entries.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+						</md-content>
+					</md-tab>
+					<md-tab label="word frequency" md-on-select="firstActive=true">
+						<md-content class="md-padding" ng-controller="cloudController as ctrl">
+							<jqcloud ng-if="firstActive && (words.length > 0)"
+									 words="words" height="500" auto-resize="true"></jqcloud>
+						</md-content>
+					</md-tab>
+				</md-tabs>
+			</md-content>
+		</div>
 
 
+		<!-- jQuery -->
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 
-<div id="tabcontainer" class="container">
-<ul class="nav nav-tabs">
-	<li class="active">
-		<a href="#scrape-settings" data-toggle="tab">Scrape Settings</a>
-	</li>
-	<li>
-		<a href="#search" data-toggle="tab">Search</a>
-	</li>
-	<li>
-		<a href="#word-frequency" data-toggle="tab">Word Frequency</a>
-	</li>
-	<li>
-		<a href="#file-import" data-toggle="tab">File Import</a>
-	</li>
-</ul>
+		<!-- Angular -->
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
 
-<div class="tab-content">
-	<div class="tab-pane active" id="scrape-settings">
-		<h3>Subs to be scraped</h3>
-		<ul id="scrape-job-list" class="list-group checked-list-box">
-		</ul>
-		<input type="text" id="new-job"></input>
-		<button id='add-job'>Add Job</button>
-		<br>
-		<br>
-		<button id='save-jobs'>Save Changes</button>
-	</div>
-	<div class="tab-pane" id="search">
+		<!-- Angular Material Dependencies -->
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
 
-			<h5 id="query-label">Keywords</h5>
-			<input type='text' id='search-query'>
+		<!-- Angular Material Data Table -->
+		<script src="//cdn.rawgit.com/daniel-nagy/md-data-table/v0.10.9/dist/md-data-table.min.js"></script>
 
-			<h5>
-				<input type="checkbox" id="enable-advanced">
-				<label for="enable-advanced">Advanced Search</label>
-			</h5>
+		<!-- Angular Word Cloud -->
+		<script src="//cdn.rawgit.com/mistic100/jQCloud/v2.0.2/dist/jqcloud.min.js"></script>
+		<script src="//cdn.rawgit.com/mistic100/angular-jqcloud/1.0.3/angular-jqcloud.js"></script>
 
-			<h5>Subreddits</h5>
-			<input type='text' id='search-subreddits'>
+		<!-- Angular Material -->
+		<script src="//ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
 
-			<h5>After</h5>
-			<input type='text' id='search-after'>
-
-			<h5>Before</h5>
-			<input type='text' id='search-before'>
-
-			<br>
-			<button id='search-button'>Execute Search</button>
-			<button id='search-download'>Download as CSV</button>
-			<br>
-			<table id='search-results'>
-				<thead>
-					<tr>
-						<th>Type</th>
-						<th>Permalink</th>
-						<th>Subreddit</th>
-						<th>Title</th>
-						<th>Text</th>
-					</tr>
-				</thead>
-				<tbody></tbody>
-			</table>
-
-	</div>
-	<div class="tab-pane" id="word-frequency">
-		<div id="word-cloud"></div>
-	</div>
-	<div class="tab-pane" id="file-import">
-		<h1>TODO</h1>
-	</div>
-</div>
-
-</div>
-
-
-<!-- Bootstrap core JavaScript
-    ================================================== -->
-	<!-- Placed at the end of the document so the pages load faster -->
-<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
-<script src="//code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-<script src="//cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
-<script src="//cdn.rawgit.com/mistic100/jQCloud/v2.0.2/dist/jqcloud.min.js"></script>
-<script src="main.js"></script>
-</body>
+		<!-- RanalyzeApp -->
+		<script src="main.js"></script>
+	</body>
 </html>
