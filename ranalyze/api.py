@@ -156,7 +156,7 @@ def fileimport():
     if flask.request.method == 'POST':
         f = flask.request.files['file']
         f.save('import.csv')
-        imprt.importfile('import.csv')
+        importfile('import.csv')
         os.remove('import.csv')
         return 'file uploaded successfully'
 
