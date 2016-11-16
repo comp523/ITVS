@@ -148,6 +148,18 @@ def frequency():
 
     return flask.jsonify(overview(**options))
 
+@app.route('/fileimport', methods=['GET', 'POST'])
+def fileimport():
+    """
+    on POST: imports a csv file into the database
+    """
+    if flask.request.method == 'POST':
+        f = flask.request.files['file']
+        f.save('import.csv')
+        imprt.importfile('import.csv')
+        os.remove('import.csv')
+        return 'file uploaded successfully'
+
 
 def env_shiv():
     """
