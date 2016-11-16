@@ -156,9 +156,9 @@ def fileimport():
     """
     if flask.request.method == 'POST':
         f = flask.request.files['file']
-        f.save('import.csv')
-        importfile('import.csv')
-        os.remove('import.csv')
+        f.save(os.environ['OPENSHIFT_DATA_DIR'] + '/import.csv')
+        importfile(os.environ['OPENSHIFT_DATA_DIR'] + '/import.csv')
+        os.remove(os.environ['OPENSHIFT_DATA_DIR'] + '/import.csv')
         return 'file uploaded successfully'
 
 
