@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var databaseService = function($http, $httpParamSerializer) {
+    var databaseService = function($http, $httpParamSerializer, $q) {
 
         var self = this;
 
@@ -58,6 +58,17 @@
                 .then(function(response) {
                     return response.data;
                 });
+
+        };
+
+        self.getCloudParamDefaults = function(){
+
+            return $q(function(resolve){
+                resolve({
+                    "entryWeight": 4,
+                    "totalWeight": 1
+                });
+            });
 
         };
 

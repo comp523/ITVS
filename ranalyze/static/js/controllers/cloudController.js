@@ -5,6 +5,23 @@
 
         var d = new Date();
 
+        $scope.cloudParams = {};
+
+        var defaultsPromise = database.getCloudParamDefaults()
+            .then(function(defaults){
+                angular.extend($scope.cloudParams, defaults)
+            });
+
+        self.updateWeights = function(){
+            defaultsPromise.then(function(){
+                var entryWeight = $scope.cloudParams.entryWeight,
+                    totalWeight = $scope.cloudParams.totalWeight;
+                for (var i=0;i<$scope.words.length;i++) {
+                    $scope.words[i].weight = entryWeight * $scope.words[i].entries + totalWeight * $scope.words[i].total;
+                }
+            });
+        };
+
         database.frequency({
             gran: database.granularity.DAY,
             limit: 150,
@@ -16,7 +33,8 @@
                 $scope.words = data.map(function(item){
                     return {
                         text: item.word,
-                        weight: item.total + (4 * item.entries),
+                        entries: item.entries,
+                        total: item.total,
                         html: {
                             class: 'clickable'
                         },
@@ -32,6 +50,7 @@
                         }
                     };
                 });
+                self.updateWeights();
             });
 
     };

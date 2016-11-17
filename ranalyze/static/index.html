@@ -24,87 +24,10 @@
 			<md-content flex="95" ng-controller="mainController">
 				<md-tabs md-dynamic-height md-border-bottom md-selected="selectedIndex">
 					<md-tab label="search">
-						<md-content class="md-padding" ng-controller="searchController as ctrl">
-							<form ng-submit="ctrl.search()" name="searchForm" layout="column" layout-align="start center">
-									<md-input-container>
-										<label>{{ form.advanced ? "Expression" : "Keywords" }}</label>
-										<input type="text" required ng-model="form.query" name="query">
-										<div ng-messages="searchForm.query.$error">
-											<div ng-message="required">This is required.</div>
-										</div>
-									</md-input-container>
-									<div>
-										<md-tooltip md-direction="left">All subreddits are included by default</md-tooltip>
-										<md-chips
-											ng-model="form.subreddit"
-											md-autocomplete-snap
-											md-require-match="true">
-											<md-autocomplete
-												md-items="item in ctrl.filterSubs(ctrl.searchText)"
-												md-item-text="item"
-												md-search-text="ctrl.searchText"
-												placeholder="Subreddits">
-												{{ item }}
-											</md-autocomplete>
-										</md-chips>
-									</div>
-
-									<div layout="row">
-										<md-input-container>
-											<label>Start Date</label>
-											<md-datepicker ng-model="form.after"></md-datepicker>
-										</md-input-container>
-										<md-input-container>
-											<label>End Date</label>
-											<md-datepicker ng-model="form.before"></md-datepicker>
-										</md-input-container>
-									</div>
-
-								<md-switch ng-model="form.advanced">
-									Advanced Search
-								</md-switch>
-
-								<md-button type="submit" class="md-primary md-raised">Search</md-button>
-
-							</form>
-
-							<md-table-container>
-							    <table md-table>
-									<thead md-head md-order="table.order">
-										<tr md-row>
-											<th md-column md-order-by="time_submitted"><span>Posted</span></th>
-											<th md-column md-order-by="type"><span>Type</span></th>
-											<th md-column>Link</th>
-											<th md-column md-order-by="subreddit"><span>Subreddit</span></th>
-											<th md-column>Title</th>
-											<th md-column>Text</th>
-										</tr>
-									</thead>
-									<tbody md-body>
-										<tr md-row ng-repeat="entry in ctrl.entries | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
-											<td md-cell>{{1000*entry.time_submitted | date:'M/d/yy H:mm':'GMT'}} GMT</td>
-											<td md-cell>{{entry.type}}</td>
-											<td md-cell>
-												<a ng-href="{{entry.permalink}}" ng-if="entry.permalink">External Link</a>
-												<span ng-if="!entry.permalink">N/A</span>
-											</td>
-											<td md-cell>{{entry.subreddit}}</td>
-											<td md-cell>{{entry.title}}</td>
-											<td md-cell
-												md-highlight-text="ctrl.highlight"
-												md-highlight-flags="gi">{{entry.text_content}}</td>
-										</tr>
-									</tbody>
-								</table>
-							</md-table-container>
-							<md-table-pagination md-page="table.page" md-total="{{ctrl.entries.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
-						</md-content>
+						<ng-include src="'templates/search.html'"></ng-include>
 					</md-tab>
 					<md-tab label="word frequency" md-on-select="firstActive=true">
-						<md-content class="md-padding" ng-controller="cloudController as ctrl">
-							<jqcloud ng-if="firstActive && (words.length > 0)"
-									 words="words" height="500" auto-resize="true"></jqcloud>
-						</md-content>
+						<ng-include src="'templates/word-frequency.html'"></ng-include>
 					</md-tab>
 
 				</md-tabs>
