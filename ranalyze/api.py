@@ -9,6 +9,7 @@ to run:
 import flask
 import os
 import sys
+import io
 
 from csv import DictWriter
 from io import StringIO
@@ -40,6 +41,22 @@ def static_files(filename):
     """
     return flask.send_from_directory(app.static_folder, filename)
 
+
+@app.route('/main.js')
+def compile_js():
+    cur_path = os.path.dirname(os.path.realpath(__file__))
+    sub_dirs = ['controllers', 'services']
+    js_files = ['main.js']
+    for sub in sub_dirs:
+        path = os.path.join(cur_path, 'static/js', sub)
+        js_files.extend([os.path.join(path, file) for file in os.listdir(path)])
+    out_buffer = io.StringIO()
+    for file in js_files:
+        with open(os.path.join(cur_path, 'static/js', file)) as fp:
+            out_buffer.write(fp.read())
+        out_buffer.write("\n")
+    response = flask.Response(out_buffer.getvalue(), mimetype='text/javascript')
+    return response
 
 @app.route('/search/')
 def search():

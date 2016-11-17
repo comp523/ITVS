@@ -25,10 +25,13 @@
 				<md-tabs md-dynamic-height md-border-bottom md-selected="selectedIndex">
 					<md-tab label="search">
 						<md-content class="md-padding" ng-controller="searchController as ctrl">
-							<form ng-submit="ctrl.search()" name="search" layout="column" layout-align="start center">
+							<form ng-submit="ctrl.search()" name="searchForm" layout="column" layout-align="start center">
 									<md-input-container>
 										<label>{{ form.advanced ? "Expression" : "Keywords" }}</label>
-										<input type="text" ng-model="form.query">
+										<input type="text" required ng-model="form.query" name="query">
+										<div ng-messages="searchForm.query.$error">
+											<div ng-message="required">This is required.</div>
+										</div>
 									</md-input-container>
 									<div>
 										<md-tooltip md-direction="left">All subreddits are included by default</md-tooltip>
@@ -61,7 +64,7 @@
 									Advanced Search
 								</md-switch>
 
-								<md-button ng-click="ctrl.search()" class="md-primary md-raised">Search</md-button>
+								<md-button type="submit" class="md-primary md-raised">Search</md-button>
 
 							</form>
 
@@ -79,7 +82,7 @@
 									</thead>
 									<tbody md-body>
 										<tr md-row ng-repeat="entry in ctrl.entries | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
-											<td md-cell>{{1000*entry.time_submitted | date:'M/d/yy H:mm'}}</td>
+											<td md-cell>{{1000*entry.time_submitted | date:'M/d/yy H:mm':'GMT'}} GMT</td>
 											<td md-cell>{{entry.type}}</td>
 											<td md-cell>
 												<a ng-href="{{entry.permalink}}" ng-if="entry.permalink">External Link</a>
@@ -103,6 +106,7 @@
 									 words="words" height="500" auto-resize="true"></jqcloud>
 						</md-content>
 					</md-tab>
+
 				</md-tabs>
 			</md-content>
 		</div>

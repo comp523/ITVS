@@ -1,3 +1,7 @@
+body {
+    overflow-y:scroll;
+}
+
 header {
     text-align: center;
 }
@@ -14,8 +18,4 @@ span.highlight {
 
 .md-errors-spacer {
     display: none;
-}
-
-md-input-container {
-    /*margin: 8px 0;*/
 }

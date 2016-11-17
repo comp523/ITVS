@@ -4,13 +4,9 @@ Submodule providing database search functionality
 
 import abc
 import re
-from csv import DictWriter
-from json import dumps
-from sys import stdout
 
-from .query import Condition, SelectQuery
 from .database import *
-from .utils import iso_to_date
+from .utils import date_to_timestamp
 
 KEYWORD_COLUMNS = {"text_content", "title"}
 
@@ -284,9 +280,11 @@ def search(keywords=None, expression=None,
         condition &= subreddit_condition
 
     if after:
+        after = date_to_timestamp(after)
         condition &= Condition("time_submitted", ">=", after)
 
     if before:
+        before = date_to_timestamp(before)
         condition &= Condition("time_submitted", "<=", before)
 
     query = SelectQuery(table=ENTRY_TABLE,
