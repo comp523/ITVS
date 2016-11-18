@@ -187,6 +187,7 @@ def object_exists(obj, table):
                         columns="COUNT(*)",
                         where=Condition("id", obj.id))
     result = execute_query(query, transpose=False)[0]
+    print(result)
     return result['COUNT(*)'] == 1
 
 
