@@ -4,7 +4,7 @@ Tool to import a set of permalinks from a csv into the database
 
 import csv
 
-from .database import add_update_object, connect
+from .database import add_update_object, connect, ENTRY_TABLE
 from .scrape import fetch_post
 
 
@@ -20,7 +20,7 @@ def importfile(fname):
         for row in csvreader:
             for cell in row:
                 for entry in fetch_post(cell):
-                    add_update_object(entry)
+                    add_update_object(table=ENTRY_TABLE, entry)
 
 
 def main():
