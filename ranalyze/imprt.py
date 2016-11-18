@@ -12,14 +12,15 @@ def importfile(fname):
     """
     import a csv file with the given name
     """
-    database = Database(config["database_file"], config["debug"])
+    
+    connect()
     
     with open(fname, newline='') as importcsv:
         csvreader = csv.reader(importcsv)
         for row in csvreader:
             for cell in row:
                 for entry in fetch_post(cell):
-                    database.add_update_entry(entry)
+                    add_update_object(entry)
 
 
 def main():
