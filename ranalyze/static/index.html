@@ -25,15 +25,30 @@
 
 		<div ng-cloak layout="row" layout-align="space-around">
 			<md-content flex="95" ng-controller="mainController">
-				<md-tabs md-dynamic-height md-border-bottom md-selected="selectedIndex">
-					<md-tab label="search">
-						<ng-include src="'templates/search.html'"></ng-include>
+				<md-tabs md-dynamic-height md-center-tabs md-border-bottom md-selected="selectedIndex">
+					<md-tab>
+						<md-tab-label>
+							<i class="material-icons label-icon">search</i> search
+						</md-tab-label>
+						<md-tab-body>
+							<ng-include src="'templates/search.html'"></ng-include>
+						</md-tab-body>
 					</md-tab>
 					<md-tab label="word frequency" md-on-select="firstActive=true">
-						<ng-include src="'templates/word-frequency.html'"></ng-include>
+						<md-tab-label>
+							<i class="material-icons label-icon">trending_up</i> word frequency
+						</md-tab-label>
+						<md-tab-body>
+							<ng-include src="'templates/word-frequency.html'"></ng-include>
+						</md-tab-body>
 					</md-tab>
 					<md-tab label="Settings">
-						<ng-include src="'templates/settings.html'"></ng-include>
+						<md-tab-label>
+							<i class="material-icons label-icon">settings</i> settings
+						</md-tab-label>
+						<md-tab-body>
+							<ng-include src="'templates/settings.html'"></ng-include>
+						</md-tab-body>
 					</md-tab>
 				</md-tabs>
 			</md-content>

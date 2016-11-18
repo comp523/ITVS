@@ -19,3 +19,9 @@ span.highlight {
 .md-errors-spacer {
     display: none;
 }
+
+i.label-icon.material-icons {
+    font-size: inherit;
+    position: relative;
+    top: 2px;
+}
