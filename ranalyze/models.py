@@ -228,6 +228,26 @@ class PostFactory(EntryFactory):
         return PostFactory._PRAW_MAP
 
 
+class ConfigEntry(ModelObject):
+
+    _FIELDS = {
+        "id": int,
+        "name": str,
+        "value": str
+    }
+
+    @staticmethod
+    def get_fields():
+        return ConfigEntry._FIELDS
+
+
+class ConfigEntryFactory(ModelFactory):
+
+    @staticmethod
+    def _get_target():
+        return ConfigEntry
+
+
 class NoSuchAttributeError(AttributeError):
     """
     Errors for attempted access of non-existent attributes

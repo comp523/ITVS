@@ -14,9 +14,10 @@ import io
 from csv import DictWriter
 from io import StringIO
 from .frequency import overview
-from .search import search as search_db, SelectQuery
+from .search import search as search_db
 from .utils import iso_to_date
-from .database import connect, execute_query, ENTRY_COLUMNS, ENTRY_TABLE
+from .query import Condition, SelectQuery
+from .database import connect, execute_query, ENTRY_COLUMNS, ENTRY_TABLE, CONFIG_TABLE
 
 app = flask.Flask(__name__)
 CONFIG_FILE = None
@@ -76,7 +77,7 @@ def search():
         download = bool(request["download"])
 
     if "subreddits" in request:
-        options["subreddits"] = request["subreddits"]
+        options["subreddits"] = request.getlist("subreddits")
 
     if "advanced" in request and request["advanced"].lower() == "true":
         options["expression"] = request["query"]
@@ -143,7 +144,7 @@ def frequency():
 
     for key in ("year", "month", "day"):
         if key in request:
-            options[key] = int(request[key])
+            options[key] = [int(v) for v in request.getlist(key)]
 
     return flask.jsonify(overview(**options))
 
@@ -157,6 +158,28 @@ def subreddits():
 
     return flask.jsonify([e['subreddit'] for e in
                           execute_query(query, transpose=False)])
+
+
+@app.route('/config/subreddits')
+def subreddits_config():
+    condition = Condition("name", "subreddit")
+    query = SelectQuery(table=CONFIG_TABLE,
+                        where=condition)
+    results = execute_query(query, transpose=False)
+    col = "COUNT(*)"
+    for item in results:
+        condition = Condition("subreddit", item["value"])
+        post_condition = Condition("permalink", "IS NOT", None)
+        comment_condition = Condition("permalink", None)
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & post_condition,
+                            columns=col)
+        item["posts"] = execute_query(query, transpose=False)[0][col]
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & comment_condition,
+                            columns=col)
+        item["comments"] = execute_query(query, transpose=False)[0][col]
+    return flask.jsonify(results)
 
 def env_shiv():
     """

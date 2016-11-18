@@ -19,7 +19,7 @@
 
         self.entries = [];
 
-        database.getSubreddits()
+        database.entries.getSubreddits()
             .then(function(subreddits){
                 self.subreddits = subreddits;
             });
@@ -35,7 +35,7 @@
         };
 
         self.search = function(){
-            database.search($scope.form)
+            database.entries.search($scope.form)
                 .then(function(data){
                     self.entries = data.map(function(item){
                         item.type = item.permalink ? "Post" : "Comment";

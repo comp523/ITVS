@@ -42,34 +42,37 @@
 
     </form>
 
-    <md-table-container>
-        <table md-table>
-            <thead md-head md-order="table.order">
-                <tr md-row>
-                    <th md-column md-order-by="time_submitted"><span>Posted</span></th>
-                    <th md-column md-order-by="type"><span>Type</span></th>
-                    <th md-column>Link</th>
-                    <th md-column md-order-by="subreddit"><span>Subreddit</span></th>
-                    <th md-column>Title</th>
-                    <th md-column>Text</th>
-                </tr>
-            </thead>
-            <tbody md-body>
-                <tr md-row ng-repeat="entry in ctrl.entries | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
-                    <td md-cell>{{1000*entry.time_submitted | date:'M/d/yy H:mm':'GMT'}} GMT</td>
-                    <td md-cell>{{entry.type}}</td>
-                    <td md-cell>
-                        <a ng-href="{{entry.permalink}}" ng-if="entry.permalink">External Link</a>
-                        <span ng-if="!entry.permalink">N/A</span>
-                    </td>
-                    <td md-cell>{{entry.subreddit}}</td>
-                    <td md-cell>{{entry.title}}</td>
-                    <td md-cell
-                        md-highlight-text="ctrl.highlight"
-                        md-highlight-flags="gi">{{entry.text_content}}</td>
-                </tr>
-            </tbody>
-        </table>
-    </md-table-container>
-    <md-table-pagination md-page="table.page" md-total="{{ctrl.entries.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+    <div  ng-show="ctrl.entries.length > 0">
+        <md-table-container>
+            <table md-table>
+                <thead md-head md-order="table.order">
+                    <tr md-row>
+                        <th md-column md-order-by="time_submitted"><span>Posted</span></th>
+                        <th md-column md-order-by="type"><span>Type</span></th>
+                        <th md-column>Link</th>
+                        <th md-column md-order-by="subreddit"><span>Subreddit</span></th>
+                        <th md-column>Title</th>
+                        <th md-column>Text</th>
+                    </tr>
+                </thead>
+                <tbody md-body>
+                    <tr md-row ng-repeat="entry in ctrl.entries | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
+                        <td md-cell>{{1000*entry.time_submitted | date:'M/d/yy H:mm':'GMT'}} GMT</td>
+                        <td md-cell>{{entry.type}}</td>
+                        <td md-cell>
+                            <a ng-href="{{entry.permalink}}" ng-if="entry.permalink">External Link</a>
+                            <span ng-if="!entry.permalink">N/A</span>
+                        </td>
+                        <td md-cell>{{entry.subreddit}}</td>
+                        <td md-cell>{{entry.title}}</td>
+                        <td md-cell
+                            md-highlight-text="ctrl.highlight"
+                            md-highlight-flags="gi">{{entry.text_content}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </md-table-container>
+        <md-table-pagination md-page="table.page" md-total="{{ctrl.entries.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+    </div>
+
 </md-content>

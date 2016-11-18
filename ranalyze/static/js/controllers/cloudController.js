@@ -3,11 +3,11 @@
 
     var cloudController = function($scope, $rootScope, database, tabs) {
 
-        var d = new Date();
+        var self = this;
 
         $scope.cloudParams = {};
 
-        var defaultsPromise = database.getCloudParamDefaults()
+        var defaultsPromise = database.config.getCloudParams()
             .then(function(defaults){
                 angular.extend($scope.cloudParams, defaults)
             });
@@ -15,15 +15,19 @@
         self.updateWeights = function(){
             defaultsPromise.then(function(){
                 var entryWeight = $scope.cloudParams.entryWeight,
-                    totalWeight = $scope.cloudParams.totalWeight;
+                totalWeight = $scope.cloudParams.totalWeight;
                 for (var i=0;i<$scope.words.length;i++) {
                     $scope.words[i].weight = entryWeight * $scope.words[i].entries + totalWeight * $scope.words[i].total;
                 }
+                // Trigger an update by deep copying the words array
+                $scope.words = angular.copy($scope.words);
             });
         };
 
-        database.frequency({
-            gran: database.granularity.DAY,
+        var d = new Date();
+
+        database.frequency.overview({
+            gran: database.frequency.granularity.DAY,
             limit: 150,
             year: 2016, //d.getFullYear()
             month: 11, //d.getMonth() + 1

@@ -11,6 +11,9 @@
 		<!-- Angular Word Cloud -->
 		<link rel="stylesheet" href="//cdn.rawgit.com/mistic100/jQCloud/v2.0.2/dist/jqcloud.min.css">
 
+		<!-- Material Design Icons -->
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
 		<!-- RanalyzeApp -->
 		<link rel="stylesheet" href="main.css">
 	</head>
@@ -29,11 +32,12 @@
 					<md-tab label="word frequency" md-on-select="firstActive=true">
 						<ng-include src="'templates/word-frequency.html'"></ng-include>
 					</md-tab>
-
+					<md-tab label="Settings">
+						<ng-include src="'templates/settings.html'"></ng-include>
+					</md-tab>
 				</md-tabs>
 			</md-content>
 		</div>
-
 
 		<!-- jQuery -->
 		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
