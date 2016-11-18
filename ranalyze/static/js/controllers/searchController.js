@@ -19,7 +19,7 @@
 
         self.entries = [];
 
-        database.entries.getSubreddits()
+        database.entry.getSubreddits()
             .then(function(subreddits){
                 self.subreddits = subreddits;
             });
@@ -34,13 +34,25 @@
 
         };
 
-        self.search = function(){
-            database.entries.search($scope.form)
+        self.search = function(download){
+            var localParams = {download: !!download};
+            angular.extend(localParams, $scope.form);
+            database.entry.search(localParams)
                 .then(function(data){
-                    self.entries = data.map(function(item){
-                        item.type = item.permalink ? "Post" : "Comment";
-                        return item;
-                    });
+                    if (!!download) {
+                        angular.element('<a/>')
+                            .attr({
+                                href: 'data:attachment/csv;charset=utf-8,' + encodeURI(data),
+                                target: '_blank',
+                                download: 'results.csv'
+                            })[0].click();
+                    }
+                    else {
+                        self.entries = data.map(function (item) {
+                            item.type = item.permalink ? "Post" : "Comment";
+                            return item;
+                        });
+                    }
                 });
             if ($scope.form.advanced) {
                 var regex = /(["'])(.*?)\1/g;

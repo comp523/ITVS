@@ -38,7 +38,10 @@
             Advanced Search
         </md-switch>
 
-        <md-button type="submit" class="md-primary md-raised">Search</md-button>
+        <div layout="row">
+            <md-button ng-click="ctrl.search(true)" class="md-raised">Download as CSV</md-button>
+            <md-button type="submit" class="md-primary md-raised">Search</md-button>
+        </div>
 
     </form>
 

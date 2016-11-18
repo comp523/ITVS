@@ -5,7 +5,7 @@
 
         var self = this;
 
-        self.entries = new (function(){
+        self.entry = new (function(){
 
             /**
              *
@@ -25,7 +25,7 @@
                 });
 
                 var query = $httpParamSerializer(localParameters);
-                return $http.get('/search?' + query)
+                return $http.get('/entry/search?' + query)
                     .then(function(response) {
                         return response.data;
                     });
@@ -34,7 +34,7 @@
 
             this.getSubreddits = function(){
 
-                return $http.get('/subreddits')
+                return $http.get('/entry/subreddits')
                     .then(function(response) {
                         return response.data;
                     });
@@ -60,7 +60,7 @@
             this.overview = function(parameters) {
 
                 var query = $httpParamSerializer(parameters);
-                return $http.get('/frequency?' + query)
+                return $http.get('/frequency/overview?' + query)
                     .then(function(response) {
                         return response.data;
                     });
@@ -92,7 +92,9 @@
 
                 return $http.get('/config/subreddits')
                     .then(function(response){
-                        return response.data;
+                        return response.data.map(function(item){
+                            return new Subreddit(item);
+                        });
                     })
 
             };

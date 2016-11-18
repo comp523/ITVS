@@ -43,7 +43,7 @@ def static_files(filename):
     return flask.send_from_directory(app.static_folder, filename)
 
 
-@app.route('/main.js')
+@app.route('/app.js')
 def compile_js():
     cur_path = os.path.dirname(os.path.realpath(__file__))
     sub_dirs = ['controllers', 'services']
@@ -59,8 +59,31 @@ def compile_js():
     response = flask.Response(out_buffer.getvalue(), mimetype='text/javascript')
     return response
 
-@app.route('/search/')
-def search():
+
+@app.route('/config/subreddits/')
+def config_subreddits():
+    condition = Condition("name", "subreddit")
+    query = SelectQuery(table=CONFIG_TABLE,
+                        where=condition)
+    results = execute_query(query, transpose=False)
+    col = "COUNT(*)"
+    for item in results:
+        condition = Condition("subreddit", item["value"])
+        post_condition = Condition("permalink", "IS NOT", None)
+        comment_condition = Condition("permalink", None)
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & post_condition,
+                            columns=col)
+        item["posts"] = execute_query(query, transpose=False)[0][col]
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & comment_condition,
+                            columns=col)
+        item["comments"] = execute_query(query, transpose=False)[0][col]
+    return flask.jsonify(results)
+
+
+@app.route('/entry/search/')
+def entry_search():
     """
     Search wtihout expressions
     on GET: return csv of most recent simple search
@@ -74,7 +97,7 @@ def search():
     download = False
 
     if "download" in request:
-        download = bool(request["download"])
+        download = (request["download"].lower() == "true")
 
     if "subreddits" in request:
         options["subreddits"] = request.getlist("subreddits")
@@ -107,31 +130,19 @@ def search():
     return flask.jsonify(entries)
 
 
-@app.route('/scrape', methods=['GET', 'POST'])
-def scrape():
-    """
-    on GET: returns JSON of the current subs being scraped
-    on POST: updates scrape config file
-    """
-    if flask.request.method == 'POST':
-        rv = []
-        with open(CONFIG_FILE, 'w') as config_file:
-            to_scrape = flask.request.get_json(force=True, silent=True)
-            for i in to_scrape:
-                config_file.write(i+'\n')
-                rv.append(i)
-        return flask.jsonify(rv)
-    else:
-        if not os.path.isfile(CONFIG_FILE):
-            with open(CONFIG_FILE, 'w'):
-                pass
-        with open(CONFIG_FILE, 'r') as config_file:
-            rv = [i.replace('\n', '') for i in config_file]
-            return flask.jsonify(rv)
+@app.route('/entry/subreddits')
+def entry_subreddits():
+
+    query = SelectQuery(table=ENTRY_TABLE,
+                        distinct=True,
+                        columns="subreddit")
+
+    return flask.jsonify([e['subreddit'] for e in
+                          execute_query(query, transpose=False)])
 
 
-@app.route('/frequency/', methods=['GET'])
-def frequency():
+@app.route('/frequency/overview', methods=['GET'])
+def frequency_overview():
     """
     """
 
@@ -147,39 +158,6 @@ def frequency():
             options[key] = [int(v) for v in request.getlist(key)]
 
     return flask.jsonify(overview(**options))
-
-
-@app.route('/subreddits/')
-def subreddits():
-
-    query = SelectQuery(table=ENTRY_TABLE,
-                        distinct=True,
-                        columns="subreddit")
-
-    return flask.jsonify([e['subreddit'] for e in
-                          execute_query(query, transpose=False)])
-
-
-@app.route('/config/subreddits')
-def subreddits_config():
-    condition = Condition("name", "subreddit")
-    query = SelectQuery(table=CONFIG_TABLE,
-                        where=condition)
-    results = execute_query(query, transpose=False)
-    col = "COUNT(*)"
-    for item in results:
-        condition = Condition("subreddit", item["value"])
-        post_condition = Condition("permalink", "IS NOT", None)
-        comment_condition = Condition("permalink", None)
-        query = SelectQuery(table=ENTRY_TABLE,
-                            where=condition & post_condition,
-                            columns=col)
-        item["posts"] = execute_query(query, transpose=False)[0][col]
-        query = SelectQuery(table=ENTRY_TABLE,
-                            where=condition & comment_condition,
-                            columns=col)
-        item["comments"] = execute_query(query, transpose=False)[0][col]
-    return flask.jsonify(results)
 
 def env_shiv():
     """
