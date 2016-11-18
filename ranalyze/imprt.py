@@ -20,7 +20,7 @@ def importfile(fname):
         for row in csvreader:
             for cell in row:
                 for entry in fetch_post(cell):
-                    add_update_object(table=ENTRY_TABLE, entry)
+                    add_update_object(entry, ENTRY_TABLE)
 
 
 def main():
