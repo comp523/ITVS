@@ -16,7 +16,7 @@ from tempfile import NamedTemporaryFile
 from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
 from .database import connect, execute_query
 from .frequency import overview
-from .imprt import imprt
+from .imprt import importfile
 from .query import Condition, SelectQuery
 from .search import search as search_db
 from .utils import iso_to_date
@@ -86,7 +86,7 @@ def entry_import():
     f = flask.request.files['file']
     temp = NamedTemporaryFile()
     f.save(temp)
-    imprt(temp.name)
+    importfile(temp.name)
     return 'File uploaded successfully'
 
 
