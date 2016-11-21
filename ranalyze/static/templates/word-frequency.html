@@ -1,0 +1,51 @@
+<md-content class="md-padding" ng-controller="cloudController as ctrl" layout="column">
+    <md-switch ng-model="ctrl.cloudMode">
+        Word Cloud
+    </md-switch>
+    <jqcloud ng-show="ctrl.cloudMode" ng-if="firstActive && (words.length > 0)" words="words" height="500" auto-resize="true"></jqcloud>
+    <md-table-container ng-hide="ctrl.cloudMode">
+        <table md-table>
+            <thead md-head md-order="tableOrder">
+                <tr md-row>
+                    <th md-column><span>Word</span></th>
+                    <th md-column md-order-by="entries"><span>Entries</span></th>
+                    <th md-column md-order-by="total"><span>Occurrences</span></th>
+                    <th md-column md-order-by="weight"><span>Weight</span></th>
+                </tr>
+            </thead>
+            <tbody md-body>
+                <tr md-row
+                    ng-repeat="word in words | orderBy: tableOrder">
+                    <td md-cell>{{word.text}}</td>
+                    <td md-cell>{{word.entries}}</td>
+                    <td md-cell>{{word.total}}</td>
+                    <td md-cell>{{word.weight}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </md-table-container>
+    <div layout="row" layout-align="center">
+        <div layout="column" layout-align="start center">
+            <span>Entry Weight</span>
+            <md-slider-container>
+                <md-slider flex min="0" max="10" ng-model="cloudParams.entryWeight" aria-label="Entry Weight" id="entry-slider">
+                </md-slider>
+                <md-input-container>
+                    <input flex type="number" ng-model="cloudParams.entryWeight" aria-label="Entry Weight" aria-controls="entry-slider">
+                </md-input-container>
+            </md-slider-container>
+        </div>
+        <div class="md-padding"></div>
+        <div layout="column">
+            <span>Total Occurrence Weight</span>
+            <md-slider-container>
+                <md-slider flex min="0" max="10" ng-model="cloudParams.totalWeight" aria-label="Total Occurrence Weight" id="total-slider">
+                </md-slider>
+                <md-input-container>
+                    <input flex type="number" ng-model="cloudParams.totalWeight" aria-label="Total Occurrence Weight" aria-controls="total-slider">
+                </md-input-container>
+            </md-slider-container>
+        </div>
+        <md-button class="md-primary" ng-click="ctrl.updateWeights()">Apply</md-button>
+    </div>
+</md-content>

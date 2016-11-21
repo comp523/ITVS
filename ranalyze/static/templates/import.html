@@ -1,0 +1,24 @@
+<md-content class="md-padding" ng-controller="importController as ctrl" layout="row" layout-align="center start">
+    <form name="inputForm" ng-submit="ctrl.submit()" layout="column" layout-align="start center" flex="95" flex-gt-sm="60" flex-gt-md="40">
+        <input ng-required="true" type="file" id="file" name="file" accept=".csv" class="ng-hide"
+        ng-file-model="file">
+        <p>
+            Use this form to upload a CSV (comma separated values) file containing
+            Reddit post permalinks. Each post and its respective comments will be
+            imported to the database.
+        </p>
+        <div>
+            <span ng-show="file.value">Selected File: <i ng-bind="file.value | fileName"></i></span>
+            <span ng-hide="file.value">No file selected</span>
+        </div>
+        <div layout="row">
+            <md-button ng-for="file" class="md-raised">
+                Choose CSV File
+            </md-button>
+            <md-button type="submit" class="md-raised md-primary" ng-disabled="!file.value">
+                Upload
+            </md-button>
+        </div>
+        <strong ng-bind="response"></strong>
+    </form>
+</md-content>

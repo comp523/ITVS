@@ -1,27 +1,27 @@
 body {
-  padding : 10px ;
-  
+    overflow-y:scroll;
 }
 
-#tabcontainer h3 {
-  color : black;
-  background-color: white;
-  padding : 5px 15px;
+header {
+    text-align: center;
 }
 
-#searchcontainer h3 {
-  padding-left: 1000px;
-  color : black;
-  background-color: white;
-  padding : 5px 15px;
+span.highlight {
+    display: inline-block;
+    background-color: yellow;
+    vertical-align: top !important;
 }
 
-table {
-    width: 100%;
+.clickable {
+    cursor: pointer;
 }
 
-table, th, td {
-   border: 1px solid black;
+.md-errors-spacer {
+    display: none;
 }
 
-
+i.label-icon.material-icons {
+    font-size: inherit;
+    position: relative;
+    top: 2px;
+}

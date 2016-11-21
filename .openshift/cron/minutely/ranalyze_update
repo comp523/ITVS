@@ -1,0 +1,4 @@
+#!/bin/bash
+cd ~
+python app-root/repo/.openshift/cron/minutely/python_script.py
+

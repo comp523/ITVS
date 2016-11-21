@@ -2,17 +2,26 @@
 A simple Flask API giving HTTP access to the command line functionality
 to run: 
     python api.py [database file] [scrape config file]
+    OR 
+    if config.txt and a scraped 'results.db' file have been created 
+    python api.py
 """
 import flask
+import io
 import os
-import sys
-from ranalyze import search
-from ranalyze import utils
-from ranalyze.database import database
+
+from csv import DictWriter
+from io import StringIO
+from tempfile import NamedTemporaryFile
+from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
+from .database import connect, execute_query
+from .frequency import overview
+from .imprt import imprt
+from .query import Condition, SelectQuery
+from .search import search as search_db
+from .utils import iso_to_date
 
 app = flask.Flask(__name__)
-CONFIG_FILE = None
-DATABASE = None
 
 @app.route('/')
 def index():
@@ -21,6 +30,7 @@ def index():
     """
     return flask.send_from_directory(app.static_folder, 'index.html')
 
+
 @app.route('/<path:filename>')
 def static_files(filename):
     """
@@ -28,99 +38,172 @@ def static_files(filename):
     """
     return flask.send_from_directory(app.static_folder, filename)
 
-@app.route('/simple_search/', methods=['POST'])
-def simple_search():
+
+@app.route('/app.js')
+def compile_js():
+    cur_path = os.path.dirname(os.path.realpath(__file__))
+    sub_dirs = ['controllers', 'directives', 'filters', 'services']
+    js_files = ['main.js']
+    for sub in sub_dirs:
+        path = os.path.join(cur_path, 'static/js', sub)
+        js_files.extend([os.path.join(path, file) for file in os.listdir(path)])
+    out_buffer = io.StringIO()
+    for file in js_files:
+        with open(os.path.join(cur_path, 'static/js', file)) as fp:
+            out_buffer.write(fp.read())
+        out_buffer.write("\n")
+    response = flask.Response(out_buffer.getvalue(), mimetype='text/javascript')
+    return response
+
+
+@app.route('/config/subreddits')
+def config_subreddits():
+    condition = Condition("name", "subreddit")
+    query = SelectQuery(table=CONFIG_TABLE,
+                        where=condition)
+    results = execute_query(query, transpose=False)
+    col = "COUNT(*)"
+    for item in results:
+        condition = Condition("subreddit", item["value"])
+        post_condition = Condition("permalink", "IS NOT", None)
+        comment_condition = Condition("permalink", None)
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & post_condition,
+                            columns=col)
+        item["posts"] = execute_query(query, transpose=False)[0][col]
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & comment_condition,
+                            columns=col)
+        item["comments"] = execute_query(query, transpose=False)[0][col]
+    return flask.jsonify(results)
+
+
+@app.route('/entry/import', methods=['POST'])
+def entry_import():
+    """
+    on POST: imports a csv file into the database
+    """
+    f = flask.request.files['file']
+    temp = NamedTemporaryFile()
+    f.save(temp)
+    imprt(temp.name)
+    return 'File uploaded successfully'
+
+
+@app.route('/entry/search')
+def entry_search():
     """
     Search wtihout expressions
+    on GET: return csv of most recent simple search
+    on POST: return JSON of search
     """
-    condition = search.Condition()
-    request = flask.request.get_json(force=True, silent=True)
-    if 'keywords' in request:
-        keywords = ["%{}%".format(k) for k in request["keywords"]]
-        for keyword in keywords:
-            keyword_condition = search.multi_column_condition(search.KEYWORD_COLUMNS,
-                                                       "LIKE",
-                                                       keyword)
-            condition |= keyword_condition
-    if 'subreddits' in request: 
-        subreddit_condition = search.Condition()
-        for subreddit in request['subreddits']:
-            subreddit_condition |= search.Condition('subreddit', subreddit)
-        condition &= subreddit_condition
 
-    if 'after' in request: 
-        date = utils.iso_to_date(request["after"])
-        condition &= search.Condition("time_submitted", ">=", date)
+    request = flask.request.args
 
-    if 'before' in request:
-        date = utils.iso_to_date(request["before"])
-        condition &= search.Condition("time_submitted", "<=", date)
-    query = database.SelectQuery(table=database.Database.ENTRY_TABLE,
-                        distinct=True,
-                        where=condition,
-                        columns="*")
-    rows = DATABASE.execute_query(query, transpose=False)
-    entries = [dict(zip(e.keys(), e)) for e in rows]
-    return flask.jsonify(entries)
+    options = {}
 
-@app.route('/advanced_search/', methods=['POST'])
-def advanced_search():
-    """
-    Search with expressions
-    """
-    condition = search.Condition()
-    print(flask.request.get_json(force=True, silent=True))
-    request = flask.request.get_json(force=True, silent=True)
-    if 'expression' in request: 
-        print(request['expression'])
-        tree = search.ExpressionTree.from_expression(request["expression"])
-        print(tree.__dict__)
-        condition = search.tree_to_condition(tree)
-        print(condition)
+    download = False
 
-    if 'subreddits' in request: 
-        subreddit_condition = search.Condition()
-        for subreddit in request['subreddits']:
-            subreddit_condition |= search.Condition('subreddit', subreddit)
-        condition &= subreddit_condition
+    if "download" in request:
+        download = (request["download"].lower() == "true")
 
-    if 'after' in request: 
-        date = utils.iso_to_date(request["after"])
-        condition &= search.Condition("time_submitted", ">=", date)
+    if "subreddit" in request:
+        options["subreddit"] = request.getlist("subreddit")
 
-    if 'before' in request:
-        date = utils.iso_to_date(request["before"])
-        condition &= search.Condition("time_submitted", "<=", date)
-    query = database.SelectQuery(table=database.Database.ENTRY_TABLE,
-                        distinct=True,
-                        where=condition,
-                        columns="*")
-    rows = DATABASE.execute_query(query, transpose=False)
-    entries = [dict(zip(e.keys(), e)) for e in rows]
-    return flask.jsonify(entries)
-
-@app.route('/scrape/', methods=['GET', 'POST'])
-def scrape():
-    """
-    on GET: returns JSON of the current 
-    """
-    if flask.request.method == 'POST':
-        with open(CONFIG_FILE, 'w') as config_file:
-            print("Updating "+CONFIG_FILE)
-            to_scrape = flask.request.get_json(force=True, silent=True)
-            for i in to_scrape:
-                print(i)
-                config_file.write(i)
+    if "advanced" in request and request["advanced"].lower() == "true":
+        options["expression"] = request["query"]
     else:
-        with open(CONFIG_FILE) as config_file:
-            rv = [i for i in config_file]
-            return flask.jsonify(rv);
-    
+        options["keywords"] = request["query"].split()
+
+    # pass through arguments
+
+    for key in {"limit", "order", "offset"}:
+        if key in request:
+            options[key] = request[key]
+
+    for date_key in {"after", "before"}:
+        if date_key in request:
+            options[date_key] = iso_to_date(request[date_key])
+
+    results, count = search_db(include_count=True, **options)
+
+    entries = [e.dict for e in results]
+
+    if download:
+        keys = ENTRY_FIELDS.keys()
+        with StringIO() as buffer:
+            writer = DictWriter(buffer, fieldnames=keys)
+            writer.writeheader()
+            writer.writerows(entries)
+            csv = buffer.getvalue()
+            response_options = {
+                "mimetype": 'text/csv',
+                "headers": {"Content-disposition":
+                            "attachment; filename=results.csv"}
+            }
+            return flask.Response(csv, **response_options)
+
+    response = {
+        "total": count,
+        "results": entries
+    }
+
+    return flask.jsonify(response)
+
+
+@app.route('/entry/subreddits')
+def entry_subreddits():
+
+
+    query = SelectQuery(table=ENTRY_TABLE,
+                        distinct=True,
+                        columns="subreddit")
+
+    return flask.jsonify([e['subreddit'] for e in
+                          execute_query(query, transpose=False)])
+
+
+@app.route('/frequency/overview', methods=['GET'])
+def frequency_overview():
+    """
+    """
+
+    request = flask.request.args
+
+    options = {
+        "gran": request["gran"],
+        "limit": int(request["limit"])
+    }
+
+    for key in ("year", "month", "day"):
+        if key in request:
+            options[key] = [int(v) for v in request.getlist(key)]
+
+    return flask.jsonify(overview(**options))
+
+
+def env_shiv():
+    """
+    shiv the os.environ dictionary to work on local machines
+    """
+    try:
+        os.mkdir("/tmp/ranalyze")
+    except FileExistsError:
+        pass
+
+    os.environ.update({
+        "OPENSHIFT_DATA_DIR": "/tmp/ranalyze",
+        "OPENSHIFT_MYSQL_DB_HOST": os.environ["MYSQL_DB_HOST"],
+        "OPENSHIFT_MYSQL_DB_USERNAME": os.environ["MYSQL_DB_USER"],
+        "OPENSHIFT_MYSQL_DB_PASSWORD": os.environ["MYSQL_DB_PASSWORD"],
+        "OPENSHIFT_MYSQL_DB_PORT": os.environ["MYSQL_DB_PORT"]
+    })
+
+
+if "OPENSHIFT_DATA_DIR" not in os.environ:
+    env_shiv()
+
+connect()
+
 if __name__ == '__main__':
-    if len(sys.argv) < 3:
-        print("Error: specify the database to connect to and a config file")
-        print("e.g.: python api.py database.db config.txt")
-    else:
-        DATABASE = database.Database(sys.argv[1])
-        CONFIG_FILE = sys.argv[2]
-        app.run()
+    app.run()

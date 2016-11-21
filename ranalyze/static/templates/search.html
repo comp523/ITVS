@@ -1,0 +1,78 @@
+<md-content class="md-padding" ng-controller="searchController as ctrl">
+    <form ng-submit="ctrl.search()" name="searchForm" layout="column" layout-align="start center">
+        <md-input-container>
+            <label>{{ form.advanced ? "Expression" : "Keywords" }}</label>
+            <input type="text" required ng-model="form.query" name="query">
+            <div ng-messages="searchForm.query.$error">
+                <div ng-message="required">This is required.</div>
+            </div>
+        </md-input-container>
+        <div>
+            <md-tooltip md-direction="left">All subreddits are included by default</md-tooltip>
+            <md-chips
+                ng-model="form.subreddit"
+                md-autocomplete-snap
+                md-require-match="true">
+                <md-autocomplete
+                    md-items="item in ctrl.filterSubs(ctrl.searchText)"
+                    md-item-text="item"
+                    md-search-text="ctrl.searchText"
+                    placeholder="Subreddits">
+                    {{ item }}
+                </md-autocomplete>
+            </md-chips>
+        </div>
+
+        <div layout="row">
+            <md-input-container>
+                <label>Start Date</label>
+                <md-datepicker ng-model="form.after"></md-datepicker>
+            </md-input-container>
+            <md-input-container>
+                <label>End Date</label>
+                <md-datepicker ng-model="form.before"></md-datepicker>
+            </md-input-container>
+        </div>
+        <md-switch ng-model="form.advanced">
+            Advanced Search
+        </md-switch>
+
+        <div layout="row">
+            <md-button ng-click="ctrl.search(true)" class="md-raised">Download as CSV</md-button>
+            <md-button type="submit" class="md-primary md-raised">Search</md-button>
+        </div>
+
+    </form>
+
+    <div  ng-show="ctrl.entries.length > 0">
+        <md-table-container>
+            <table md-table>
+                <thead md-head md-order="table.order">
+                    <tr md-row>
+                        <th md-column md-order-by="time_submitted"><span>Posted</span></th>
+                        <th md-column md-order-by="(permalink IS NULL)"><span>Type</span></th>
+                        <th md-column md-order-by="subreddit"><span>Subreddit</span></th>
+                        <th md-column>Title</th>
+                        <th md-column>Text</th>
+                    </tr>
+                </thead>
+                <!-- | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit -->
+                <tbody md-body>
+                    <tr md-row ng-repeat="entry in ctrl.entries">
+                        <td md-cell>{{1000*entry.time_submitted | date:'M/d/yy H:mm':'GMT'}} GMT</td>
+                        <td md-cell>
+                            <a ng-href="{{ctrl.getLink(entry)}}" target="_blank">{{entry.type}}</a>
+                        </td>
+                        <td md-cell>{{entry.subreddit}}</td>
+                        <td md-cell>{{entry.title}}</td>
+                        <td md-cell
+                            md-highlight-text="ctrl.highlight"
+                            md-highlight-flags="gi">{{entry.text_content}}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </md-table-container>
+        <md-table-pagination md-page="table.page" md-total="{{ctrl.entryCount}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+    </div>
+
+</md-content>

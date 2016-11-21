@@ -1,0 +1,48 @@
+<md-content class="md-padding" ng-controller="settingsController as ctrl">
+    <md-tabs md-dynamic-height md-border-bottom>
+        <md-tab label="subreddits">
+            <md-table-container>
+                <table md-table md-row-select multiple ng-model="selectedSubreddits">
+                    <thead md-head md-order="table.order">
+                        <tr md-row>
+                            <th md-column md-order-by="value"><span>Subreddit</span></th>
+                            <th md-column md-order-by="posts"><span>Posts</span></th>
+                            <th md-column md-order-by="comments"><span>Comments</span></th>
+                        </tr>
+                    </thead>
+                    <tbody md-body>
+                        <tr md-row md-select="sub" md-select-id="value" md-auto-select
+                            ng-repeat="sub in ctrl.subreddits | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
+                            <td md-cell>{{sub.value}}</td>
+                            <td md-cell>{{sub.posts}}</td>
+                            <td md-cell>{{sub.comments}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </md-table-container>
+            <md-table-pagination md-page="table.page" md-total="{{ctrl.entries.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+        </md-tab>
+        <md-tab label="word frequency">
+            <md-content class="md-padding" layout="row" layout-align="center start">
+                <div layout="column" layout-align="start center">
+                    <div>Entry Weight</div>
+                    <md-slider-container>
+                        <md-slider flex min="0" max="10" ng-model="config.entryWeight" aria-label="Entry Weight" id="entry-config-slider">
+                        </md-slider>
+                        <md-input-container>
+                            <input flex type="number" ng-model="config.entryWeight" aria-label="Entry Weight" aria-controls="entry-config-slider">
+                        </md-input-container>
+                    </md-slider-container>
+                    <div>Total Occurrence Weight</div>
+                    <md-slider-container>
+                        <md-slider flex min="0" max="10" ng-model="config.totalWeight" aria-label="Total Occurrence Weight" id="total-config-slider">
+                        </md-slider>
+                        <md-input-container>
+                            <input flex type="number" ng-model="config.totalWeight" aria-label="Total Occurrence Weight" aria-controls="total-config-slider">
+                        </md-input-container>
+                    </md-slider-container>
+                </div>
+            </md-content>
+        </md-tab>
+    </md-tabs>
+</md-content>
