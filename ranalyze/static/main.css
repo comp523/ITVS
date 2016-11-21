@@ -1,6 +1,4 @@
-body {
-    overflow-y:scroll;
-}
+
 
 header {
     text-align: center;
@@ -14,6 +12,10 @@ span.highlight {
 
 .clickable {
     cursor: pointer;
+}
+
+.down-1 {
+    margin-top: 1px;
 }
 
 .md-errors-spacer {

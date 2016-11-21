@@ -8,7 +8,7 @@ Tool to traverse a set of subreddits extracting post/comment information includi
 
 import praw
 
-from .constants import ENTRY_TABLE
+from .constants import CONFIG_TABLE, ENTRY_TABLE
 from .database import (
     add_update_object,
     connect,
@@ -99,6 +99,13 @@ def update_posts(date_range):
     for post in posts:
         for entry in fetch_post(post.permalink):
             add_update_object(entry)
+
+
+def get_subreddits():
+    condition = Condition("name", "subreddit")
+    query = SelectQuery(table=CONFIG_TABLE,
+                        where=condition)
+    return execute_query(query, transpose=False)
 
 
 def scrape(subreddits):

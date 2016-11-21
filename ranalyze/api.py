@@ -14,10 +14,11 @@ from csv import DictWriter
 from io import StringIO
 from tempfile import NamedTemporaryFile
 from .constants import ENTRY_FIELDS, ENTRY_TABLE
-from .database import connect, execute_query, get_subreddits
+from .database import connect, execute_query
 from .frequency import overview
 from .imprt import import_file
 from .query import Condition, SelectQuery
+from .scrape import get_subreddits
 from .search import search as search_db
 from .utils import iso_to_date
 
@@ -58,7 +59,21 @@ def compile_js():
 
 @app.route('/config/subreddits')
 def config_subreddits():
-    return flask.jsonify(get_subreddits())
+    results = get_subreddits()
+    col = "COUNT(*)"
+    for item in results:
+        condition = Condition("subreddit", item["value"])
+        post_condition = Condition("permalink", "IS NOT", None)
+        comment_condition = Condition("permalink", None)
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & post_condition,
+                            columns=col)
+        item["posts"] = execute_query(query, transpose=False)[0][col]
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & comment_condition,
+                            columns=col)
+        item["comments"] = execute_query(query, transpose=False)[0][col]
+    return flask.jsonify(results)
 
 
 @app.route('/entry/import', methods=['POST'])
@@ -112,10 +127,9 @@ def entry_search():
 
     entries = [e.dict for e in results]
 
-    if download:
-        keys = ENTRY_FIELDS.keys()
+    if download and entries:
         with StringIO() as buffer:
-            writer = DictWriter(buffer, fieldnames=keys)
+            writer = DictWriter(buffer, fieldnames=ENTRY_FIELDS)
             writer.writeheader()
             writer.writerows(entries)
             csv = buffer.getvalue()

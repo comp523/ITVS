@@ -3,12 +3,23 @@
     var ngFileModelDirective = function(){
         return {
             link: function(scope, element, attrs) {
-                Object.defineProperty(scope, attrs.ngFileModel, {
-                    get: function(){
-                        return {
-                            element: element,
-                            value: element.val()
-                        };
+                scope[attrs.ngFileModel] = {};
+                Object.defineProperties(scope[attrs.ngFileModel], {
+                    files: {
+                        get: function(){
+                            return element[0].files;
+                        },
+                        set: function(){
+                            throw new Error("<HTMLInputElement>.files is not writeable.");
+                        }
+                    },
+                    value: {
+                        get: function(){
+                            return element.val();
+                        },
+                        set: function(value) {
+                            element.val(value);
+                        }
                     }
                 });
                 element.on("change", function(){

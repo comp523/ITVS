@@ -1,1 +1,1 @@
-var app = angular.module("RanalyzeApp", ['ngMaterial', 'md.data.table', 'angular-jqcloud']);
+var app = angular.module("RanalyzeApp", ['ngMaterial', 'ngMessages', 'md.data.table', 'angular-jqcloud']);

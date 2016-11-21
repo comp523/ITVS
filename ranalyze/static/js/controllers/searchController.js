@@ -1,34 +1,26 @@
 (function(app){
 "use strict";
 
-    var searchController = function($scope, database) {
+    var searchController = function($scope, $mdDialog, database) {
 
-        var self = this;
-
-        $scope.form = {
-            subreddit: []
-        };
-
-        $scope.table = {
-            limit: 10,
-            page: 1,
-            order: 'time_submitted'
-        };
-
-        $scope.$watchCollection('table', function(newValue, oldValue){
-            if (!angular.equals(newValue, oldValue)) {
-                self.search();
-            }
-        });
+        var self = this,
+            baseForm = {
+                advanced: false,
+                subreddit: [],
+                subredditMode: 'inclusive'
+            };
 
         self.highlight = [];
 
         self.entries = [];
 
-        database.entry.getSubreddits()
-            .then(function(subreddits){
-                self.subreddits = subreddits;
-            });
+        self.clearForm = function(){
+
+            $scope.form = angular.copy(baseForm);
+
+        };
+
+        self.clearForm();
 
         self.filterSubs = function(sub) {
 
@@ -52,6 +44,16 @@
 
         };
 
+        self.range = function(min, max, step) {
+            step = step || 1;
+            max = Math.ceil(max);
+            var input = [];
+            for (var i = min; i <= max; i += step) {
+                input.push(i);
+            }
+            return input;
+        };
+
         self.search = function(download){
             download = !!download;
             var localParams = {
@@ -67,17 +69,28 @@
             angular.extend(localParams, $scope.form);
             database.entry.search(localParams)
                 .then(function(data){
-                    var results = data["results"],
-                        count = data["total"];
+                    if (typeof data === 'object' && data["total"] == 0) {
+                        $mdDialog.show(
+                            $mdDialog.alert()
+                                .clickOutsideToClose(true)
+                                .title('No Results')
+                                .textContent('This search yielded no results. Try broadening your criteria.')
+                                .ariaLabel('No Results')
+                                .ok('Ok')
+                        );
+                        return;
+                    }
                     if (download) {
                         angular.element('<a/>')
                             .attr({
-                                href: 'data:attachment/csv;charset=utf-8,' + encodeURI(results),
+                                href: 'data:attachment/csv;charset=utf-8,' + encodeURI(data),
                                 target: '_blank',
                                 download: 'results.csv'
                             })[0].click();
                     }
                     else {
+                        var results = data["results"],
+                        count = data["total"];
                         self.entries = results.map(function (item) {
                             item.type = item.permalink ? "Post" : "Comment";
                             return item;
@@ -98,9 +111,38 @@
             }
         };
 
-        $scope.$on('search.simple', function(event, args) {
-            angular.extend($scope.form, args);
+        database.entry.getSubreddits()
+            .then(function(subreddits){
+                self.subreddits = subreddits;
+            });
+
+        $scope.table = {
+            limit: 10,
+            page: 1,
+            order: 'time_submitted'
+        };
+
+        $scope.$watchCollection('table', function(newValue, oldValue){
+            if (!angular.equals(newValue, oldValue)) {
+                self.search();
+            }
+        });
+
+        $scope.$on('search', function(event, args) {
+            $scope.form = angular.copy(baseForm);
+            angular.extend($scope.form, args)
             self.search();
+        });
+
+        $scope.$watchGroup(['form.before', 'form.after'], function(){
+
+            var date1 = $scope.form.after,
+                date2 = $scope.form.before;
+
+            var valid = !(date1 && date2 && date1.getTime() > date2.getTime());
+
+            $scope.searchForm.before.$setValidity('order', valid);
+
         });
 
     };

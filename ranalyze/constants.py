@@ -10,12 +10,14 @@ FREQUENCY_TABLE = "frequency"
 
 CONFIG_ENTRY_FIELDS = {"id", "name", "value"}
 
-ENTRY_FIELDS = {"id", "up_votes", "time_submitted", "time_updated", "posted_by",
+BASE_FIELDS = {"id", "up_votes", "time_submitted", "time_updated", "posted_by",
                 "subreddit", "text_content", "gilded", "deleted"}
 
-COMMENT_FIELDS = ENTRY_FIELDS | {"root_id", "parent_id"}
+COMMENT_FIELDS = BASE_FIELDS | {"root_id", "parent_id"}
 
-POST_FIELDS = ENTRY_FIELDS | {"permalink", "up_ratio", "title", "external_url"}
+POST_FIELDS = BASE_FIELDS | {"permalink", "up_ratio", "title", "external_url"}
+
+ENTRY_FIELDS = COMMENT_FIELDS | POST_FIELDS
 
 
 WORD_DAY_FIELDS = {"id", "word", "day", "month", "year", "total", "entries"}

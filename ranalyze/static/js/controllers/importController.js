@@ -10,7 +10,7 @@
             database.entry.import($scope.file.element)
                 .then(function(data){
                     $scope.response = data;
-                    $scope.file.element.val(null);
+                    $scope.file.value=null;
                 });
 
         };

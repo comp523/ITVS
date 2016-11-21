@@ -49,7 +49,7 @@
                         handlers: {
                             "click": function() {
                                 tabs.setTab(0);
-                                $rootScope.$broadcast('search.simple', {
+                                $rootScope.$broadcast('search', {
                                     query: item.word,
                                     advanced: false,
                                     subreddit: []
