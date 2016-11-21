@@ -161,6 +161,31 @@ def get_latest_post(subreddit):
     return get_entry(latest_id)
 
 
+def get_subreddits():
+    condition = Condition("name", "subreddit")
+    query = SelectQuery(table=CONFIG_TABLE,
+                        where=condition)
+    results = execute_query(query, transpose=False)
+    col = "COUNT(*)"
+    for item in results:
+        condition = Condition("subreddit", item["value"])
+        post_condition = Condition("permalink", "IS NOT", None)
+        comment_condition = Condition("permalink", None)
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & post_condition,
+                            columns=col)
+        item["posts"] = execute_query(query, transpose=False)[0][col]
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & comment_condition,
+                            columns=col)
+        item["comments"] = execute_query(query, transpose=False)[0][col]
+    return results
+
+
+def add_subreddit(subreddit):
+    _add_object({"name":"subreddit", "value":subreddit}, CONFIG_TABLE)
+
+
 def _add_object(obj, table):
     """
     Add an item to the database
