@@ -1,0 +1,27 @@
+body {
+    overflow-y:scroll;
+}
+
+header {
+    text-align: center;
+}
+
+span.highlight {
+    display: inline-block;
+    background-color: yellow;
+    vertical-align: top !important;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.md-errors-spacer {
+    display: none;
+}
+
+i.label-icon.material-icons {
+    font-size: inherit;
+    position: relative;
+    top: 2px;
+}

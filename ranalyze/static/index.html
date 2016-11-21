@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<!-- Angular Material -->
+		<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
+
+		<!-- Angular Material Data Table -->
+		<link rel="stylesheet" href="//cdn.rawgit.com/daniel-nagy/md-data-table/v0.10.9/dist/md-data-table.min.css">
+
+		<!-- Angular Word Cloud -->
+		<link rel="stylesheet" href="//cdn.rawgit.com/mistic100/jQCloud/v2.0.2/dist/jqcloud.min.css">
+
+		<!-- Material Design Icons -->
+		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+		<!-- RanalyzeApp -->
+		<link rel="stylesheet" href="main.css">
+	</head>
+	<body ng-app="RanalyzeApp" ng-cloak>
+
+		<header>
+			<img class="md-padding" src="http://itvs.webfactional.com/wp-content/uploads/2013/10/itvs-logo.png">
+		</header>
+
+		<div ng-cloak layout="row" layout-align="space-around">
+			<md-content flex="95" ng-controller="mainController">
+				<md-tabs md-dynamic-height md-center-tabs md-border-bottom md-selected="selectedIndex">
+					<md-tab>
+						<md-tab-label>
+							<i class="material-icons label-icon">search</i> search
+						</md-tab-label>
+						<md-tab-body>
+							<ng-include src="'templates/search.html'"></ng-include>
+						</md-tab-body>
+					</md-tab>
+					<md-tab label="word frequency" md-on-select="firstActive=true">
+						<md-tab-label>
+							<i class="material-icons label-icon">trending_up</i> word frequency
+						</md-tab-label>
+						<md-tab-body>
+							<ng-include src="'templates/word-frequency.html'"></ng-include>
+						</md-tab-body>
+					</md-tab>
+					<md-tab>
+						<md-tab-label>
+							<i class="material-icons label-icon">file_upload</i> Import
+						</md-tab-label>
+						<md-tab-body>
+							<ng-include src="'templates/import.html'"></ng-include>
+						</md-tab-body>
+					</md-tab>
+					<md-tab label="Settings">
+						<md-tab-label>
+							<i class="material-icons label-icon">settings</i> settings
+						</md-tab-label>
+						<md-tab-body>
+							<ng-include src="'templates/settings.html'"></ng-include>
+						</md-tab-body>
+					</md-tab>
+				</md-tabs>
+			</md-content>
+		</div>
+
+		<!-- jQuery -->
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+
+		<!-- Angular -->
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular.min.js"></script>
+
+		<!-- Angular Material Dependencies -->
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-animate.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-aria.min.js"></script>
+		<script src="//ajax.googleapis.com/ajax/libs/angularjs/1.5.5/angular-messages.min.js"></script>
+
+		<!-- Angular Material Data Table -->
+		<script src="//cdn.rawgit.com/daniel-nagy/md-data-table/v0.10.9/dist/md-data-table.min.js"></script>
+
+		<!-- Angular Word Cloud -->
+		<script src="//cdn.rawgit.com/mistic100/jQCloud/v2.0.2/dist/jqcloud.min.js"></script>
+		<script src="//cdn.rawgit.com/mistic100/angular-jqcloud/1.0.3/angular-jqcloud.js"></script>
+
+		<!-- Angular Material -->
+		<script src="//ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
+
+		<!-- RanalyzeApp -->
+		<script src="app.js"></script>
+	</body>
+</html>
