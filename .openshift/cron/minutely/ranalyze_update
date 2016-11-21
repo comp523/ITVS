@@ -1,5 +1,4 @@
 #!/bin/bash
-cd ~/app-root/repo/ranalyze
-while read in; do python -m ranalyze scrape -s "$in"; done < $OPENSHIFT_DATA_DIR/config.txt
-
+cd ~
+python app-root/repo/.openshift/cron/minutely/python_script.py
 
