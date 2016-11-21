@@ -7,7 +7,7 @@
 
         self.submit = function(){
 
-            database.entry.import($scope.file.element)
+            database.entry.import($scope.file.files[0])
                 .then(function(data){
                     $scope.response = data;
                     $scope.file.value=null;

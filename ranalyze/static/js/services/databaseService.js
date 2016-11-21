@@ -7,10 +7,10 @@
 
         self.entry = new (function(){
 
-            this.import = function(fileInputElement) {
+            this.import = function(fileElement) {
 
                 var data = new FormData();
-                data.append("file", fileInputElement[0].files[0]);
+                data.append("file", fileElement);
 
                 return $http.post('/entry/import', data, {
                     headers: {'Content-Type': undefined}
