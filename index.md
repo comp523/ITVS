@@ -27,8 +27,7 @@ show_back_to_top: true
  - [User Manual/Executable Code/Instructions](/ITVS/ranalyze)
  - [Version-controlled Repository]({{ site.git.project_url }})
  
-## Sub-Components
- - **[ranalyze](/ITVS/ranalyze):** Analysis tool to traverse a set of subreddits extracting post information.
+## [Ranalyze](https://ranalyze-itvs.vipapps.unc.edu)
 
 ***
 
