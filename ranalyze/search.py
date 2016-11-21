@@ -5,8 +5,8 @@ Submodule providing database search functionality
 import abc
 import re
 
-from .constants import KEYWORD_COLUMNS
-from .database import ENTRY_TABLE, execute_query
+from .constants import ENTRY_TABLE, KEYWORD_COLUMNS
+from .database import execute_query
 from .query import Condition, SelectQuery
 from .utils import date_to_timestamp
 

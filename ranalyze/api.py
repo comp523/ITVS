@@ -9,21 +9,19 @@ to run:
 import flask
 import io
 import os
-import sys
 
 from csv import DictWriter
 from io import StringIO
+from tempfile import NamedTemporaryFile
 from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
 from .database import connect, execute_query
 from .frequency import overview
+from .imprt import imprt
 from .query import Condition, SelectQuery
 from .search import search as search_db
 from .utils import iso_to_date
 
 app = flask.Flask(__name__)
-CONFIG_FILE = None
-DATABASE = None
-
 
 @app.route('/')
 def index():
@@ -44,7 +42,7 @@ def static_files(filename):
 @app.route('/app.js')
 def compile_js():
     cur_path = os.path.dirname(os.path.realpath(__file__))
-    sub_dirs = ['controllers', 'services']
+    sub_dirs = ['controllers', 'directives', 'filters', 'services']
     js_files = ['main.js']
     for sub in sub_dirs:
         path = os.path.join(cur_path, 'static/js', sub)
@@ -58,7 +56,7 @@ def compile_js():
     return response
 
 
-@app.route('/config/subreddits/')
+@app.route('/config/subreddits')
 def config_subreddits():
     condition = Condition("name", "subreddit")
     query = SelectQuery(table=CONFIG_TABLE,
@@ -80,7 +78,19 @@ def config_subreddits():
     return flask.jsonify(results)
 
 
-@app.route('/entry/search/')
+@app.route('/entry/import', methods=['POST'])
+def entry_import():
+    """
+    on POST: imports a csv file into the database
+    """
+    f = flask.request.files['file']
+    temp = NamedTemporaryFile()
+    f.save(temp)
+    imprt(temp.name)
+    return 'File uploaded successfully'
+
+
+@app.route('/entry/search')
 def entry_search():
     """
     Search wtihout expressions
@@ -140,6 +150,7 @@ def entry_search():
 
     return flask.jsonify(response)
 
+
 @app.route('/entry/subreddits')
 def entry_subreddits():
 
@@ -148,12 +159,6 @@ def entry_subreddits():
                         distinct=True,
                         columns="subreddit")
 
-    return flask.jsonify([e['subreddit'] for e in
-                          execute_query(query, transpose=False)])
-
-
-@app.route('/frequency/overview', methods=['GET'])
-def frequency_overview():
     return flask.jsonify([e['subreddit'] for e in
                           execute_query(query, transpose=False)])
 
@@ -177,16 +182,6 @@ def frequency_overview():
     return flask.jsonify(overview(**options))
 
 
-@app.route('/subreddits/')
-def subreddits():
-
-    query = SelectQuery(table=ENTRY_TABLE,
-                        distinct=True,
-                        columns="subreddit")
-
-    return flask.jsonify([e['subreddit'] for e in
-                          execute_query(query, transpose=False)])
-
 def env_shiv():
     """
     shiv the os.environ dictionary to work on local machines
@@ -207,12 +202,8 @@ def env_shiv():
 
 if "OPENSHIFT_DATA_DIR" not in os.environ:
     env_shiv()
-connect()
-CONFIG_FILE = os.path.join(os.environ['OPENSHIFT_DATA_DIR'], 'config.txt')
 
+connect()
 
 if __name__ == '__main__':
-    connect()
-    CONFIG_FILE = sys.argv[2]
     app.run()
-

@@ -8,10 +8,10 @@ Tool to traverse a set of subreddits extracting post/comment information includi
 
 import praw
 
+from .constants import ENTRY_TABLE
 from .database import (
     add_update_object,
     connect,
-    ENTRY_TABLE,
     execute_query,
     get_latest_post
 )

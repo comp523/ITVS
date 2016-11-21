@@ -41,7 +41,7 @@ def connect(**kwargs):
                 "db": 'ranalyze'
             }
 
-        with MySQLdb.connect(charset='utf8mb4', **kwargs) as database:
+        with MySQLdb.connect(charset=CHAR_SET, **kwargs) as database:
             query = ("SET GLOBAL sql_mode="
                      "(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));")
             database.execute(query)
