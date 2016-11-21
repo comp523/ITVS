@@ -104,16 +104,18 @@ class InsertQuery(Query):
 class SelectQuery(Query):
     """"""
 
-    FORMAT = "{select} {columns} FROM {table} {where} {group} {order} {limit}"
+    FORMAT = "{select} {columns} FROM {table} {where} {group} {order} {limit} {offset}"
 
     def __init__(self, table, columns="*", where=None, distinct=False,
-                 order=None, limit=None, group=None):
+                 order=None, limit=None, group=None, offset=None):
 
         limit = "LIMIT {}".format(limit) if limit else ""
 
         order = "ORDER BY {}".format(order) if order else ""
 
         group = "GROUP BY {}".format(group) if group else ""
+
+        offset = "OFFSET {}".format(offset) if offset else ""
 
         if type(columns) is list:
             columns = ", ".join(columns)
@@ -128,7 +130,8 @@ class SelectQuery(Query):
                                               where=where,
                                               group=group,
                                               order=order,
-                                              limit=limit)
+                                              limit=limit,
+                                              offset=offset)
 
     @property
     def sql(self):

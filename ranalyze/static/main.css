@@ -1,3 +1,7 @@
+body {
+    overflow-y:scroll;
+}
+
 header {
     text-align: center;
 }
@@ -16,6 +20,8 @@ span.highlight {
     display: none;
 }
 
-md-input-container {
-    /*margin: 8px 0;*/
+i.label-icon.material-icons {
+    font-size: inherit;
+    position: relative;
+    top: 2px;
 }

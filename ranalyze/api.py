@@ -7,22 +7,22 @@ to run:
     python api.py
 """
 import flask
+import io
 import os
 import sys
 
 from csv import DictWriter
 from io import StringIO
+from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
+from .database import connect, execute_query
 from .frequency import overview
-from .search import search as search_db, SelectQuery
+from .query import Condition, SelectQuery
+from .search import search as search_db
 from .utils import iso_to_date
-from .database import connect, execute_query, ENTRY_COLUMNS, ENTRY_TABLE
 
 app = flask.Flask(__name__)
 CONFIG_FILE = None
 DATABASE = None
-
-print(app.static_folder)
-#exit()
 
 
 @app.route('/')
@@ -41,8 +41,47 @@ def static_files(filename):
     return flask.send_from_directory(app.static_folder, filename)
 
 
-@app.route('/search/')
-def search():
+@app.route('/app.js')
+def compile_js():
+    cur_path = os.path.dirname(os.path.realpath(__file__))
+    sub_dirs = ['controllers', 'services']
+    js_files = ['main.js']
+    for sub in sub_dirs:
+        path = os.path.join(cur_path, 'static/js', sub)
+        js_files.extend([os.path.join(path, file) for file in os.listdir(path)])
+    out_buffer = io.StringIO()
+    for file in js_files:
+        with open(os.path.join(cur_path, 'static/js', file)) as fp:
+            out_buffer.write(fp.read())
+        out_buffer.write("\n")
+    response = flask.Response(out_buffer.getvalue(), mimetype='text/javascript')
+    return response
+
+
+@app.route('/config/subreddits/')
+def config_subreddits():
+    condition = Condition("name", "subreddit")
+    query = SelectQuery(table=CONFIG_TABLE,
+                        where=condition)
+    results = execute_query(query, transpose=False)
+    col = "COUNT(*)"
+    for item in results:
+        condition = Condition("subreddit", item["value"])
+        post_condition = Condition("permalink", "IS NOT", None)
+        comment_condition = Condition("permalink", None)
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & post_condition,
+                            columns=col)
+        item["posts"] = execute_query(query, transpose=False)[0][col]
+        query = SelectQuery(table=ENTRY_TABLE,
+                            where=condition & comment_condition,
+                            columns=col)
+        item["comments"] = execute_query(query, transpose=False)[0][col]
+    return flask.jsonify(results)
+
+
+@app.route('/entry/search/')
+def entry_search():
     """
     Search wtihout expressions
     on GET: return csv of most recent simple search
@@ -56,24 +95,32 @@ def search():
     download = False
 
     if "download" in request:
-        download = bool(request["download"])
+        download = (request["download"].lower() == "true")
 
-    if "subreddits" in request:
-        options["subreddits"] = request["subreddits"]
+    if "subreddit" in request:
+        options["subreddit"] = request.getlist("subreddit")
 
     if "advanced" in request and request["advanced"].lower() == "true":
         options["expression"] = request["query"]
     else:
         options["keywords"] = request["query"].split()
 
-    for date_key in ("after", "before"):
+    # pass through arguments
+
+    for key in {"limit", "order", "offset"}:
+        if key in request:
+            options[key] = request[key]
+
+    for date_key in {"after", "before"}:
         if date_key in request:
             options[date_key] = iso_to_date(request[date_key])
 
-    entries = [e.dict for e in search_db(**options)]
+    results, count = search_db(include_count=True, **options)
+
+    entries = [e.dict for e in results]
 
     if download:
-        keys = ENTRY_COLUMNS.keys()
+        keys = ENTRY_FIELDS.keys()
         with StringIO() as buffer:
             writer = DictWriter(buffer, fieldnames=keys)
             writer.writeheader()
@@ -85,35 +132,28 @@ def search():
                             "attachment; filename=results.csv"}
             }
             return flask.Response(csv, **response_options)
-    
-    return flask.jsonify(entries)
+
+    response = {
+        "total": count,
+        "results": entries
+    }
+
+    return flask.jsonify(response)
 
 
-@app.route('/scrape', methods=['GET', 'POST'])
-def scrape():
-    """
-    on GET: returns JSON of the current subs being scraped
-    on POST: updates scrape config file
-    """
-    if flask.request.method == 'POST':
-        rv = []
-        with open(CONFIG_FILE, 'w') as config_file:
-            to_scrape = flask.request.get_json(force=True, silent=True)
-            for i in to_scrape:
-                config_file.write(i+'\n')
-                rv.append(i)
-        return flask.jsonify(rv)
-    else:
-        if not os.path.isfile(CONFIG_FILE):
-            with open(CONFIG_FILE, 'w'):
-                pass
-        with open(CONFIG_FILE, 'r') as config_file:
-            rv = [i.replace('\n', '') for i in config_file]
-            return flask.jsonify(rv)
+@app.route('/entry/subreddits')
+def entry_subreddits():
+
+    query = SelectQuery(table=ENTRY_TABLE,
+                        distinct=True,
+                        columns="subreddit")
+
+    return flask.jsonify([e['subreddit'] for e in
+                          execute_query(query, transpose=False)])
 
 
-@app.route('/frequency/', methods=['GET'])
-def frequency():
+@app.route('/frequency/overview', methods=['GET'])
+def frequency_overview():
     """
     """
 
@@ -126,20 +166,9 @@ def frequency():
 
     for key in ("year", "month", "day"):
         if key in request:
-            options[key] = int(request[key])
+            options[key] = [int(v) for v in request.getlist(key)]
 
     return flask.jsonify(overview(**options))
-
-
-@app.route('/subreddits/')
-def subreddits():
-
-    query = SelectQuery(table=ENTRY_TABLE,
-                        distinct=True,
-                        columns="subreddit")
-
-    return flask.jsonify([e['subreddit'] for e in
-                          execute_query(query, transpose=False)])
 
 def env_shiv():
     """

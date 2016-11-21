@@ -5,7 +5,8 @@ import re
 
 from datetime import datetime
 from types import SimpleNamespace
-from .database import *
+from .constants import ENTRY_TABLE, FREQUENCY_TABLE
+from .database import add_update_object, connect, execute_query, object_exists
 from .models import WordDay
 from .query import Condition, SelectQuery
 

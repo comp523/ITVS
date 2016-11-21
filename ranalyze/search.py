@@ -4,15 +4,11 @@ Submodule providing database search functionality
 
 import abc
 import re
-from csv import DictWriter
-from json import dumps
-from sys import stdout
 
+from .constants import KEYWORD_COLUMNS
+from .database import ENTRY_TABLE, execute_query
 from .query import Condition, SelectQuery
-from .database import *
-from .utils import iso_to_date
-
-KEYWORD_COLUMNS = {"text_content", "title"}
+from .utils import date_to_timestamp
 
 QUOTE_PATTERN = re.compile(r"^([\"'])(?P<text>.*)\1$")
 
@@ -253,7 +249,9 @@ def tree_to_condition(node):
 
 
 def search(keywords=None, expression=None,
-           subreddit=None, after=None, before=None):
+           subreddit=None, after=None, before=None,
+           limit=None, offset=None, order=None,
+           include_count=False):
     """
 
     :param keyword: str|list[str]
@@ -284,13 +282,33 @@ def search(keywords=None, expression=None,
         condition &= subreddit_condition
 
     if after:
+        after = date_to_timestamp(after)
         condition &= Condition("time_submitted", ">=", after)
 
     if before:
+        before = date_to_timestamp(before)
         condition &= Condition("time_submitted", "<=", before)
 
-    query = SelectQuery(table=ENTRY_TABLE,
-                        distinct=True,
-                        where=condition)
+    options = {
+        "table": ENTRY_TABLE,
+        "distinct": True,
+        "where": condition
+    }
+
+    if include_count:
+        query = SelectQuery(columns="COUNT(*)", **options)
+        total_results = execute_query(query, transpose=False)[0]["COUNT(*)"]
+
+    if limit:
+        options["limit"] = limit
+    if offset:
+        options["offset"] = offset
+    if order:
+        options["order"] = order
+
+    query = SelectQuery(**options)
+
+    if include_count:
+        return execute_query(query), total_results
 
     return execute_query(query)
