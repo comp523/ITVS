@@ -1,0 +1,1 @@
+var app = angular.module("RanalyzeApp", ['ngMaterial', 'md.data.table', 'angular-jqcloud']);

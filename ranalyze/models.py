@@ -20,6 +20,11 @@ class ModelObject(object, metaclass=abc.ABCMeta):
         object.__setattr__(self, "_attrs",
                            {key: (kwargs[key] if key in kwargs else None)
                             for key in self.get_fields()})
+        for key, value in self._attrs.items():
+            if key == "text_content":
+                print(type(value))
+            if isinstance(value, bytes):
+                self._attrs[key] = str(value)
 
     @staticmethod
     @abc.abstractmethod

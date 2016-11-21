@@ -253,13 +253,6 @@ def search(keywords=None, expression=None,
            limit=None, offset=None, order=None,
            include_count=False):
     """
-
-    :param keyword: str|list[str]
-    :param expression: str
-    :param subreddit: str|list[str]
-    :param after: datetime.datetime|datetime.date
-    :param before: datetime.datetime|datetime.date
-    :return: list[.models.entry]
     """
 
     condition = Condition()  # Empty initial condition

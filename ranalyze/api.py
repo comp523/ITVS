@@ -140,14 +140,20 @@ def entry_search():
 
     return flask.jsonify(response)
 
-
 @app.route('/entry/subreddits')
 def entry_subreddits():
+
 
     query = SelectQuery(table=ENTRY_TABLE,
                         distinct=True,
                         columns="subreddit")
 
+    return flask.jsonify([e['subreddit'] for e in
+                          execute_query(query, transpose=False)])
+
+
+@app.route('/frequency/overview', methods=['GET'])
+def frequency_overview():
     return flask.jsonify([e['subreddit'] for e in
                           execute_query(query, transpose=False)])
 
@@ -169,6 +175,17 @@ def frequency_overview():
             options[key] = [int(v) for v in request.getlist(key)]
 
     return flask.jsonify(overview(**options))
+
+
+@app.route('/subreddits/')
+def subreddits():
+
+    query = SelectQuery(table=ENTRY_TABLE,
+                        distinct=True,
+                        columns="subreddit")
+
+    return flask.jsonify([e['subreddit'] for e in
+                          execute_query(query, transpose=False)])
 
 def env_shiv():
     """
