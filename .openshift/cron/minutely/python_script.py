@@ -1,11 +1,10 @@
 
 
 import os
-from ranalyze import scrape
+from ranalyze import database, scrape
 
 subs = []
-with open(os.environ["OPENSHIFT_DATA_DIR"]+"/config.txt", "r") as config_file:
-  for line in config_file:
-    subs.append(line.strip())
+for sub in database.get_subreddits():
+  subs.append(sub["value"])
 print(subs)
 scrape(subs)

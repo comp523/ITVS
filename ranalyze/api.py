@@ -13,8 +13,8 @@ import os
 from csv import DictWriter
 from io import StringIO
 from tempfile import NamedTemporaryFile
-from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
-from .database import connect, execute_query
+from .constants import ENTRY_FIELDS, ENTRY_TABLE
+from .database import connect, execute_query, get_subreddits
 from .frequency import overview
 from .imprt import import_file
 from .query import Condition, SelectQuery
@@ -58,24 +58,7 @@ def compile_js():
 
 @app.route('/config/subreddits')
 def config_subreddits():
-    condition = Condition("name", "subreddit")
-    query = SelectQuery(table=CONFIG_TABLE,
-                        where=condition)
-    results = execute_query(query, transpose=False)
-    col = "COUNT(*)"
-    for item in results:
-        condition = Condition("subreddit", item["value"])
-        post_condition = Condition("permalink", "IS NOT", None)
-        comment_condition = Condition("permalink", None)
-        query = SelectQuery(table=ENTRY_TABLE,
-                            where=condition & post_condition,
-                            columns=col)
-        item["posts"] = execute_query(query, transpose=False)[0][col]
-        query = SelectQuery(table=ENTRY_TABLE,
-                            where=condition & comment_condition,
-                            columns=col)
-        item["comments"] = execute_query(query, transpose=False)[0][col]
-    return flask.jsonify(results)
+    return flask.jsonify(get_subreddits())
 
 
 @app.route('/entry/import', methods=['POST'])
