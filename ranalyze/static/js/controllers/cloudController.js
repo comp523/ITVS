@@ -7,6 +7,10 @@
 
         $scope.cloudParams = {};
 
+        self.cloudMode = true;
+
+        $scope.tableOrder = "-weight";
+
         var defaultsPromise = database.config.getCloudParams()
             .then(function(defaults){
                 angular.extend($scope.cloudParams, defaults)

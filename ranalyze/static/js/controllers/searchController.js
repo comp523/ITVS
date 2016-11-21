@@ -15,6 +15,12 @@
             order: 'time_submitted'
         };
 
+        $scope.$watchCollection('table', function(newValue, oldValue){
+            if (!angular.equals(newValue, oldValue)) {
+                self.search();
+            }
+        });
+
         self.highlight = [];
 
         self.entries = [];
@@ -34,29 +40,54 @@
 
         };
 
+        self.getLink = function(entry){
+
+
+            if (entry.permalink) {
+                return entry.permalink;
+            }
+
+            return "https://www.reddit.com/r/" + entry.subreddit +
+                "/comments/" + entry.root_id.substring(3);
+
+        };
+
         self.search = function(download){
-            var localParams = {download: !!download};
+            download = !!download;
+            var localParams = {
+                download: !!download
+            };
+            if (!download) {
+                angular.extend(localParams, {
+                    limit: $scope.table.limit,
+                    order: $scope.table.order,
+                    offset: ($scope.table.page - 1) * $scope.table.limit
+                });
+            }
             angular.extend(localParams, $scope.form);
             database.entry.search(localParams)
                 .then(function(data){
-                    if (!!download) {
+                    var results = data["results"],
+                        count = data["total"];
+                    if (download) {
                         angular.element('<a/>')
                             .attr({
-                                href: 'data:attachment/csv;charset=utf-8,' + encodeURI(data),
+                                href: 'data:attachment/csv;charset=utf-8,' + encodeURI(results),
                                 target: '_blank',
                                 download: 'results.csv'
                             })[0].click();
                     }
                     else {
-                        self.entries = data.map(function (item) {
+                        self.entries = results.map(function (item) {
                             item.type = item.permalink ? "Post" : "Comment";
                             return item;
                         });
+                        self.entryCount = count;
                     }
                 });
             if ($scope.form.advanced) {
                 var regex = /(["'])(.*?)\1/g;
-                $scope.highlight = [];
+                self.highlight = [];
                 var match;
                 while ( (match = regex.exec($scope.form.query) ) !== null ) {
                     self.highlight.push(match[2]);

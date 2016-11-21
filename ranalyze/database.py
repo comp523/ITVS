@@ -3,15 +3,13 @@ Database abstraction class for handling storage of Posts and Comments
 """
 
 import atexit
+import MySQLdb
 import os
-import MySQLdb as dblib
 
-
+from .constants import CHAR_SET, CONFIG_TABLE, ENTRY_TABLE, FREQUENCY_TABLE
 from .models import (
-    Comment,
     CommentFactory,
     ConfigEntryFactory,
-    Post,
     PostFactory,
     WordDayFactory
 )
@@ -22,18 +20,6 @@ from .query import (
     UpdateQuery
 )
 
-
-COMMENT_FIELDS = Comment.get_fields()
-
-POST_FIELDS = Post.get_fields()
-
-ENTRY_TABLE = "entries"
-
-ENTRY_COLUMNS = dict(COMMENT_FIELDS, **POST_FIELDS)
-
-FREQUENCY_TABLE = "frequency"
-
-CONFIG_TABLE = "config"
 
 _database = None
 
@@ -55,13 +41,12 @@ def connect(**kwargs):
                 "db": 'ranalyze'
             }
 
-        with dblib.connect(charset='utf8mb4', **kwargs) as database:
+        with MySQLdb.connect(charset='utf8mb4', **kwargs) as database:
             query = ("SET GLOBAL sql_mode="
                      "(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));")
             database.execute(query)
 
-        _database = dblib.connect(charset='utf8', **kwargs)
-
+        _database = MySQLdb.connect(charset=CHAR_SET, **kwargs)
 
 
 def add_update_object(obj, table):
@@ -81,11 +66,11 @@ def create_db():
     Create a new, pre-formatted database
     """
 
-    connection = dblib.connect(host=os.environ['OPENSHIFT_MYSQL_DB_HOST'],
-        port=int(os.environ['OPENSHIFT_MYSQL_DB_PORT']),
-        user=os.environ['OPENSHIFT_MYSQL_DB_USERNAME'],
-        passwd=os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'],
-        db='ranalyze')
+    connection = MySQLdb.connect(host=os.environ['OPENSHIFT_MYSQL_DB_HOST'],
+                                 port=int(os.environ['OPENSHIFT_MYSQL_DB_PORT']),
+                                 user=os.environ['OPENSHIFT_MYSQL_DB_USERNAME'],
+                                 passwd=os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'],
+                                 db='ranalyze')
 
     cursor = connection.cursor()
 
@@ -101,22 +86,22 @@ def create_db():
                parent_id varchar(255), gilded integer, deleted integer,
                FOREIGN KEY(parent_id) REFERENCES entries(id)
                )
-               DEFAULT CHARACTER SET utf8
-               """.format(ENTRY_TABLE),
+               DEFAULT CHARACTER SET {}
+               """.format(ENTRY_TABLE, CHAR_SET),
                """
                CREATE TABLE {} (
                id integer PRIMARY KEY AUTO_INCREMENT, word varchar(255), month integer,
                day integer, year integer, entries integer, total integer
                )
-               DEFAULT CHARACTER SET utf8
-               """.format(FREQUENCY_TABLE),
+               DEFAULT CHARACTER SET {}
+               """.format(FREQUENCY_TABLE, CHAR_SET),
                """
                CREATE TABLE {} (
                id integer PRIMARY KEY AUTO_INCREMENT, name varchar(255),
                value varchar(255)
                )
-               DEFAULT CHARACTER SET utf8
-               """.format(CONFIG_TABLE)
+               DEFAULT CHARACTER SET {}
+               """.format(CONFIG_TABLE, CHAR_SET)
                )
 
     for query in queries:
@@ -133,7 +118,7 @@ def execute_query(query, commit=False, transpose=True):
     """
 
     connect()
-    cursor = _database.cursor(dblib.cursors.DictCursor)
+    cursor = _database.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute(query.sql, query.params)
     results = cursor.fetchall()
     if commit:

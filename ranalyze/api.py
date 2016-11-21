@@ -7,24 +7,22 @@ to run:
     python api.py
 """
 import flask
+import io
 import os
 import sys
-import io
 
 from csv import DictWriter
 from io import StringIO
+from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
+from .database import connect, execute_query
 from .frequency import overview
+from .query import Condition, SelectQuery
 from .search import search as search_db
 from .utils import iso_to_date
-from .query import Condition, SelectQuery
-from .database import connect, execute_query, ENTRY_COLUMNS, ENTRY_TABLE, CONFIG_TABLE
 
 app = flask.Flask(__name__)
 CONFIG_FILE = None
 DATABASE = None
-
-print(app.static_folder)
-#exit()
 
 
 @app.route('/')
@@ -99,22 +97,30 @@ def entry_search():
     if "download" in request:
         download = (request["download"].lower() == "true")
 
-    if "subreddits" in request:
-        options["subreddits"] = request.getlist("subreddits")
+    if "subreddit" in request:
+        options["subreddit"] = request.getlist("subreddit")
 
     if "advanced" in request and request["advanced"].lower() == "true":
         options["expression"] = request["query"]
     else:
         options["keywords"] = request["query"].split()
 
-    for date_key in ("after", "before"):
+    # pass through arguments
+
+    for key in {"limit", "order", "offset"}:
+        if key in request:
+            options[key] = request[key]
+
+    for date_key in {"after", "before"}:
         if date_key in request:
             options[date_key] = iso_to_date(request[date_key])
 
-    entries = [e.dict for e in search_db(**options)]
+    results, count = search_db(include_count=True, **options)
+
+    entries = [e.dict for e in results]
 
     if download:
-        keys = ENTRY_COLUMNS.keys()
+        keys = ENTRY_FIELDS.keys()
         with StringIO() as buffer:
             writer = DictWriter(buffer, fieldnames=keys)
             writer.writeheader()
@@ -126,8 +132,13 @@ def entry_search():
                             "attachment; filename=results.csv"}
             }
             return flask.Response(csv, **response_options)
+
+    response = {
+        "total": count,
+        "results": entries
+    }
     
-    return flask.jsonify(entries)
+    return flask.jsonify(response)
 
 
 @app.route('/entry/subreddits')

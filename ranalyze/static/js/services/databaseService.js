@@ -71,8 +71,18 @@
 
         self.config = new (function(){
 
+            var SUBREDDIT_URL = '/config/subreddits';
+
             var Subreddit = function(parameters) {
                 angular.extend(this, parameters);
+            };
+
+            Subreddit.prototype.delete = function(){
+
+                var query = "?id=" + this.id;
+
+                return $http.delete(SUBREDDIT_URL + query)
+
             };
 
             this.getCloudParams = function(){
@@ -90,7 +100,7 @@
 
             this.getSubreddits = function() {
 
-                return $http.get('/config/subreddits')
+                return $http.get(SUBREDDIT_URL)
                     .then(function(response){
                         return response.data.map(function(item){
                             return new Subreddit(item);

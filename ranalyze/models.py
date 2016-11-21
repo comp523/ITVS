@@ -5,7 +5,13 @@ Provides Entry base class, as well as Comment and Post subclasses.
 import abc
 
 from datetime import datetime
-from .utils import date_to_timestamp
+from .constants import (
+    COMMENT_FIELDS,
+    CONFIG_ENTRY_FIELDS,
+    POST_FIELDS,
+    WORD_DAY_FIELDS
+)
+from .utils import date_to_timestamp, sanitize
 
 
 class ModelObject(object, metaclass=abc.ABCMeta):
@@ -14,6 +20,11 @@ class ModelObject(object, metaclass=abc.ABCMeta):
         object.__setattr__(self, "_attrs",
                            {key: (kwargs[key] if key in kwargs else None)
                             for key in self.get_fields()})
+        for key, value in self._attrs.items():
+            if key == "text_content":
+                print(type(value))
+            if isinstance(value, bytes):
+                self._attrs[key] = str(value)
 
     @staticmethod
     @abc.abstractmethod
@@ -68,19 +79,9 @@ class ModelFactory(object, metaclass=abc.ABCMeta):
 
 class WordDay(ModelObject):
 
-    _FIELDS = {
-        "id": int,
-        "word": str,
-        "day": int,
-        "month": int,
-        "year": int,
-        "total": int,
-        "entries": int
-    }
-
     @staticmethod
     def get_fields():
-        return WordDay._FIELDS
+        return WORD_DAY_FIELDS
 
 
 class WordDayFactory(ModelFactory):
@@ -94,18 +95,7 @@ class Entry(ModelObject, metaclass=abc.ABCMeta):
     """
     Base class for all database entries
     """
-
-    _BASE_FIELDS = {
-        "id": str,
-        "up_votes": int,
-        "time_submitted": datetime,
-        "time_updated": datetime,
-        "posted_by": str,
-        "subreddit": str,
-        "text_content": str,
-        "gilded": bool,
-        "deleted": bool
-    }
+    pass
 
 
 class EntryFactory(ModelFactory, metaclass=abc.ABCMeta):
@@ -139,7 +129,6 @@ class EntryFactory(ModelFactory, metaclass=abc.ABCMeta):
                 attrs[key] = getattr(praw_obj, key)
         return target(**attrs)
 
-
     @staticmethod
     @abc.abstractmethod
     def _get_praw_map():
@@ -156,15 +145,9 @@ class Comment(Entry):
     Class for comment entries into the database
     """
 
-    _FIELDS = dict(
-        Entry._BASE_FIELDS,
-        root_id=str,
-        parent_id=str
-    )
-
     @staticmethod
     def get_fields():
-        return Comment._FIELDS
+        return COMMENT_FIELDS
 
 
 class CommentFactory(EntryFactory):
@@ -175,8 +158,9 @@ class CommentFactory(EntryFactory):
     # Converts praw.objects.Comment attributes to Comment attributes
     _PRAW_MAP = dict(
         EntryFactory._BASE_PRAW_MAP,
-        root_id=lambda c: c.submission.fullname,
-        text_content=lambda c: c.body
+        #  text_content is encoded to utf8 to sanitize bad characters
+        text_content=lambda c: sanitize(c.body),
+        root_id=lambda c: c.submission.fullname
     )
 
     @staticmethod
@@ -193,17 +177,9 @@ class Post(Entry):
     Class for post entries into the database
     """
 
-    _FIELDS = dict(
-        Entry._BASE_FIELDS,
-        permalink=str,
-        up_ratio=float,
-        title=str,
-        external_url=str,
-    )
-
     @staticmethod
     def get_fields():
-        return Post._FIELDS
+        return POST_FIELDS
 
 
 class PostFactory(EntryFactory):
@@ -215,8 +191,9 @@ class PostFactory(EntryFactory):
     _PRAW_MAP = dict(
         EntryFactory._BASE_PRAW_MAP,
         external_url=lambda s: s.url,
-        text_content=lambda s: s.selftext,
-        up_ratio=lambda s: 0  # TODO: Implement up_ratio?
+        text_content=lambda s: sanitize(s.selftext),
+        title=lambda s: sanitize(s.title),
+        up_ratio=lambda s: 0  # TODO: Implement up_ratio?,
     )
 
     @staticmethod
@@ -230,15 +207,9 @@ class PostFactory(EntryFactory):
 
 class ConfigEntry(ModelObject):
 
-    _FIELDS = {
-        "id": int,
-        "name": str,
-        "value": str
-    }
-
     @staticmethod
     def get_fields():
-        return ConfigEntry._FIELDS
+        return CONFIG_ENTRY_FIELDS
 
 
 class ConfigEntryFactory(ModelFactory):

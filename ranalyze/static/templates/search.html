@@ -33,7 +33,6 @@
                     <md-datepicker ng-model="form.before"></md-datepicker>
                 </md-input-container>
             </div>
-
         <md-switch ng-model="form.advanced">
             Advanced Search
         </md-switch>
@@ -51,20 +50,18 @@
                 <thead md-head md-order="table.order">
                     <tr md-row>
                         <th md-column md-order-by="time_submitted"><span>Posted</span></th>
-                        <th md-column md-order-by="type"><span>Type</span></th>
-                        <th md-column>Link</th>
+                        <th md-column md-order-by="(permalink IS NULL)"><span>Type</span></th>
                         <th md-column md-order-by="subreddit"><span>Subreddit</span></th>
                         <th md-column>Title</th>
                         <th md-column>Text</th>
                     </tr>
                 </thead>
+                <!-- | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit -->
                 <tbody md-body>
-                    <tr md-row ng-repeat="entry in ctrl.entries | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
+                    <tr md-row ng-repeat="entry in ctrl.entries">
                         <td md-cell>{{1000*entry.time_submitted | date:'M/d/yy H:mm':'GMT'}} GMT</td>
-                        <td md-cell>{{entry.type}}</td>
                         <td md-cell>
-                            <a ng-href="{{entry.permalink}}" ng-if="entry.permalink">External Link</a>
-                            <span ng-if="!entry.permalink">N/A</span>
+                            <a ng-href="{{ctrl.getLink(entry)}}" target="_blank">{{entry.type}}</a>
                         </td>
                         <td md-cell>{{entry.subreddit}}</td>
                         <td md-cell>{{entry.title}}</td>
@@ -75,7 +72,7 @@
                 </tbody>
             </table>
         </md-table-container>
-        <md-table-pagination md-page="table.page" md-total="{{ctrl.entries.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+        <md-table-pagination md-page="table.page" md-total="{{ctrl.entryCount}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
     </div>
 
 </md-content>

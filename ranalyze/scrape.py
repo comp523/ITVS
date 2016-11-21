@@ -8,7 +8,13 @@ Tool to traverse a set of subreddits extracting post/comment information includi
 
 import praw
 
-from .database import *
+from .database import (
+    add_update_object,
+    connect,
+    ENTRY_TABLE,
+    execute_query,
+    get_latest_post
+)
 from .frequency import digest_entry
 from .models import (
     CommentFactory,
