@@ -85,9 +85,9 @@
                         <td md-cell>{{entry.subreddit}}</td>
                         <td md-cell>{{entry.title}}</td>
                         <td md-cell
-                            highlight="entry.text_content"
-                            keywords="highlight"
-                            highlight-class="highlight"></td>
+                            ng-highlight="highlight">
+                            {{ entry.text_content }}
+                        </td>
                     </tr>
                 </tbody>
             </table>

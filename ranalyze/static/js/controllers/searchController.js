@@ -71,7 +71,6 @@
                 else {
                     $scope.highlight = $scope.form.query.split(" ");
                 }
-                $scope.highlight = "(" + $scope.highlight.join("|") + ")";
                 self.entries = results.results;
                 self.entryCount = results.total;
             });
