@@ -1,29 +1,44 @@
 <md-content class="md-padding" ng-controller="cloudController as ctrl" layout="column">
-    <md-switch ng-model="ctrl.cloudMode">
-        Word Cloud
-    </md-switch>
-    <jqcloud ng-show="ctrl.cloudMode" ng-if="firstActive && (words.length > 0)" words="words" height="500" auto-resize="true"></jqcloud>
-    <md-table-container ng-hide="ctrl.cloudMode">
-        <table md-table>
-            <thead md-head md-order="tableOrder">
-                <tr md-row>
-                    <th md-column><span>Word</span></th>
-                    <th md-column md-order-by="entries"><span>Entries</span></th>
-                    <th md-column md-order-by="total"><span>Occurrences</span></th>
-                    <th md-column md-order-by="weight"><span>Weight</span></th>
-                </tr>
-            </thead>
-            <tbody md-body>
-                <tr md-row
-                    ng-repeat="word in words | orderBy: tableOrder">
-                    <td md-cell>{{word.text}}</td>
-                    <td md-cell>{{word.entries}}</td>
-                    <td md-cell>{{word.total}}</td>
-                    <td md-cell>{{word.weight}}</td>
-                </tr>
-            </tbody>
-        </table>
-    </md-table-container>
+    <md-tabs md-dynamic-height md-center-tabs md-border-bottom>
+        <md-tab>
+            <md-tab-label>
+                <i class="material-icons label-icon">cloud</i>
+                cloud
+            </md-tab-label>
+            <md-tab-body>
+                <jqcloud ng-if="firstActive && (words.length > 0)" words="words" height="500" auto-resize="true"></jqcloud>
+            </md-tab-body>
+        </md-tab>
+        <md-tab>
+            <md-tab-label>
+                <i class="material-icons label-icon">list</i>
+                table
+            </md-tab-label>
+            <md-tab-body>
+                <md-table-container>
+                    <table md-table>
+                        <thead md-head md-order="tableOrder">
+                            <tr md-row>
+                                <th md-column><span>Word</span></th>
+                                <th md-column md-order-by="entries"><span>Entries</span></th>
+                                <th md-column md-order-by="total"><span>Occurrences</span></th>
+                                <th md-column md-order-by="weight"><span>Weight</span></th>
+                            </tr>
+                        </thead>
+                        <tbody md-body>
+                            <tr md-row
+                                ng-repeat="word in words | orderBy: tableOrder">
+                                <td md-cell>{{word.text}}</td>
+                                <td md-cell>{{word.entries}}</td>
+                                <td md-cell>{{word.total}}</td>
+                                <td md-cell>{{word.weight}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </md-table-container>
+            </md-tab-body>
+        </md-tab>
+    </md-tabs>
     <div layout="row" layout-align="center">
         <div layout="column" layout-align="start center">
             <span>Entry Weight</span>
