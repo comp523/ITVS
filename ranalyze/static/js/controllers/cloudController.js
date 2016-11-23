@@ -11,10 +11,9 @@
 
         $scope.tableOrder = "-weight";
 
-        var defaultsPromise = database.config.getCloudParams()
-            .then(function(defaults){
+        var defaultsPromise = database.config.getCloudParams(function(defaults){
                 angular.extend($scope.cloudParams, defaults)
-            });
+        }).$promise;
 
         self.updateWeights = function(){
             defaultsPromise.then(function(){
@@ -36,30 +35,29 @@
             year: 2016, //d.getFullYear()
             month: 11, //d.getMonth() + 1
             day: 14 //d.getDate()
-        })
-            .then(function(data){
-                $scope.words = data.map(function(item){
-                    return {
-                        text: item.word,
-                        entries: item.entries,
-                        total: item.total,
-                        html: {
-                            class: 'clickable'
-                        },
-                        handlers: {
-                            "click": function() {
-                                tabs.setTab(0);
-                                $rootScope.$broadcast('search', {
-                                    query: item.word,
-                                    advanced: false,
-                                    subreddit: []
-                                });
-                            }
+        }, function(data){
+            $scope.words = data.map(function(item){
+                return {
+                    text: item.word,
+                    entries: item.entries,
+                    total: item.total,
+                    html: {
+                        class: 'clickable'
+                    },
+                    handlers: {
+                        "click": function() {
+                            tabs.setTab(0);
+                            $rootScope.$broadcast('search', {
+                                query: item.word,
+                                advanced: false,
+                                subreddit: []
+                            });
                         }
-                    };
-                });
-                self.updateWeights();
+                    }
+                };
             });
+            self.updateWeights();
+        });
 
     };
 

@@ -1,130 +1,85 @@
 (function(app){
 "use strict";
 
-    var databaseService = function($http, $httpParamSerializer, $q) {
+    var databaseService = function($resource, $q, $http, $httpParamSerializer) {
 
         var self = this;
 
-        self.entry = new (function(){
-
-            this.import = function(fileElement) {
-
-                var data = new FormData();
-                data.append("file", fileElement);
-
-                return $http.post('/entry/import', data, {
-                    headers: {'Content-Type': undefined}
-                })
-                    .then(function(response) {
-                        return response.data;
-                    });
-
-            };
-
-            /**
-             *
-             * @param parameters {object}
-             * @returns {promise}
-             */
-            this.search = function(parameters) {
-
-                var localParameters = {};
-                angular.extend(localParameters, parameters);
-
-                angular.forEach(["before", "after"], function(dateKey) {
-                    if (localParameters[dateKey]) {
-                        localParameters[dateKey] = (new Date(localParameters[dateKey]))
-                            .toISOString().slice(0, 10);
+        self.entry = $resource('/entry/:action', {}, {
+            getSubreddits: {
+                method: 'GET',
+                params: {action: 'subreddits'},
+                isArray: true
+            },
+            import: {
+                method: 'POST',
+                params: {action: 'import'},
+                isArray: false,
+                transformRequest: function(data){
+                    var formdata = new FormData();
+                    formdata.append('file', data.file);
+                    return formdata;
+                },
+                headers: {
+                    'content-type': undefined
+                }
+            },
+            /** @override */
+            query: {
+                method: 'GET',
+                isArray: false,
+                transformResponse: function(json) {
+                    var data = angular.fromJson(json);
+                    for (var i=0, j=data.results.length;i<j;i++) {
+                        data.results[i] = new self.entry(data.results[i]);
                     }
-                });
-
-                var query = $httpParamSerializer(localParameters);
-                return $http.get('/entry/search?' + query)
-                    .then(function(response) {
-                        return response.data;
-                    });
-
-            };
-
-            this.getSubreddits = function(){
-
-                return $http.get('/entry/subreddits')
-                    .then(function(response) {
-                        return response.data;
-                    });
-
-            };
-
+                    return data;
+                }
+            }
         });
 
-        self.frequency = new (function(){
-
-            /** @enum {String} */
-            this.granularity = {
-                YEAR: "year",
-                MONTH: "month",
-                DAY: "day"
-            };
-
-            /**
-             *
-             * @param parameters {object}
-             * @returns {promise}
-             */
-            this.overview = function(parameters) {
-
-                var query = $httpParamSerializer(parameters);
-                return $http.get('/frequency/overview?' + query)
-                    .then(function(response) {
-                        return response.data;
-                    });
-
-            };
-
+        Object.defineProperty(self.entry.prototype, "type", {
+            get: function(){
+                return this.permalink ? "Post" : "Comment";
+            }
         });
 
-        self.config = new (function(){
-
-            var SUBREDDIT_URL = '/config/subreddits';
-
-            var Subreddit = function(parameters) {
-                angular.extend(this, parameters);
-            };
-
-            Subreddit.prototype.delete = function(){
-
-                var query = "?id=" + this.id;
-
-                return $http.delete(SUBREDDIT_URL + query)
-
-            };
-
-            this.getCloudParams = function(){
-
-                // Temporary data
-                // TODO: implement fetch from database
-                return $q(function(resolve){
-                    resolve({
-                        "entryWeight": 4,
-                        "totalWeight": 1
-                    });
-                });
-
-            };
-
-            this.getSubreddits = function() {
-
-                return $http.get(SUBREDDIT_URL)
-                    .then(function(response){
-                        return response.data.map(function(item){
-                            return new Subreddit(item);
-                        });
-                    })
-
-            };
-
+        self.frequency = $resource('/frequency/:action', {}, {
+            overview: {
+                method: 'GET',
+                isArray: true,
+                params: {action: "overview"}
+            }
         });
 
+        self.frequency.granularity = {
+            YEAR: "year",
+            MONTH: "month",
+            DAY: "day"
+        };
+
+        self.config = $resource('/config/:field/:id', {},{
+            getCloudParams: {
+                method: 'GET',
+                params: {
+                    field: 'cloud'
+                },
+                transformResponse: function(json) {
+                    var data = angular.fromJson(json);
+                    angular.forEach(['entryWeight', 'totalWeight'], function(key) {
+                        data[key] = parseFloat(data[key]);
+                    });
+                    return data;
+                }
+            },
+            getSubreddits: {
+                method: 'GET',
+                isArray: true,
+                params: {
+                    field: 'subreddits'
+                }
+            }
+        });
     };
 
     app.service('database', databaseService);

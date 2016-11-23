@@ -1,8 +1,17 @@
 <md-content class="md-padding" ng-controller="settingsController as ctrl">
     <md-tabs md-dynamic-height md-border-bottom>
         <md-tab label="subreddits">
+            <div layout="row">
+                <md-button class="md-raised md-primary" ng-click="ctrl.subreddits.add()">
+                    Add
+                </md-button>
+                <md-button class="md-raised md-warn" ng-click="ctrl.subreddits.deleteSelected()"
+                           ng-disabled="ctrl.subreddits.selected.length == 0">
+                    Delete Selected
+                </md-button>
+            </div>
             <md-table-container>
-                <table md-table md-row-select multiple ng-model="selectedSubreddits">
+                <table md-table md-row-select multiple ng-model="ctrl.subreddits.selected">
                     <thead md-head md-order="table.order">
                         <tr md-row>
                             <th md-column md-order-by="value"><span>Subreddit</span></th>
@@ -12,7 +21,7 @@
                     </thead>
                     <tbody md-body>
                         <tr md-row md-select="sub" md-select-id="value" md-auto-select
-                            ng-repeat="sub in ctrl.subreddits | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
+                            ng-repeat="sub in ctrl.subreddits.all | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
                             <td md-cell>{{sub.value}}</td>
                             <td md-cell>{{sub.posts}}</td>
                             <td md-cell>{{sub.comments}}</td>

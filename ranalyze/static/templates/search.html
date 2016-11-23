@@ -9,7 +9,7 @@
                 </md-select>
             </md-input-container>
             <md-input-container>
-                <input type="text" required ng-model="form.query" name="query">
+                <input type="text" aria-label="query" required ng-model="form.query" name="query">
                 <div ng-messages="searchForm.query.$error">
                     <div ng-message="required">This field is required.</div>
                 </div>
@@ -85,8 +85,9 @@
                         <td md-cell>{{entry.subreddit}}</td>
                         <td md-cell>{{entry.title}}</td>
                         <td md-cell
-                            md-highlight-text="ctrl.highlight"
-                            md-highlight-flags="gi">{{entry.text_content}}</td>
+                            highlight="entry.text_content"
+                            keywords="highlight"
+                            highlight-class="highlight"></td>
                     </tr>
                 </tbody>
             </table>

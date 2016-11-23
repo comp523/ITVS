@@ -13,7 +13,7 @@ import os
 from csv import DictWriter
 from io import StringIO
 from tempfile import NamedTemporaryFile
-from .constants import ENTRY_FIELDS, ENTRY_TABLE
+from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
 from .database import connect, execute_query
 from .frequency import overview
 from .imprt import import_file
@@ -57,6 +57,17 @@ def compile_js():
     return response
 
 
+@app.route('/config/cloud')
+def config_cloud():
+    condition = Condition()
+    cloud_keys = {'entryWeight', 'totalWeight'}
+    for key in cloud_keys:
+        condition |= Condition('name', key)
+    query = SelectQuery(table=CONFIG_TABLE,
+                        where=condition)
+    results = {e.name: e.value for e in execute_query(query)}
+    return flask.jsonify(results)
+
 @app.route('/config/subreddits')
 def config_subreddits():
     results = get_subreddits()
@@ -85,11 +96,14 @@ def entry_import():
     temp = NamedTemporaryFile()
     f.save(temp)
     import_file(temp.name)
-    return 'File uploaded successfully'
+    return flask.jsonify({
+        'success': True,
+        'status': 'File uploaded successfully'
+    })
 
 
-@app.route('/entry/search')
-def entry_search():
+@app.route('/entry/')
+def entry_query():
     """
     Search wtihout expressions
     on GET: return csv of most recent simple search

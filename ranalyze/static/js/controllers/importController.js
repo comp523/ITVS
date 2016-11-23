@@ -7,11 +7,13 @@
 
         self.submit = function(){
 
-            database.entry.import($scope.file.files[0])
-                .then(function(data){
-                    $scope.response = data;
-                    $scope.file.value=null;
-                });
+            database.entry.import({
+                file: $scope.file.files[0]
+            },
+            function(data){
+                $scope.response = data;
+                $scope.file.value=null;
+            });
 
         };
 
