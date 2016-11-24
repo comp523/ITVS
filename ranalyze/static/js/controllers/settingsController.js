@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var settingsController = function($scope, $mdDialog, database){
+    var settingsController = function($scope, $mdDialog, config){
 
         var self = this;
 
@@ -29,15 +29,19 @@
             }
         };
 
-        database.config.getSubreddits(function(subs){
+        self.cloud = {};
+
+        config.getSubreddits().then(function(subs){
             self.subreddits.all = subs;
         });
 
-        database.config.getCloudParams(function(data){
-            angular.extend($scope.config, data);
+        config.getEntryWeight().then(function(value) {
+            self.cloud.entryWeight = value;
         });
 
-        $scope.config = {};
+        config.getTotalWeight().then(function(value) {
+            self.cloud.totalWeight = value;
+        });
 
         $scope.table = {
             limit: 10,

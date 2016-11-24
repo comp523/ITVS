@@ -49,7 +49,7 @@
                 offset: ($scope.table.page - 1) * $scope.table.limit
             };
             angular.extend(params, $scope.form);
-            database.entry.query(params, function(results){
+            database.Entry.query(params, function(results){
                 if (results.total==0) {
                     $mdDialog.show(
                         $mdDialog.alert()
@@ -76,7 +76,7 @@
             });
         };
 
-        database.entry.getSubreddits(function(subreddits){
+        database.Entry.getSubreddits(function(subreddits){
             self.subreddits = subreddits;
         });
 

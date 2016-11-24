@@ -31,25 +31,28 @@
             </md-table-container>
             <md-table-pagination md-page="table.page" md-total="{{ctrl.entries.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
         </md-tab>
-        <md-tab label="word frequency">
+        <md-tab label="word Frequency">
             <md-content class="md-padding" layout="row" layout-align="center start">
                 <div layout="column" layout-align="start center">
                     <div>Entry Weight</div>
                     <md-slider-container>
-                        <md-slider flex min="0" max="10" ng-model="config.entryWeight" aria-label="Entry Weight" id="entry-config-slider">
+                        <md-slider flex min="0" max="10" ng-model="ctrl.cloud.entryWeight.value" aria-label="Entry Weight" id="entry-config-slider">
                         </md-slider>
                         <md-input-container>
-                            <input flex type="number" ng-model="config.entryWeight" aria-label="Entry Weight" aria-controls="entry-config-slider">
+                            <input flex type="number" ng-model="ctrl.cloud.entryWeight.value" aria-label="Entry Weight" aria-controls="Entry-Config-slider">
                         </md-input-container>
                     </md-slider-container>
                     <div>Total Occurrence Weight</div>
                     <md-slider-container>
-                        <md-slider flex min="0" max="10" ng-model="config.totalWeight" aria-label="Total Occurrence Weight" id="total-config-slider">
+                        <md-slider flex min="0" max="10" ng-model="ctrl.cloud.totalWeight.value" aria-label="Total Occurrence Weight" id="total-config-slider">
                         </md-slider>
                         <md-input-container>
-                            <input flex type="number" ng-model="config.totalWeight" aria-label="Total Occurrence Weight" aria-controls="total-config-slider">
+                            <input flex type="number" ng-model="ctrl.cloud.totalWeight.value" aria-label="Total Occurrence Weight" aria-controls="total-Config-slider">
                         </md-input-container>
                     </md-slider-container>
+                    <md-button class="md-primary md-raised">
+                        apply
+                    </md-button>
                 </div>
             </md-content>
         </md-tab>

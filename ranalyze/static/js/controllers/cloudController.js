@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var cloudController = function($scope, $rootScope, database, tabs) {
+    var cloudController = function($scope, $rootScope, database, config, tabs) {
 
         var self = this;
 
@@ -11,12 +11,16 @@
 
         $scope.tableOrder = "-weight";
 
-        var defaultsPromise = database.config.getCloudParams(function(defaults){
-                angular.extend($scope.cloudParams, defaults)
-        }).$promise;
+        var entryPromise = config.getEntryWeight().then(function(item) {
+            $scope.cloudParams.entryWeight = item.value;
+        });
+
+        var totalPromise = config.getTotalWeight().then(function(item) {
+            $scope.cloudParams.totalWeight = item.value;
+        });
 
         self.updateWeights = function(){
-            defaultsPromise.then(function(){
+            var _updateWeights = function(){
                 var entryWeight = $scope.cloudParams.entryWeight,
                 totalWeight = $scope.cloudParams.totalWeight;
                 for (var i=0;i<$scope.words.length;i++) {
@@ -24,13 +28,17 @@
                 }
                 // Trigger an update by deep copying the words array
                 $scope.words = angular.copy($scope.words);
+            };
+            // Ensure both promises are resolved
+            entryPromise.then(function(){
+                totalPromise.then(_updateWeights);
             });
         };
 
         var d = new Date();
 
-        database.frequency.overview({
-            gran: database.frequency.granularity.DAY,
+        database.Frequency.overview({
+            gran: database.Frequency.granularity.DAY,
             limit: 150,
             year: 2016, //d.getFullYear()
             month: 11, //d.getMonth() + 1

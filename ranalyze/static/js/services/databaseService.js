@@ -5,7 +5,7 @@
 
         var self = this;
 
-        self.entry = $resource('/entry/:action', {}, {
+        self.Entry = $resource('/entry/:action', {}, {
             getSubreddits: {
                 method: 'GET',
                 params: {action: 'subreddits'},
@@ -31,20 +31,20 @@
                 transformResponse: function(json) {
                     var data = angular.fromJson(json);
                     for (var i=0, j=data.results.length;i<j;i++) {
-                        data.results[i] = new self.entry(data.results[i]);
+                        data.results[i] = new self.Entry(data.results[i]);
                     }
                     return data;
                 }
             }
         });
 
-        Object.defineProperty(self.entry.prototype, "type", {
+        Object.defineProperty(self.Entry.prototype, "type", {
             get: function(){
                 return this.permalink ? "Post" : "Comment";
             }
         });
 
-        self.frequency = $resource('/frequency/:action', {}, {
+        self.Frequency = $resource('/frequency/:action', {}, {
             overview: {
                 method: 'GET',
                 isArray: true,
@@ -52,34 +52,14 @@
             }
         });
 
-        self.frequency.granularity = {
+        self.Frequency.granularity = {
             YEAR: "year",
             MONTH: "month",
             DAY: "day"
         };
 
-        self.config = $resource('/config/:field/:id', {},{
-            getCloudParams: {
-                method: 'GET',
-                params: {
-                    field: 'cloud'
-                },
-                transformResponse: function(json) {
-                    var data = angular.fromJson(json);
-                    angular.forEach(['entryWeight', 'totalWeight'], function(key) {
-                        data[key] = parseFloat(data[key]);
-                    });
-                    return data;
-                }
-            },
-            getSubreddits: {
-                method: 'GET',
-                isArray: true,
-                params: {
-                    field: 'subreddits'
-                }
-            }
-        });
+        self.ConfigItem = $resource('/config/:id');
+
     };
 
     app.service('database', databaseService);

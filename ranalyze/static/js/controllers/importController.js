@@ -7,7 +7,7 @@
 
         self.submit = function(){
 
-            database.entry.import({
+            database.Entry.import({
                 file: $scope.file.files[0]
             },
             function(data){

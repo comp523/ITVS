@@ -57,19 +57,8 @@ def compile_js():
     return response
 
 
-@app.route('/config/cloud')
-def config_cloud():
-    condition = Condition()
-    cloud_keys = {'entryWeight', 'totalWeight'}
-    for key in cloud_keys:
-        condition |= Condition('name', key)
-    query = SelectQuery(table=CONFIG_TABLE,
-                        where=condition)
-    results = {e.name: e.value for e in execute_query(query)}
-    return flask.jsonify(results)
-
-@app.route('/config/subreddits')
-def config_subreddits():
+@app.route('/config/subreddit')
+def config_subreddit():
     results = get_subreddits()
     col = "COUNT(*)"
     for item in results:
@@ -84,6 +73,17 @@ def config_subreddits():
                             where=condition & comment_condition,
                             columns=col)
         item["comments"] = execute_query(query, transpose=False)[0][col]
+    return flask.jsonify(results)
+
+
+@app.route('/config/<name>')
+def config_cloud(name):
+    condition = Condition("name", name)
+    query = SelectQuery(table=CONFIG_TABLE,
+                        where=condition)
+    results = [e.dict for e in execute_query(query)]
+    if not results:
+        return flask.abort(400)
     return flask.jsonify(results)
 
 
@@ -127,9 +127,20 @@ def entry_query():
     else:
         options["keywords"] = request["query"].split()
 
+    options["subreddit_exclude_mode"] = False
+
+    if "subredditMode" in request and request["subredditMode"] == "exclusive":
+        options["subreddit_exclude_mode"] = True
+
+    if "order" in request:
+        order = request["order"]
+        if order[0] == "-":
+            order = order[1:] + " DESC"
+        options["order"] = order
+
     # pass through arguments
 
-    for key in {"limit", "order", "offset"}:
+    for key in {"limit", "offset"}:
         if key in request:
             options[key] = request[key]
 

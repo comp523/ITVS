@@ -43,7 +43,7 @@ def traverse_comments(top_level_comments):
 def fetch_data(subreddit_set):
     """
     Fetch all posts and associated comments from a given subreddit set, after
-    the given entry id. Yields both Post and Comment instances.
+    the given Entry id. Yields both Post and Comment instances.
     """
 
     # api wrapper connection

@@ -51,7 +51,7 @@ def connect(**kwargs):
 
 def add_update_object(obj, table):
     """
-    Add an entry to the database or update if it already exists.
+    Add an Entry to the database or update if it already exists.
     :param table:
     """
 
@@ -186,7 +186,7 @@ def _close():
 
 def object_exists(obj, table):
     """
-    Check if an entry exists in the database
+    Check if an Entry exists in the database
     """
 
     query = SelectQuery(table=table,
@@ -218,7 +218,7 @@ def _row_to_object(row):
 
 def _update_object(obj, table):
     """
-    Update an existing entry in the database.
+    Update an existing Entry in the database.
     """
 
     query = UpdateQuery(table=table,

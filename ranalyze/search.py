@@ -251,7 +251,7 @@ def tree_to_condition(node):
 def search(keywords=None, expression=None,
            subreddit=None, after=None, before=None,
            limit=None, offset=None, order=None,
-           include_count=False):
+           include_count=False, subreddit_exclude_mode=False):
     """
     """
 
@@ -271,7 +271,10 @@ def search(keywords=None, expression=None,
         subreddit = [subreddit] if type(subreddit) is str else subreddit
         subreddit_condition = Condition()
         for sub in subreddit:
-            subreddit_condition |= Condition("subreddit", sub)
+            if subreddit_exclude_mode:
+                subreddit_condition &= ~Condition("subreddit", sub)
+            else:
+                subreddit_condition |= Condition("subreddit", sub)
         condition &= subreddit_condition
 
     if after:
