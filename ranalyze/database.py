@@ -49,6 +49,7 @@ def connect(**kwargs):
         _database = MySQLdb.connect(charset=CHAR_SET, **kwargs)
 
 
+
 def add_update_object(obj, table):
     """
     Add an Entry to the database or update if it already exists.
@@ -119,7 +120,14 @@ def execute_query(query, commit=False, transpose=True):
 
     connect()
     cursor = _database.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute(query.sql, query.params)
+    try:
+        cursor.execute(query.sql, query.params)
+    except (MySQLdb.OperationalError):
+        print("Query failed, recocnecting...")
+        _database = None
+        connect()
+        cursor.execute(query.sql, query.params)
+        
     results = cursor.fetchall()
     if commit:
         _database.commit()
