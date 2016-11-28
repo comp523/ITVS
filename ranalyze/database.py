@@ -117,6 +117,7 @@ def execute_query(query, commit=False, transpose=True):
     Executes a given Query, optionally committing changes. Results are
     transposed by default.
     """
+    global _database
 
     connect()
     cursor = _database.cursor(MySQLdb.cursors.DictCursor)
