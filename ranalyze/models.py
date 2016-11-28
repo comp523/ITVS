@@ -11,7 +11,7 @@ from .constants import (
     POST_FIELDS,
     WORD_DAY_FIELDS
 )
-from .utils import date_to_timestamp, sanitize
+from .utils import date_to_timestamp, sanitize_string
 
 
 class ModelObject(object, metaclass=abc.ABCMeta):
@@ -154,7 +154,7 @@ class CommentFactory(EntryFactory):
     _PRAW_MAP = dict(
         EntryFactory._BASE_PRAW_MAP,
         #  text_content is encoded to utf8 to sanitize bad characters
-        text_content=lambda c: sanitize(c.body),
+        text_content=lambda c: sanitize_string(c.body),
         root_id=lambda c: c.submission.fullname
     )
 
@@ -186,8 +186,8 @@ class PostFactory(EntryFactory):
     _PRAW_MAP = dict(
         EntryFactory._BASE_PRAW_MAP,
         external_url=lambda s: s.url,
-        text_content=lambda s: sanitize(s.selftext),
-        title=lambda s: sanitize(s.title),
+        text_content=lambda s: sanitize_string(s.selftext),
+        title=lambda s: sanitize_string(s.title),
         up_ratio=lambda s: 0  # TODO: Implement up_ratio?,
     )
 

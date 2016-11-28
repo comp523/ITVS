@@ -157,6 +157,5 @@ def overview(gran, limit, day=None, month=None, year=None):
                         where=date_condition,
                         order="(entries + total) DESC",
                         limit=limit,
-                        group=gran+", word"
-                        )
+                        group=gran+", word")
     return execute_query(query, transpose=False)

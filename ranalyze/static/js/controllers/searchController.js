@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var searchController = function($scope, $mdDialog, database) {
+    var searchController = function($scope, $filter, $mdDialog, strings, database) {
 
         var self = this,
             baseForm = {
@@ -49,6 +49,8 @@
                 offset: ($scope.table.page - 1) * $scope.table.limit
             };
             angular.extend(params, $scope.form);
+            params.after = $filter('date')(params.after, strings.DATE.FORMAT);
+            params.before = $filter('date')(params.before, strings.DATE.FORMAT);
             database.Entry.query(params, function(results){
                 if (results.total==0) {
                     $mdDialog.show(

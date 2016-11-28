@@ -3,7 +3,9 @@ Common utilities
 """
 
 import datetime
+import re
 from math import floor
+from string import printable
 from .constants import CHAR_SET
 
 EPOCH = datetime.datetime.utcfromtimestamp(0)
@@ -25,13 +27,18 @@ def iso_to_date(iso):
     return datetime.datetime.strptime(iso, "%Y-%m-%d").date()
 
 
-def sanitize(string):
-    """
+INVALID_RE = re.compile(u'[^\u0000-\uD7FF\uE000-\uFFFF]', re.UNICODE)
 
-    :param string:
-    :type string: str
+
+def sanitize_string(text):
+    """
+    Remove any characters that would be represented as 4 bytes in UTF8, to
+    prevent MYSQL errors.
+    
+    :param text:
+    :type text: str
     :return: sanitized string
     :rtype: str
     """
 
-    return string.encode(CHAR_SET, errors='ignore').decode(CHAR_SET)
+    return INVALID_RE.sub(u'', text)

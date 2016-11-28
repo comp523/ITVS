@@ -123,18 +123,18 @@ def execute_query(query, commit=False, transpose=True):
     cursor = _database.cursor(MySQLdb.cursors.DictCursor)
     try:
         cursor.execute(query.sql, query.params)
-    except (MySQLdb.OperationalError):
+    except MySQLdb.OperationalError:
         print("Query failed, recocnecting...")
         _database = None
         connect()
         cursor.execute(query.sql, query.params)
-        
-    results = cursor.fetchall()
-    if commit:
-        _database.commit()
-    if transpose:
-        results = [_row_to_object(o) for o in results]
-    return results
+    finally:
+        results = cursor.fetchall()
+        if commit:
+            _database.commit()
+        if transpose:
+            results = [_row_to_object(o) for o in results]
+        return results
 
 
 def get_entry(entry_id):
