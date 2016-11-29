@@ -17,7 +17,7 @@ from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
 from .database import connect, execute_query
 from .frequency import overview
 from .imprt import import_file
-from .query import Condition, SelectQuery
+from .query import Condition, DeleteQuery, SelectQuery
 from .scrape import get_subreddits
 from .search import search as search_db
 from .utils import iso_to_date
@@ -57,34 +57,49 @@ def compile_js():
     return response
 
 
-@app.route('/config/subreddit')
-def config_subreddit():
-    results = get_subreddits()
-    col = "COUNT(*)"
-    for item in results:
-        condition = Condition("subreddit", item["value"])
-        post_condition = Condition("permalink", "IS NOT", None)
-        comment_condition = Condition("permalink", None)
-        query = SelectQuery(table=ENTRY_TABLE,
-                            where=condition & post_condition,
-                            columns=col)
-        item["posts"] = execute_query(query, transpose=False)[0][col]
-        query = SelectQuery(table=ENTRY_TABLE,
-                            where=condition & comment_condition,
-                            columns=col)
-        item["comments"] = execute_query(query, transpose=False)[0][col]
+@app.route('/config/')
+def config_query():
+    request = flask.request.args
+    if "name" in request and request["name"] == "subreddit":
+        results = get_subreddits()
+        col = "COUNT(*)"
+        for item in results:
+            condition = Condition("subreddit", item["value"])
+            post_condition = Condition("permalink", "IS NOT", None)
+            comment_condition = Condition("permalink", None)
+            query = SelectQuery(table=ENTRY_TABLE,
+                                where=condition & post_condition,
+                                columns=col)
+            item["posts"] = execute_query(query, transpose=False)[0][col]
+            query = SelectQuery(table=ENTRY_TABLE,
+                                where=condition & comment_condition,
+                                columns=col)
+            item["comments"] = execute_query(query, transpose=False)[0][col]
+    else:
+        condition = Condition()
+        for key in request:
+            condition &= Condition(key, request[key])
+        query = SelectQuery(table=CONFIG_TABLE,
+                            where=condition)
+        results = [e.dict for e in execute_query(query)]
     return flask.jsonify(results)
 
 
-@app.route('/config/<name>')
-def config_cloud(name):
-    condition = Condition("name", name)
-    query = SelectQuery(table=CONFIG_TABLE,
-                        where=condition)
-    results = [e.dict for e in execute_query(query)]
-    if not results:
-        return flask.abort(400)
-    return flask.jsonify(results)
+@app.route('/config/<_id>', methods=["GET", "DELETE"])
+def config_item(_id):
+    condition = Condition("id", _id)
+    if flask.request.method == "GET":
+        query = SelectQuery(table=CONFIG_TABLE,
+                            where=condition)
+        results = [e.dict for e in execute_query(query)]
+        if not results:
+            return flask.abort(400)
+        return flask.jsonify(results[0])
+    else:
+        query = DeleteQuery(table=CONFIG_TABLE,
+                            where=condition)
+        execute_query(query, transpose=False)
+        return flask.Response(status=204)
 
 
 @app.route('/entry/import', methods=['POST'])

@@ -35,7 +35,7 @@
         angular.forEach(fields, function(properties, field){
             config[nameToGetter(field)] = function(){
                 return database.ConfigItem.query({
-                    id: properties.name
+                    name: properties.name
                 }).$promise.then(function(results) {
                     switch (properties.type) {
                         case types.ARRAY:

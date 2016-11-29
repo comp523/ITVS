@@ -49,7 +49,6 @@ def connect(**kwargs):
         _database = MySQLdb.connect(charset=CHAR_SET, **kwargs)
 
 
-
 def add_update_object(obj, table):
     """
     Add an Entry to the database or update if it already exists.
@@ -128,13 +127,12 @@ def execute_query(query, commit=False, transpose=True):
         _database = None
         connect()
         cursor.execute(query.sql, query.params)
-    finally:
-        results = cursor.fetchall()
-        if commit:
-            _database.commit()
-        if transpose:
-            results = [_row_to_object(o) for o in results]
-        return results
+    results = cursor.fetchall()
+    if commit:
+        _database.commit()
+    if transpose:
+        results = [_row_to_object(o) for o in results]
+    return results
 
 
 def get_entry(entry_id):

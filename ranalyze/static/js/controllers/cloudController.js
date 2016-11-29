@@ -7,9 +7,9 @@
 
         $scope.cloudParams = {};
 
-        self.cloudMode = true;
-
         $scope.tableOrder = "-weight";
+
+        $scope.selectedWords = [];
 
         var entryPromise = config.getEntryWeight().then(function(item) {
             $scope.cloudParams.entryWeight = item.value;
@@ -40,11 +40,11 @@
         database.Frequency.overview({
             gran: database.Frequency.granularity.DAY,
             limit: 150,
-            year: 2016, //d.getFullYear()
-            month: 11, //d.getMonth() + 1
-            day: 14 //d.getDate()
+            year: d.getFullYear(),
+            month: d.getMonth() + 1,
+            day: d.getDate()
         }, function(data){
-            $scope.words = data.map(function(item){
+            $scope.masterWords = data.map(function(item){
                 return {
                     text: item.word,
                     entries: item.entries,
@@ -64,6 +64,7 @@
                     }
                 };
             });
+            $scope.words = angular.copy($scope.masterWords);
             self.updateWeights();
         });
 

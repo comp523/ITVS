@@ -20,7 +20,7 @@
                 )
                     .then(function(){
                         angular.forEach(self.subreddits.selected, function(sub){
-                            sub.delete();
+                            sub.$delete();
                         });
                     })
             },

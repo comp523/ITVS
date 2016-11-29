@@ -58,7 +58,9 @@
             DAY: "day"
         };
 
-        self.ConfigItem = $resource('/config/:id');
+        self.ConfigItem = $resource('/config/:id', {
+            id: '@id'
+        });
 
     };
 

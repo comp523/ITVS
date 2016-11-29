@@ -78,6 +78,26 @@ class Query(object, metaclass=abc.ABCMeta):
         pass
 
 
+class DeleteQuery(Query):
+    """
+    """
+
+    FORMAT = "DELETE FROM {table} WHERE {where}"
+
+    def __init__(self, table, where):
+        self._params = where.params
+        self._sql = DeleteQuery.FORMAT.format(table=table,
+                                              where=where.sql)
+
+    @property
+    def sql(self):
+        return self._sql
+
+    @property
+    def params(self):
+        return self._params
+
+
 class InsertQuery(Query):
     """"""
 
