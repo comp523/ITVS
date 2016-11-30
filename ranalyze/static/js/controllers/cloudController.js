@@ -38,6 +38,8 @@
                 }
                 // Trigger an update by deep copying the words array
                 $scope.words = angular.copy($scope.words);
+
+                // Adding non-blacklisted words to the cloud view
                 $scope.cloudParams.words = [];
                 $scope.words.forEach(function(word) {
                     if (!$scope.cloudParams.blacklist.includes(word.text)) {
