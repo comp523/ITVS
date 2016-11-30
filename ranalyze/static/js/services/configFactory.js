@@ -23,6 +23,10 @@
                 totalWeight: {
                     type: types.NUMBER,
                     name: "totalWeight"
+                },
+                blacklist: {
+                    type: types.ARRAY,
+                    name: "blacklist"
                 }
             },
 

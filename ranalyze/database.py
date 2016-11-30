@@ -17,7 +17,8 @@ from .query import (
     Condition,
     InsertQuery,
     SelectQuery,
-    UpdateQuery
+    UpdateQuery,
+    DeleteQuery
 )
 
 
@@ -171,6 +172,16 @@ def get_latest_post(subreddit):
 def add_subreddit(subreddit):
     _add_object({"name":"subreddit", "value":subreddit}, CONFIG_TABLE)
 
+def add_blacklist(word):
+    _add_object({"name":"blacklist", "value":word}, CONFIG_TABLE)
+
+def remove_subreddit(subreddit):
+    _remove_object({"name":"subreddit", "value":subreddit}, CONFIG_TABLE)
+
+def remove_blacklist(word):
+    _remove_object({"name":"blacklist", "value":word}, CONFIG_TABLE)
+
+
 
 def _add_object(obj, table):
     """
@@ -178,7 +189,14 @@ def _add_object(obj, table):
     """
 
     query = InsertQuery(table=table,
-                        values=obj.dict)
+                        values=obj)
+    execute_query(query, commit=True)
+
+def _remove_object(obj, table):
+    cond = Condition('name', obj['name'])
+    cond &= Condition('value', obj['value'])
+    query = DeleteQuery(table=table,
+                        where=cond)
     execute_query(query, commit=True)
 
 

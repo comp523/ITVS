@@ -14,7 +14,14 @@ from csv import DictWriter
 from io import StringIO
 from tempfile import NamedTemporaryFile
 from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
-from .database import connect, execute_query
+from .database import (
+    connect,
+    execute_query,
+    add_blacklist,
+    add_subreddit,
+    remove_blacklist,
+    remove_subreddit
+)
 from .frequency import overview
 from .imprt import import_file
 from .query import Condition, DeleteQuery, SelectQuery
@@ -101,6 +108,26 @@ def config_item(_id):
         execute_query(query, transpose=False)
         return flask.Response(status=204)
 
+@app.route('/config', methods=['POST', 'DELETE'])
+def update_config():
+    success = flask.jsonify({'status': 'success'})
+    request = flask.request.args
+    if 'subreddit' not in request and 'blacklist' not in request:
+        return flask.abort(400)
+    if flask.request.method == 'POST':
+        if 'subreddit' in request:
+            add_subreddit(request['subreddit'])
+            return success
+        if 'blacklist' in request:
+            add_blacklist(request['blacklist'])
+            return success
+    if flask.request.method == 'DELETE':
+        if 'subreddit' in request:
+            remove_subreddit(request['subreddit'])
+            return success
+        if 'blacklist' in request:
+            remove_blacklist(request['blacklist'])
+            return success
 
 @app.route('/entry/import', methods=['POST'])
 def entry_import():

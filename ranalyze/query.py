@@ -186,3 +186,24 @@ class UpdateQuery(Query):
     @property
     def params(self):
         return self._params
+
+
+class DeleteQuery(Query):
+    """
+    """
+
+    FORMAT = "DELETE FROM {table} WHERE {where}"
+
+    def __init__(self, table, where):
+        self._sql = DeleteQuery.FORMAT.format(table=table,
+                                              where=where.sql)
+        self._params = {}
+        self._params.update(where.params)
+
+    @property
+    def sql(self):
+        return self._sql
+
+    @property
+    def params(self):
+        return self._params
