@@ -57,9 +57,9 @@ def add_update_object(obj, table):
     """
 
     if object_exists(obj, table):
-        _update_object(obj, table)
+        return _update_object(obj, table)
     else:
-        _add_object(obj, table)
+        return _add_object(obj, table)
 
 
 def create_db():
@@ -112,7 +112,7 @@ def create_db():
     connection.close()
 
 
-def execute_query(query, commit=False, transpose=True):
+def execute_query(query, commit=False, transpose=True, only_id=False):
     """
     Executes a given Query, optionally committing changes. Results are
     transposed by default.
@@ -128,6 +128,8 @@ def execute_query(query, commit=False, transpose=True):
         _database = None
         connect()
         cursor.execute(query.sql, query.params)
+    if only_id:
+        return cursor.lastrowid
     results = cursor.fetchall()
     if commit:
         _database.commit()
@@ -169,18 +171,11 @@ def get_latest_post(subreddit):
     return get_entry(latest_id)
 
 
-def add_subreddit(subreddit):
-    _add_object({"name":"subreddit", "value":subreddit}, CONFIG_TABLE)
-
-def add_blacklist(word):
-    _add_object({"name":"blacklist", "value":word}, CONFIG_TABLE)
-
-def remove_subreddit(subreddit):
-    _remove_object({"name":"subreddit", "value":subreddit}, CONFIG_TABLE)
-
-def remove_blacklist(word):
-    _remove_object({"name":"blacklist", "value":word}, CONFIG_TABLE)
-
+def remove_object_by_id(_id, table):
+    cond = Condition('id', _id)
+    query = DeleteQuery(table=table,
+                        where=cond)
+    execute_query(query, commit=True)
 
 
 def _add_object(obj, table):
@@ -190,14 +185,7 @@ def _add_object(obj, table):
 
     query = InsertQuery(table=table,
                         values=obj)
-    execute_query(query, commit=True)
-
-def _remove_object(obj, table):
-    cond = Condition('name', obj['name'])
-    cond &= Condition('value', obj['value'])
-    query = DeleteQuery(table=table,
-                        where=cond)
-    execute_query(query, commit=True)
+    return execute_query(query, commit=True, only_id=True)
 
 
 @atexit.register
@@ -250,7 +238,7 @@ def _update_object(obj, table):
                         values=obj.dict,
                         where=Condition("id", obj.id))
 
-    execute_query(query, commit=True)
+    return execute_query(query, commit=True, only_id=True)
 
 
 class DatabaseError(Exception):

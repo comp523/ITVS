@@ -27,7 +27,13 @@ class ModelObject(object, metaclass=abc.ABCMeta):
         pass
 
     def keys(self):
-        return self.get_fields().keys()
+        return self.get_fields()
+
+    def __getitem__(self, item):
+        return self.__getattr__(item)
+
+    def __setitem__(self, key, value):
+        self.__setattr__(key, value)
 
     def __getattr__(self, item):
         if item not in self.get_fields():
@@ -57,10 +63,14 @@ class ModelObject(object, metaclass=abc.ABCMeta):
 class ModelFactory(object, metaclass=abc.ABCMeta):
 
     @classmethod
-    def from_row(cls, row):
-        data = {key: row[key] for key in row.keys()}
+    def from_dict(cls, data):
         target = cls._get_target()
         return target(**data)
+
+    @classmethod
+    def from_row(cls, row):
+        data = {key: row[key] for key in row.keys()}
+        return cls.from_dict(data)
 
     @staticmethod
     @abc.abstractmethod

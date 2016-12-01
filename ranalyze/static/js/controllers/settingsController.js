@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var settingsController = function($scope, $mdDialog, config){
+    var settingsController = function($scope, $mdDialog, $timeout, config){
 
         var self = this;
 
@@ -20,12 +20,32 @@
                 )
                     .then(function(){
                         angular.forEach(self.subreddits.selected, function(sub){
-                            sub.$delete();
+                            sub.$delete()
+                                .then(function(){
+                                    self.subreddits.all.splice(self.subreddits.all.indexOf(sub), 1);
+                                    self.subreddits.selected.splice(self.subreddits.selected.indexOf(sub), 1);
+                                });
                         });
                     })
             },
             add: function(){
-
+                $mdDialog.show(
+                    $mdDialog.prompt()
+                        .title('Add subreddit to scrape')
+                        .placeholder('subreddit')
+                        .ok('Add')
+                        .cancel('Cancel')
+                )
+                    .then(function(sub){
+                        var item = new config.Item({
+                            name: "subreddit",
+                            value: sub
+                        });
+                        item.$save()
+                            .then(function(){
+                                self.subreddits.all.push(item);
+                            });
+                    });
             }
         };
 
@@ -46,13 +66,11 @@
                 )
                     .then(function() {
                         self.blacklist.selected.forEach(function(obj){
-                            // TODO: rest call to config here
-                            var word = obj.value;
-                            self.blacklist.all.splice(self.blacklist.all.indexOf(obj), 1);
-                            $.ajax({
-                                method: 'DELETE',
-                                url: '/config?blacklist='+word,
-                            });
+                            obj.$delete()
+                                .then(function(){
+                                    self.blacklist.all.splice(self.blacklist.all.indexOf(obj), 1);
+                                    self.blacklist.selected.splice(self.blacklist.selected.indexOf(obj), 1);
+                                });
                         });
                         self.blacklist.selected = [];
                     })
@@ -81,10 +99,12 @@
                                 'value': res,
                             };
                             self.blacklist.all.push(obj);
-                            $.ajax({
+                            /*$.ajax({
                                 method: 'POST',
                                 url: '/config?blacklist='+res,
-                            });
+                            });*/
+                            var item = new config.Item(obj);
+                            item.$save();
                         }
 
 
@@ -92,7 +112,29 @@
             }
         };
 
-        self.cloud = {};
+        self.cloud = {
+            save: function(){
+                self.cloud.saving = true;
+                self.cloud.savingDelayed = true;
+                var entryPromise = self.cloud.entryWeight.$save()
+                    .then(function(){
+                        self.cloud.entryWeight.value = parseFloat(self.cloud.entryWeight.value);
+                    }),
+                    totalPromise = self.cloud.totalWeight.$save()
+                    .then(function(){
+                        self.cloud.totalWeight.value = parseFloat(self.cloud.totalWeight.value);
+                    });
+                entryPromise.then(function(){
+                    totalPromise.then(function(){
+                        self.cloud.saving = false;
+                        // wait 3 second before hiding success indicator
+                        $timeout(function(){
+                            self.cloud.savingDelayed = false;
+                        }, 3000);
+                    });
+                });
+            }
+        };
 
         config.getSubreddits().then(function(subs){
             self.subreddits.all = subs;

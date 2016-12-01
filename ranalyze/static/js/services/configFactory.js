@@ -3,7 +3,9 @@
 
     var configFactory = function(database) {
 
-        var config = {},
+        var config = {
+            Item: database.ConfigItem
+            },
 
             types = {
                 ARRAY: 0,

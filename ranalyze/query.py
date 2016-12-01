@@ -105,7 +105,7 @@ class InsertQuery(Query):
 
     def __init__(self, table, values):
 
-        params = {key: "_i{}".format(i) for i, key in enumerate(values)}
+        params = {key: "_i{}".format(i) for i, key in enumerate(values.keys())}
         self._params = {param: values[key] for key, param in params.items()}
         values = ", ".join(["%({})s".format(v) for v in params.values()])
         self._sql = InsertQuery.FORMAT.format(table=table,

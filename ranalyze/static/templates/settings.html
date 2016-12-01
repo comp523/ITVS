@@ -1,17 +1,17 @@
-<md-content class="md-padding" ng-controller="settingsController as ctrl">
+<md-content class="md-padding" ng-controller="settingsController as settingsCtrl">
     <md-tabs md-dynamic-height md-center-tabs md-border-bottom>
         <md-tab label="subreddits">
             <div layout="row">
-                <md-button class="md-raised md-primary" ng-click="ctrl.subreddits.add()">
+                <md-button class="md-raised md-primary" ng-click="settingsCtrl.subreddits.add()">
                     Add
                 </md-button>
-                <md-button class="md-raised md-warn" ng-click="ctrl.subreddits.deleteSelected()"
-                           ng-disabled="ctrl.subreddits.selected.length == 0">
+                <md-button class="md-raised md-warn" ng-click="settingsCtrl.subreddits.deleteSelected()"
+                           ng-disabled="settingsCtrl.subreddits.selected.length == 0">
                     Delete Selected
                 </md-button>
             </div>
             <md-table-container>
-                <table md-table md-row-select multiple ng-model="ctrl.subreddits.selected">
+                <table md-table md-row-select multiple ng-model="settingsCtrl.subreddits.selected">
                     <thead md-head md-order="table.order">
                         <tr md-row>
                             <th md-column md-order-by="value"><span>Subreddit</span></th>
@@ -21,72 +21,104 @@
                     </thead>
                     <tbody md-body>
                         <tr md-row md-select="sub" md-select-id="value" md-auto-select
-                            ng-repeat="sub in ctrl.subreddits.all | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
+                            ng-repeat="sub in settingsCtrl.subreddits.all | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
                             <td md-cell>{{sub.value}}</td>
-                            <td md-cell>{{sub.posts}}</td>
-                            <td md-cell>{{sub.comments}}</td>
+                            <td md-cell>{{sub.posts || "-"}}</td>
+                            <td md-cell>{{sub.comments || "-"}}</td>
                         </tr>
                     </tbody>
                 </table>
             </md-table-container>
-            <md-table-pagination md-page="table.page" md-total="{{ctrl.entries.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+            <md-table-pagination md-page="table.page" md-total="{{settingsCtrl.entries.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
         </md-tab>
-        <md-tab label="word Frequency">
-            <md-tabs md-dynamic-height md-center-tabs md-border-bottom>
-                <md-tab label="Weights">
-                    <md-content class="md-padding" layout="row" layout-align="center start">
-                        <div layout="column" layout-align="start center">
-                            <div>Entry Weight</div>
-                            <md-slider-container>
-                                <md-slider flex min="0" max="10" ng-model="ctrl.cloud.entryWeight.value" aria-label="Entry Weight" id="entry-config-slider">
-                                </md-slider>
-                                <md-input-container>
-                                    <input flex type="number" ng-model="ctrl.cloud.entryWeight.value" aria-label="Entry Weight" aria-controls="Entry-Config-slider">
-                                </md-input-container>
-                            </md-slider-container>
-                            <div>Total Occurrence Weight</div>
-                            <md-slider-container>
-                                <md-slider flex min="0" max="10" ng-model="ctrl.cloud.totalWeight.value" aria-label="Total Occurrence Weight" id="total-config-slider">
-                                </md-slider>
-                                <md-input-container>
-                                    <input flex type="number" ng-model="ctrl.cloud.totalWeight.value" aria-label="Total Occurrence Weight" aria-controls="total-Config-slider">
-                                </md-input-container>
-                            </md-slider-container>
-                            <md-button class="md-primary md-raised">
-                                apply
-                            </md-button>
-                        </div>
-                    </md-content>
-                </md-tab>
-                <md-tab label="Blacklist">
-                    <div layout="row">
-                        <md-button class="md-raised md-primary" ng-click="ctrl.blacklist.add()">
-                            Add
-                        </md-button>
-                        <md-button class="md-raised md-warn" ng-click="ctrl.blacklist.deleteSelected()"
-                                   ng-disabled="ctrl.blacklist.selected.length == 0">
-                            Delete Selected
+        <md-tab label="word frequency">
+            <md-content class="md-padding">
+                <div class="center">
+                    <h2 flex="75" class="md-headline">
+                        Word Cloud Parameters
+                        <md-divider></md-divider>
+                    </h2>
+                    <div layout="row" layout-align="space-around center" flex="75">
+                        <span flex="25">Entry Weight</span>
+                        <md-slider-container flex="66">
+                            <md-slider flex min="0" max="10" ng-model="settingsCtrl.cloud.entryWeight.value" aria-label="Entry Weight" id="entry-config-slider">
+                            </md-slider>
+                        </md-slider-container>
+                        <span flex class="md-padding" ng-bind="settingsCtrl.cloud.entryWeight.value"></span>
+                    </div>
+                    <div layout="row" layout-align="space-around center" flex="75">
+                        <span flex="25">Total Occurrence Weight</span>
+                        <md-slider-container flex="66">
+                            <md-slider flex min="0" max="10" ng-model="settingsCtrl.cloud.totalWeight.value" aria-label="Total Occurrence Weight" id="total-config-slider">
+                            </md-slider>
+                        </md-slider-container>
+                        <span flex class="md-padding" ng-bind="settingsCtrl.cloud.totalWeight.value"></span>
+                    </div>
+                    <div layout="row" layout-align="end center" flex="75">
+                        <i ng-show="!settingsCtrl.cloud.saving && settingsCtrl.cloud.savingDelayed" class="material-icons success-icon">check</i>
+                        <md-button ng-click="settingsCtrl.cloud.save()" ng-disabled="settingsCtrl.cloud.saving" class="md-primary md-raised">
+                            Save
                         </md-button>
                     </div>
-                    <md-table-container>
-                        <table md-table md-row-select multiple ng-model="ctrl.blacklist.selected">
-                            <thead md-head md-order="table.order">
-                                <tr md-row>
-                                    <th md-column md-order-by="value"><span>Blacklisted Words</span></th>
-                                </tr>
-                            </thead>
-                            <tbody md-body>
-                                <tr md-row md-select="word" md-select-id="value" md-auto-select
-                                    ng-repeat="word in ctrl.blacklist.all | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
-                                    <td md-cell>{{word.value}}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </md-table-container>
-                    <md-table-pagination md-page="table.page" md-total="{{ctrl.blacklist.all.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
-                </md-tab>
-            </md-tabs>
-
+                    <h2 flex="75" class="md-headline">
+                        Word Cloud Blacklist
+                        <md-divider></md-divider>
+                    </h2>
+                    <div flex="75">
+                        <div layout="row">
+                            <md-button class="md-raised md-primary" ng-click="settingsCtrl.blacklist.add()">
+                                Add
+                            </md-button>
+                            <md-button class="md-raised md-warn" ng-click="settingsCtrl.blacklist.deleteSelected()"
+                                       ng-disabled="settingsCtrl.blacklist.selected.length == 0">
+                                Delete Selected
+                            </md-button>
+                        </div>
+                        <md-table-container>
+                            <table md-table md-row-select multiple ng-model="settingsCtrl.blacklist.selected">
+                                <thead md-head md-order="table.order">
+                                    <tr md-row>
+                                        <th md-column md-order-by="value"><span>Blacklisted Words</span></th>
+                                    </tr>
+                                </thead>
+                                <tbody md-body>
+                                    <tr md-row md-select="word" md-select-id="value" md-auto-select
+                                        ng-repeat="word in settingsCtrl.blacklist.all | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
+                                        <td md-cell>{{word.value}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </md-table-container>
+                        <md-table-pagination md-page="table.page" md-total="{{settingsCtrl.blacklist.all.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+                    </div>
+                </div>
+            </md-content>
+        </md-tab>
+        <md-tab label="import">
+            <md-content ng-controller="importController as importCtrl" class="md-padding" layout="row" layout-align="center start">
+                <form name="inputForm" ng-submit="importCtrl.submit()" layout="column" layout-align="start center" flex="95" flex-gt-sm="60" flex-gt-md="40">
+                    <input ng-required="true" type="file" id="file" name="file" accept=".csv" class="ng-hide"
+                    ng-file-model="file">
+                    <p>
+                        Use this form to upload a CSV (comma separated values) file containing
+                        Reddit post permalinks. Each post and its respective comments will be
+                        imported to the database.
+                    </p>
+                    <div>
+                        <span ng-show="file.value">Selected File: <i ng-bind="file.value | fileName"></i></span>
+                        <span ng-hide="file.value">No file selected</span>
+                    </div>
+                    <div layout="row">
+                        <md-button ng-for="file" class="md-raised">
+                            Choose CSV File
+                        </md-button>
+                        <md-button type="submit" class="md-raised md-primary" ng-disabled="!file.value">
+                            Upload
+                        </md-button>
+                    </div>
+                    <strong ng-bind="response.status"></strong>
+                </form>
+            </md-content>
         </md-tab>
     </md-tabs>
 </md-content>

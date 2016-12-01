@@ -15,15 +15,14 @@ from io import StringIO
 from tempfile import NamedTemporaryFile
 from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
 from .database import (
+    add_update_object,
     connect,
     execute_query,
-    add_blacklist,
-    add_subreddit,
-    remove_blacklist,
-    remove_subreddit
+    remove_object_by_id
 )
 from .frequency import overview
 from .imprt import import_file
+from .models import ConfigEntryFactory
 from .query import Condition, DeleteQuery, SelectQuery
 from .scrape import get_subreddits
 from .search import search as search_db
@@ -64,7 +63,23 @@ def compile_js():
     return response
 
 
-@app.route('/config/')
+@app.route('/config/<_id>', methods=["GET", "DELETE"])
+def config_item(_id):
+    condition = Condition("id", _id)
+    query = SelectQuery(table=CONFIG_TABLE,
+                        where=condition)
+    results = [e.dict for e in execute_query(query)]
+    if flask.request.method == "GET":
+        if not results:
+            return flask.jsonify({})
+    else:
+        query = DeleteQuery(table=CONFIG_TABLE,
+                            where=condition)
+        execute_query(query, transpose=False, commit=True)
+    return flask.jsonify(results[0])
+
+
+@app.route('/config', methods=["GET"])
 def config_query():
     request = flask.request.args
     if "name" in request and request["name"] == "subreddit":
@@ -92,42 +107,24 @@ def config_query():
     return flask.jsonify(results)
 
 
-@app.route('/config/<_id>', methods=["GET", "DELETE"])
-def config_item(_id):
-    condition = Condition("id", _id)
-    if flask.request.method == "GET":
-        query = SelectQuery(table=CONFIG_TABLE,
-                            where=condition)
-        results = [e.dict for e in execute_query(query)]
-        if not results:
-            return flask.abort(400)
-        return flask.jsonify(results[0])
-    else:
-        query = DeleteQuery(table=CONFIG_TABLE,
-                            where=condition)
-        execute_query(query, transpose=False)
-        return flask.Response(status=204)
-
-@app.route('/config', methods=['POST', 'DELETE'])
-def update_config():
-    success = flask.jsonify({'status': 'success'})
-    request = flask.request.args
-    if 'subreddit' not in request and 'blacklist' not in request:
+@app.route('/config', methods=['POST'])
+@app.route('/config/<_id>', methods=['POST'])
+def config_update(_id=None):
+    request = dict(flask.request.get_json())
+    if _id:
+        request["id"] = _id
+    if 'name' not in request or 'value' not in request:
         return flask.abort(400)
-    if flask.request.method == 'POST':
-        if 'subreddit' in request:
-            add_subreddit(request['subreddit'])
-            return success
-        if 'blacklist' in request:
-            add_blacklist(request['blacklist'])
-            return success
-    if flask.request.method == 'DELETE':
-        if 'subreddit' in request:
-            remove_subreddit(request['subreddit'])
-            return success
-        if 'blacklist' in request:
-            remove_blacklist(request['blacklist'])
-            return success
+    item = ConfigEntryFactory.from_dict(request)
+    insert_id = add_update_object(item, CONFIG_TABLE)
+    if _id is None:
+        _id = insert_id
+    condition = Condition("id", _id)
+    query = SelectQuery(table=CONFIG_TABLE,
+                        where=condition)
+    result = execute_query(query)[0].dict
+    return flask.jsonify(result)
+
 
 @app.route('/entry/import', methods=['POST'])
 def entry_import():
@@ -144,7 +141,7 @@ def entry_import():
     })
 
 
-@app.route('/entry/')
+@app.route('/entry')
 def entry_query():
     """
     Search wtihout expressions
