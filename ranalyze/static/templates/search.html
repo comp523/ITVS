@@ -42,10 +42,12 @@
 
         <div layout="row">
             <md-input-container>
+				<md-tooltip md-direction="right">Leave this blank to search from the beginning of time</md-tooltip>
                 <label>Start Date</label>
                 <md-datepicker name="after" ng-model="form.after"></md-datepicker>
             </md-input-container>
             <md-input-container>
+				<md-tooltip md-direction="right">Leave this blank to search up to today</md-tooltip>
                 <label>End Date</label>
                 <md-datepicker name="before" ng-model="form.before"></md-datepicker>
                 <div ng-messages="searchForm.before.$error">

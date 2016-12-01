@@ -43,6 +43,7 @@
         <div layout="column" layout-align="start center">
             <span>Entry Weight</span>
             <md-slider-container>
+				<md-tooltip md-direction="right">Total number of posts the word occurs in</md-tooltip>
                 <md-slider flex min="0" max="10" ng-model="cloudParams.entryWeight" aria-label="Entry Weight" id="entry-slider">
                 </md-slider>
                 <md-input-container>
@@ -54,8 +55,9 @@
         <div layout="column">
             <span>Total Occurrence Weight</span>
             <md-slider-container>
+			<md-tooltip md-direction="right">Total number of times the word occurs</md-tooltip>
                 <md-slider flex min="0" max="10" ng-model="cloudParams.totalWeight" aria-label="Total Occurrence Weight" id="total-slider">
-                </md-slider>
+				</md-slider>
                 <md-input-container>
                     <input flex type="number" ng-model="cloudParams.totalWeight" aria-label="Total Occurrence Weight" aria-controls="total-slider">
                 </md-input-container>
