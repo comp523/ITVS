@@ -6,7 +6,7 @@ import atexit
 import MySQLdb
 import os
 
-from .constants import CHAR_SET, CONFIG_TABLE, ENTRY_TABLE, FREQUENCY_TABLE
+from .constants import CHAR_SET, CONFIG_TABLE, ENTRY_TABLE, FREQUENCY_TABLE, IMPORT_TABLE
 from .models import (
     CommentFactory,
     ConfigEntryFactory,
@@ -78,6 +78,7 @@ def create_db():
     queries = ("DROP TABLE IF EXISTS {}".format(ENTRY_TABLE),
                "DROP TABLE IF EXISTS {}".format(FREQUENCY_TABLE),
                "DROP TABLE IF EXISTS {}".format(CONFIG_TABLE),
+			   "DROP TABLE IF EXISTS {}".format(IMPORT_TABLE),
                """
                CREATE TABLE {} (
                id varchar(255) PRIMARY KEY, permalink text, root_id text,
@@ -102,7 +103,12 @@ def create_db():
                value varchar(255)
                )
                DEFAULT CHARACTER SET {}
-               """.format(CONFIG_TABLE, CHAR_SET)
+               """.format(CONFIG_TABLE, CHAR_SET),
+			   """
+			   CREATE TABLE {} (
+			   permalink text)
+			   DEFAULT CHARACTER SET {}
+			   """.format(IMPORT_TABLE, CHAR_SET)
                )
 
     for query in queries:
@@ -112,7 +118,7 @@ def create_db():
     connection.close()
 
 
-def execute_query(query, commit=False, transpose=True, only_id=False):
+def execute_query(query, commit=False, transpose=True, only_id=False, raw=False):
     """
     Executes a given Query, optionally committing changes. Results are
     transposed by default.
@@ -133,6 +139,8 @@ def execute_query(query, commit=False, transpose=True, only_id=False):
     results = cursor.fetchall()
     if commit:
         _database.commit()
+	if raw:
+		return results
     if transpose:
         results = [_row_to_object(o) for o in results]
     return results

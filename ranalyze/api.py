@@ -135,10 +135,10 @@ def entry_import():
     f = flask.request.files['file']
     temp = NamedTemporaryFile()
     f.save(temp)
-    import_file(temp.name)
+    count = schedule_for_import(temp.name)
     return flask.jsonify({
         'success': True,
-        'status': 'File uploaded successfully'
+        'status': '{} permalinks scheduled for import'.format(count)
     })
 
 

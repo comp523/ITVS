@@ -8,6 +8,8 @@ ENTRY_TABLE = "entries"
 
 FREQUENCY_TABLE = "frequency"
 
+IMPORT_TABLE = "import"
+
 CONFIG_ENTRY_FIELDS = {"id", "name", "value"}
 
 BASE_FIELDS = {"id", "up_votes", "time_submitted", "time_updated", "posted_by",
