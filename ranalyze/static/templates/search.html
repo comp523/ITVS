@@ -57,7 +57,7 @@
         <md-button class="md-raised md-warn" ng-click="ctrl.clearForm()">Clear Fields</md-button>
 
         <div layout="row">
-            <md-button ng-click="ctrl.search(true)" ng-disabled="searchForm.$invalid" class="md-raised">Download as CSV</md-button>
+            <md-button ng-click="ctrl.downloadSearch()" ng-disabled="searchForm.$invalid" class="md-raised">Download as CSV</md-button>
             <md-button type="submit" ng-disabled="searchForm.$invalid" class="md-primary md-raised">Search</md-button>
         </div>
 

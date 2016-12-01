@@ -21,9 +21,13 @@
                     .then(function(){
                         angular.forEach(self.subreddits.selected, function(sub){
                             sub.$delete()
-                                .then(function(){
+                                .then(function success(){
                                     self.subreddits.all.splice(self.subreddits.all.indexOf(sub), 1);
                                     self.subreddits.selected.splice(self.subreddits.selected.indexOf(sub), 1);
+                                }, function failure(){
+                                    $scope.$emit('ranalyze.error', {
+                                        textContent: 'An error occurred while trying to delete the subreddit `' + sub.value + '`'
+                                    });
                                 });
                         });
                     })
@@ -37,13 +41,18 @@
                         .cancel('Cancel')
                 )
                     .then(function(sub){
+                        sub = sub.trim();
                         var item = new config.Item({
                             name: "subreddit",
                             value: sub
                         });
                         item.$save()
-                            .then(function(){
+                            .then(function success(){
                                 self.subreddits.all.push(item);
+                            }, function failure(){
+                                $scope.$emit('ranalyze.error', {
+                                    textContent: 'An error occurred while trying to save the subreddit `' + sub + '`'
+                                });
                             });
                     });
             }
@@ -64,12 +73,16 @@
                         .ok('Delete')
                         .cancel('Never mind')
                 )
-                    .then(function() {
+                    .then(function success(){
                         self.blacklist.selected.forEach(function(obj){
                             obj.$delete()
-                                .then(function(){
+                                .then(function success(){
                                     self.blacklist.all.splice(self.blacklist.all.indexOf(obj), 1);
                                     self.blacklist.selected.splice(self.blacklist.selected.indexOf(obj), 1);
+                                }, function failure(){
+                                    $scope.$emit('ranalyze.error', {
+                                        textContent: 'An error occurred while trying to delete the blacklist word `' + obj.value + '`'
+                                    });
                                 });
                         });
                         self.blacklist.selected = [];
@@ -84,13 +97,12 @@
                         .cancel('Cancel')
                 )
                     .then(function(res) {
-                        // TODO: fix the below hacks
                         res = res.trim();
                         var contains = false;
-                        for(var i in self.blacklist.all){
-                            if (self.blacklist.all[i].value
-                            && self.blacklist.all[i].value == res) {
-                               contains = true;
+                        for(var i=0,j=self.blacklist.all.length;i<j;i++){
+                            if (self.blacklist.all[i].value == res) {
+                                contains = true;
+                                break;
                             }
                         }
                         if (!contains) {
@@ -98,13 +110,15 @@
                                 'name': 'blacklist',
                                 'value': res,
                             };
-                            self.blacklist.all.push(obj);
-                            /*$.ajax({
-                                method: 'POST',
-                                url: '/config?blacklist='+res,
-                            });*/
                             var item = new config.Item(obj);
-                            item.$save();
+                            item.$save()
+                                .then(function success(){
+                                    self.blacklist.all.push(obj);
+                                }, function failure(response){
+                                    $scope.$emit('ranalyze.error', {
+                                        textContent: response
+                                    });
+                                });
                         }
 
 
@@ -117,13 +131,21 @@
                 self.cloud.saving = true;
                 self.cloud.savingDelayed = true;
                 var entryPromise = self.cloud.entryWeight.$save()
-                    .then(function(){
-                        self.cloud.entryWeight.value = parseFloat(self.cloud.entryWeight.value);
-                    }),
+                        .then(function success(){
+                            self.cloud.entryWeight.value = parseFloat(self.cloud.entryWeight.value);
+                        }, function failure(){
+                            $scope.$emit('ranalyze.error', {
+                                textContent: 'An error occurred while trying to save cloud parameter `entryWeight`'
+                            });
+                        }),
                     totalPromise = self.cloud.totalWeight.$save()
-                    .then(function(){
-                        self.cloud.totalWeight.value = parseFloat(self.cloud.totalWeight.value);
-                    });
+                        .then(function(){
+                            self.cloud.totalWeight.value = parseFloat(self.cloud.totalWeight.value);
+                        }, function failure(){
+                            $scope.$emit('ranalyze.error', {
+                                textContent: 'An error occurred while trying to save cloud parameter `totalWeight`'
+                            });
+                        });
                 entryPromise.then(function(){
                     totalPromise.then(function(){
                         self.cloud.saving = false;
@@ -136,20 +158,36 @@
             }
         };
 
-        config.getSubreddits().then(function(subs){
+        config.getSubreddits().then(function success(subs){
             self.subreddits.all = subs;
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get list of subreddits from server."
+            });
         });
 
-        config.getEntryWeight().then(function(value) {
+        config.getEntryWeight().then(function success(value) {
             self.cloud.entryWeight = value;
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get cloud parameter `entryWeight` from server."
+            });
         });
 
-        config.getTotalWeight().then(function(value) {
+        config.getTotalWeight().then(function success(value) {
             self.cloud.totalWeight = value;
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get cloud parameter `totalWeight` from server."
+            });
         });
 
-        config.getBlacklist().then(function(value) {
+        config.getBlacklist().then(function success(value) {
             self.blacklist.all = value;
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get cloud parameter `blacklist` from server."
+            })
         });
 
         $scope.table = {

@@ -14,18 +14,29 @@
 
         $scope.selectedWords = [];
 
-        var entryPromise = config.getEntryWeight().then(function(item) {
+        var entryPromise = config.getEntryWeight().then(function success(item) {
             $scope.cloudParams.entryWeight = item.value;
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get cloud parameter `entryWeight` from server."
+            });
         });
 
-        var totalPromise = config.getTotalWeight().then(function(item) {
+        var totalPromise = config.getTotalWeight().then(function success(item) {
             $scope.cloudParams.totalWeight = item.value;
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get cloud parameter `totalWeight` from server."
+            });
         });
 
-        var blacklistPromise = config.getBlacklist().then(function(rv) {
-            $scope.cloudParams.blacklist = [];
-            rv.forEach(function(item) {
-                $scope.cloudParams.blacklist.push(item.value);
+        var blacklistPromise = config.getBlacklist().then(function success(items) {
+            $scope.cloudParams.blacklist = items.map(function(item){
+                return item.value;
+            });
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get cloud parameter `blacklist` from server."
             });
         });
 
@@ -47,7 +58,7 @@
                     }
                 });
             };
-            // Ensure both promises are resolved
+            // Ensure all promises are resolved
             entryPromise.then(function(){
                 totalPromise.then(function() {
                     blacklistPromise.then(_updateWeights);
@@ -66,7 +77,7 @@
                 year: $scope.cloudParams.date.getFullYear(),
                 month: $scope.cloudParams.date.getMonth() + 1,
                 day: $scope.cloudParams.date.getDate()
-            }, function(data){
+            }, function success(data){
                 $scope.words = data.map(function(item){
                     return {
                         text: item.word,
@@ -88,6 +99,10 @@
                     };
                 });
                 self.updateWeights();
+            }, function failure(){
+                $scope.$emit('ranalyze.error', {
+                    textContent: "Couldn't get word frequency from server."
+                });
             });
         };
 

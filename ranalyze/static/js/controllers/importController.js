@@ -9,11 +9,14 @@
 
             database.Entry.import({
                 file: $scope.file.files[0]
-            },
-            function(data){
+            }, function success(data){
                 $scope.response = data;
                 $scope.file.value=null;
+            }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't import csv."
             });
+        });
 
         };
 

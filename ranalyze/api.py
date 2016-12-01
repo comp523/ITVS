@@ -110,6 +110,7 @@ def config_query():
 @app.route('/config', methods=['POST'])
 @app.route('/config/<_id>', methods=['POST'])
 def config_update(_id=None):
+    return flask.abort(400)
     request = dict(flask.request.get_json())
     if _id:
         request["id"] = _id
