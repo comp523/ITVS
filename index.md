@@ -42,3 +42,7 @@ show_back_to_top: true
 {% include index/requirements.md %}
 
 {% include index/platform.md %}
+
+{% include index/quickstart.md %}
+
+{% include index/faq.md %}
