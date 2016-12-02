@@ -43,9 +43,10 @@ def schedule_for_import(fname):
             for cell in row:
 
                 add_update_object({"permalink" : cell}, IMPORT_TABLE)
-				count += 1
-	return count
-				
+                count += 1
+    return count
+
+
 def import_from_table():
     """
     retrieve permalinks from import table and scrape data into database
@@ -54,7 +55,7 @@ def import_from_table():
     count = 1
     while count > 0:
         dataQuery = SelectQuery(IMPORT_TABLE) #, limit=CHUNK_SIZE)
-        data = execute_query(dataQuery, raw=True)
+        data = execute_query(dataQuery, transpose=False)
         for row in data:
             for entry in fetch_post(row["permalink"]):
                 add_update_object(entry, ENTRY_TABLE)

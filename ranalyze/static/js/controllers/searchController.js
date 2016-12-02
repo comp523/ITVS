@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var searchController = function($scope, $filter, $mdDialog, strings, database) {
+    var searchController = function($scope, $filter, $mdDialog, constants, database) {
 
         var self = this,
             baseForm = {
@@ -44,8 +44,8 @@
 
         self.downloadSearch = function(){
             var params = angular.extend({}, $scope.form);
-            params.after = $filter('date')(params.after, strings.DATE.FORMAT);
-            params.before = $filter('date')(params.before, strings.DATE.FORMAT);
+            params.after = $filter('date')(params.after, constants.DATE.FORMAT);
+            params.before = $filter('date')(params.before, constants.DATE.FORMAT);
             database.Entry.downloadQuery(params);
         };
 
@@ -56,8 +56,8 @@
                 offset: ($scope.table.page - 1) * $scope.table.limit
             };
             angular.extend(params, $scope.form);
-            params.after = $filter('date')(params.after, strings.DATE.FORMAT);
-            params.before = $filter('date')(params.before, strings.DATE.FORMAT);
+            params.after = $filter('date')(params.after, constants.DATE.FORMAT);
+            params.before = $filter('date')(params.before, constants.DATE.FORMAT);
             database.Entry.query(params, function success(results){
                 if (results.total==0) {
                     $scope.$emit('ranalyze.error', {

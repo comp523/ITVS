@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var settingsController = function($scope, $mdDialog, $timeout, config){
+    var settingsController = function($scope, $mdDialog, $timeout, config, constants){
 
         var self = this;
 
@@ -13,7 +13,7 @@
                 $mdDialog.show(
                     $mdDialog.confirm()
                         .title('Delete Subreddits')
-                        .textContent('You are about to delete ' + numSubs + ' subreddit' + (numSubs>1?'s':''))
+                        .textContent(constants.STRINGS.DELETE_SUBREDDIT_WARNING)
                         .ariaLabel('Delete Subreddits')
                         .ok('Delete')
                         .cancel('Never mind')

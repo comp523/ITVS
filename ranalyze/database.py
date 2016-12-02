@@ -36,12 +36,13 @@ def connect(**kwargs):
             "passwd": os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'],
             "db": 'ranalyze'
         }
+
     with MySQLdb.connect(charset=CHAR_SET, **kwargs) as database:
         query = ("SET GLOBAL sql_mode="
                  "(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));")
         database.execute(query)
+
     return MySQLdb.connect(charset=CHAR_SET, **kwargs)
-        
 
 
 def add_update_object(obj, table):
@@ -112,29 +113,25 @@ def create_db():
     connection.close()
 
 
-def execute_query(query, commit=False, transpose=True, only_id=False, raw=False):
+def execute_query(query, commit=False, transpose=True, only_id=False):
     """
     Executes a given Query, optionally committing changes. Results are
     transposed by default.
     """
-
-    _database = connect()
-    cursor = _database.cursor(MySQLdb.cursors.DictCursor)
+    connection = connect()
     try:
+        cursor = connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute(query.sql, query.params)
-    except MySQLdb.OperationalError:
-        print("Query failed, recocnecting...")
-        connect().execute(query.sql, query.params)
-    if only_id:
-        return cursor.lastrowid
-    results = cursor.fetchall()
-    if commit:
-        _database.commit()
-    if raw:
+        if commit:
+            connection.commit()
+        if only_id:
+            return cursor.lastrowid
+        results = cursor.fetchall()
+        if transpose:
+            results = [_row_to_object(o) for o in results]
         return results
-    if transpose:
-        results = [_row_to_object(o) for o in results]
-    return results
+    finally:
+        connection.close()
 
 
 def get_entry(entry_id):
@@ -233,8 +230,13 @@ def _update_object(obj, table):
     Update an existing Entry in the database.
     """
 
+    values = obj.dict
+
+    if "id" in values:
+        del values["id"]
+
     query = UpdateQuery(table=table,
-                        values=obj.dict,
+                        values=values,
                         where=Condition("id", obj.id))
 
     return execute_query(query, commit=True, only_id=True)
