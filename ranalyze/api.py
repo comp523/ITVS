@@ -17,16 +17,15 @@ from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
 from .database import (
     add_update_object,
     connect,
-    execute_query,
-    remove_object_by_id
+    execute_query
 )
-from .frequency import overview
-from .imprt import import_file
+from .frequency import BLACKLIST, overview
+from .imprt import schedule_for_import
 from .models import ConfigEntryFactory
 from .query import Condition, DeleteQuery, SelectQuery
 from .scrape import get_subreddits
 from .search import search as search_db
-from .utils import iso_to_date
+from .utils import iso_to_date, timestamp_to_str
 
 app = flask.Flask(__name__)
 
@@ -84,19 +83,17 @@ def config_query():
     request = flask.request.args
     if "name" in request and request["name"] == "subreddit":
         results = get_subreddits()
-        col = "COUNT(*)"
         for item in results:
             condition = Condition("subreddit", item["value"])
-            post_condition = Condition("permalink", "IS NOT", None)
-            comment_condition = Condition("permalink", None)
+            cols = "SUM(permalink IS NULL) as comments, SUM(permalink IS NOT NULL) as posts"
             query = SelectQuery(table=ENTRY_TABLE,
-                                where=condition & post_condition,
-                                columns=col)
-            item["posts"] = execute_query(query, transpose=False)[0][col]
-            query = SelectQuery(table=ENTRY_TABLE,
-                                where=condition & comment_condition,
-                                columns=col)
-            item["comments"] = execute_query(query, transpose=False)[0][col]
+                                where=condition,
+                                columns=cols)
+            counts = execute_query(query, transpose=False)[0]
+            item["comments"] = counts["comments"]
+            item["posts"] = counts["posts"]
+    elif "name" in request and request["name"] == "serverBlacklist":
+        results = list(BLACKLIST)
     else:
         condition = Condition()
         for key in request:
@@ -192,8 +189,14 @@ def entry_query():
     entries = [e.dict for e in results]
 
     if download and entries:
+        for entry in entries:
+            entry["time_submitted_formatted"] = timestamp_to_str(entry["time_submitted"])
+            entry["time_updated_formatted"] = timestamp_to_str(entry["time_updated"])
+            if "root_id" not in entry:
+                entry["root_id"] = entry["id"]
+        fieldnames = ENTRY_FIELDS | {"time_submitted_formatted", "time_updated_formatted"}
         with StringIO() as buffer:
-            writer = DictWriter(buffer, fieldnames=ENTRY_FIELDS)
+            writer = DictWriter(buffer, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(entries)
             csv = buffer.getvalue()

@@ -20,6 +20,12 @@ def date_to_timestamp(date):
     return floor((date - EPOCH).total_seconds())
 
 
+def timestamp_to_str(timestamp):
+
+    date = datetime.datetime.fromtimestamp(timestamp)
+    return date.strftime('%Y-%m-%d %H:%M:%S')
+
+
 def iso_to_date(iso):
     """
     Convert ISO formatted date string to datetime.date object

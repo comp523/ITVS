@@ -61,6 +61,7 @@
         self.blacklist = {
             all: [],
             selected: [],
+            serverList: [],
             deleteSelected: function() {
                 var numSelected = self.blacklist.selected.length;
                 $mdDialog.show(
@@ -187,6 +188,14 @@
         }, function failure(){
             $scope.$emit('ranalyze.error', {
                 textContent: "Couldn't get cloud parameter `blacklist` from server."
+            })
+        });
+
+        config.getServerBlacklist().then(function success(value){
+            self.blacklist.serverList = value;
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get cloud parameter `serverBlacklist` from server."
             })
         });
 

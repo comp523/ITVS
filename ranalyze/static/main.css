@@ -36,3 +36,8 @@ i.label-icon.material-icons {
 .success-icon {
     color: darkgreen;
 }
+
+.small-list {
+    max-height: 300px;
+    overflow-y: auto;
+}

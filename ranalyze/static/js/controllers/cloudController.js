@@ -40,6 +40,15 @@
             });
         });
 
+        self.search = function(word) {
+            tabs.setTab(0);
+            $rootScope.$broadcast('search', {
+                query: word,
+                advanced: false,
+                subreddit: []
+            });
+        };
+
         self.updateWeights = function(){
             var _updateWeights = function(){
                 var entryWeight = $scope.cloudParams.entryWeight,
@@ -88,11 +97,8 @@
                         },
                         handlers: {
                             "click": function() {
-                                tabs.setTab(0);
-                                $rootScope.$broadcast('search', {
-                                    query: item.word,
-                                    advanced: false,
-                                    subreddit: []
+                                $rootScope.$apply(function(){
+                                    self.search(item.word);
                                 });
                             }
                         }
@@ -106,6 +112,7 @@
             });
         };
 
+        self.updateCloud();
 
     };
 

@@ -6,9 +6,7 @@
         $scope.selectedIndex = 0;
 
         tabs.setObserver(function(index) {
-            $scope.$apply(function(){
-                $scope.selectedIndex = index;
-            });
+            $scope.selectedIndex = index;
         });
 
     };

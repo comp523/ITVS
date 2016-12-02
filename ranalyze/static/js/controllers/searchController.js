@@ -95,6 +95,7 @@
 
         $scope.table = {
             limit: 10,
+            limitOptions: [10,25,50,100,250,500],
             page: 1,
             order: 'time_submitted'
         };
@@ -116,7 +117,7 @@
             var date1 = $scope.form.after,
                 date2 = $scope.form.before;
 
-            var valid = !(date1 && date2 && date1.getTime() > date2.getTime());
+            var valid = !(date1 && date2 && date1.getTime() >= date2.getTime());
 
             $scope.searchForm.before.$setValidity('order', valid);
 

@@ -29,6 +29,10 @@
                 blacklist: {
                     type: types.ARRAY,
                     name: "blacklist"
+                },
+                serverBlacklist: {
+                    type: types.ARRAY,
+                    name: "serverBlacklist"
                 }
             },
 

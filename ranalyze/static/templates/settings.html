@@ -34,13 +34,13 @@
             <md-table-pagination md-page="table.page" md-total="{{settingsCtrl.entries.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
         </md-tab>
         <md-tab label="word frequency">
-            <md-content class="md-padding">
-                <div class="center">
-                    <h2 flex="75" class="md-headline">
+            <md-content class="md-padding center">
+                <div flex="75">
+                    <h2 class="md-headline">
                         Word Cloud Parameters
-                        <md-divider></md-divider>
                     </h2>
-                    <div layout="row" layout-align="space-around center" flex="75">
+                    <md-divider></md-divider>
+                    <div layout="row" layout-align="space-around center">
                         <span flex="25">Entry Weight</span>
                         <md-slider-container flex="66">
 							<md-tooltip md-direction="right">Total number of posts the word occurs in</md-tooltip>
@@ -49,7 +49,7 @@
                         </md-slider-container>
                         <span flex class="md-padding" ng-bind="settingsCtrl.cloud.entryWeight.value"></span>
                     </div>
-                    <div layout="row" layout-align="space-around center" flex="75">
+                    <div layout="row" layout-align="space-around center">
                         <span flex="25">Total Occurrence Weight</span>
                         <md-slider-container flex="66">
 							<md-tooltip md-direction="right">Total number of times the word occurs</md-tooltip>
@@ -58,43 +58,59 @@
                         </md-slider-container>
                         <span flex class="md-padding" ng-bind="settingsCtrl.cloud.totalWeight.value"></span>
                     </div>
-                    <div layout="row" layout-align="end center" flex="75">
+                    <div layout="row" layout-align="end center">
                         <i ng-show="!settingsCtrl.cloud.saving && settingsCtrl.cloud.savingDelayed" class="material-icons success-icon">check</i>
                         <md-button ng-click="settingsCtrl.cloud.save()" ng-disabled="settingsCtrl.cloud.saving" class="md-primary md-raised">
                             Save
                         </md-button>
                     </div>
-                    <h2 flex="75" class="md-headline">
+                    <h2 class="md-headline">
                         Word Cloud Blacklist
-                        <md-divider></md-divider>
                     </h2>
-                    <div flex="75">
-                        <div layout="row">
-                            <md-button class="md-raised md-primary" ng-click="settingsCtrl.blacklist.add()">
-                                Add
-                            </md-button>
-                            <md-button class="md-raised md-warn" ng-click="settingsCtrl.blacklist.deleteSelected()"
-                                       ng-disabled="settingsCtrl.blacklist.selected.length == 0">
-                                Delete Selected
-                            </md-button>
-                        </div>
-                        <md-table-container>
-                            <table md-table md-row-select multiple ng-model="settingsCtrl.blacklist.selected">
-                                <thead md-head md-order="table.order">
-                                    <tr md-row>
-                                        <th md-column md-order-by="value"><span>Blacklisted Words</span></th>
-                                    </tr>
-                                </thead>
-                                <tbody md-body>
-                                    <tr md-row md-select="word" md-select-id="value" md-auto-select
-                                        ng-repeat="word in settingsCtrl.blacklist.all | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
-                                        <td md-cell>{{word.value}}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </md-table-container>
-                        <md-table-pagination md-page="table.page" md-total="{{settingsCtrl.blacklist.all.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+                    <div class="md-subhead">
+                        These words are filtered out when viewing the world cloud.
+                        Words in this list are not excluded when calculating frequencies.
                     </div>
+                    <md-divider></md-divider>
+                    <div layout="row">
+                        <md-button class="md-raised md-primary" ng-click="settingsCtrl.blacklist.add()">
+                            Add
+                        </md-button>
+                        <md-button class="md-raised md-warn" ng-click="settingsCtrl.blacklist.deleteSelected()"
+                                   ng-disabled="settingsCtrl.blacklist.selected.length == 0">
+                            Delete Selected
+                        </md-button>
+                    </div>
+                    <md-table-container>
+                        <table md-table md-row-select multiple ng-model="settingsCtrl.blacklist.selected">
+                            <thead md-head md-order="table.order">
+                                <tr md-row>
+                                    <th md-column md-order-by="value"><span>Blacklisted Words</span></th>
+                                </tr>
+                            </thead>
+                            <tbody md-body>
+                                <tr md-row md-select="word" md-select-id="value" md-auto-select
+                                    ng-repeat="word in settingsCtrl.blacklist.all | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
+                                    <td md-cell>{{word.value}}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </md-table-container>
+                    <md-table-pagination md-page="table.page" md-total="{{settingsCtrl.blacklist.all.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+                    <h2 class="md-headline">
+                        Default Blacklist
+                    </h2>
+                    <div class="md-subhead">
+                        These words are excluded when calculating word frequency,
+                        they are common words that will never need to be analyzed.<br>
+                        This list is predefined and read-only.
+                    </div>
+                    <md-divider></md-divider>
+                    <md-list class="small-list md-dense">
+                        <md-list-item ng-repeat="item in settingsCtrl.blacklist.serverList | orderBy: item">
+                            {{ item }}
+                        </md-list-item>
+                    </md-list>
                 </div>
             </md-content>
         </md-tab>

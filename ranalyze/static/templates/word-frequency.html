@@ -28,7 +28,7 @@
                         <tbody md-body>
                             <tr md-row
                                 ng-repeat="word in words | orderBy: tableOrder">
-                                <td md-cell>{{word.text}}</td>
+                                <td md-cell ng-click="ctrl.search(word.text)">{{word.text}}</td>
                                 <td md-cell>{{word.entries}}</td>
                                 <td md-cell>{{word.total}}</td>
                                 <td md-cell>{{word.weight}}</td>
