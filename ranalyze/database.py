@@ -78,7 +78,7 @@ def create_db():
     queries = ("DROP TABLE IF EXISTS {}".format(ENTRY_TABLE),
                "DROP TABLE IF EXISTS {}".format(FREQUENCY_TABLE),
                "DROP TABLE IF EXISTS {}".format(CONFIG_TABLE),
-			   "DROP TABLE IF EXISTS {}".format(IMPORT_TABLE),
+               "DROP TABLE IF EXISTS {}".format(IMPORT_TABLE),
                """
                CREATE TABLE {} (
                id varchar(255) PRIMARY KEY, permalink text, root_id text,
@@ -104,11 +104,11 @@ def create_db():
                )
                DEFAULT CHARACTER SET {}
                """.format(CONFIG_TABLE, CHAR_SET),
-			   """
-			   CREATE TABLE {} (
-			   permalink text)
-			   DEFAULT CHARACTER SET {}
-			   """.format(IMPORT_TABLE, CHAR_SET)
+               """
+               CREATE TABLE {} (
+               permalink text)
+               DEFAULT CHARACTER SET {}
+               """.format(IMPORT_TABLE, CHAR_SET)
                )
 
     for query in queries:
@@ -139,8 +139,8 @@ def execute_query(query, commit=False, transpose=True, only_id=False, raw=False)
     results = cursor.fetchall()
     if commit:
         _database.commit()
-	if raw:
-		return results
+    if raw:
+        return results
     if transpose:
         results = [_row_to_object(o) for o in results]
     return results
