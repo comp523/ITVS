@@ -41,10 +41,11 @@ def schedule_for_import(fname):
         csvreader = csv.reader(importcsv)
         for row in csvreader:
             for cell in row:
-                add_update_object({permalink : cell}, IMPORT_TABLE)
-                count += 1
-    return count
-                
+
+                add_update_object({"permalink" : cell}, IMPORT_TABLE)
+				count += 1
+	return count
+				
 def import_from_table():
     """
     retrieve permalinks from import table and scrape data into database
@@ -58,9 +59,9 @@ def import_from_table():
             for entry in fetch_post(row["permalink"]):
                 add_update_object(entry, ENTRY_TABLE)
 
-# Hasn't been tested with DeleteQuery, almost certainly won't work without testing                
-                
-#            deleteQuery = DeleteQuery(IMPORT_TABLE, where={permalink: row[0]})
+# Hasn't been tested with DeleteQuery, almost certainly won't work without testing				
+				
+#			deleteQuery = DeleteQuery(IMPORT_TABLE, where={permalink: row[0]})
         count = 0
-#        countQuery = SelectQuery(IMPORT_TABLE, "count(*)")
-#        count = execute_query(countQuery)
+#		countQuery = SelectQuery(IMPORT_TABLE, "count(*)")
+#		count = execute_query(countQuery)
