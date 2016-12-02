@@ -22,32 +22,26 @@ from .query import (
 )
 
 
-_database = None
-
-
 def connect(**kwargs):
     """
     Opens the connection to the database.
     """
-    global _database
 
-    if not _database:
 
-        if not kwargs:
-            kwargs = {
-                "host": os.environ['OPENSHIFT_MYSQL_DB_HOST'],
-                "port": int(os.environ['OPENSHIFT_MYSQL_DB_PORT']),
-                "user": os.environ['OPENSHIFT_MYSQL_DB_USERNAME'],
-                "passwd": os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'],
-                "db": 'ranalyze'
-            }
-
-        with MySQLdb.connect(charset=CHAR_SET, **kwargs) as database:
-            query = ("SET GLOBAL sql_mode="
-                     "(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));")
-            database.execute(query)
-
-        _database = MySQLdb.connect(charset=CHAR_SET, **kwargs)
+    if not kwargs:
+        kwargs = {
+            "host": os.environ['OPENSHIFT_MYSQL_DB_HOST'],
+            "port": int(os.environ['OPENSHIFT_MYSQL_DB_PORT']),
+            "user": os.environ['OPENSHIFT_MYSQL_DB_USERNAME'],
+            "passwd": os.environ['OPENSHIFT_MYSQL_DB_PASSWORD'],
+            "db": 'ranalyze'
+        }
+    with MySQLdb.connect(charset=CHAR_SET, **kwargs) as database:
+        query = ("SET GLOBAL sql_mode="
+                 "(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));")
+        database.execute(query)
+    return MySQLdb.connect(charset=CHAR_SET, **kwargs)
+        
 
 
 def add_update_object(obj, table):
@@ -123,17 +117,14 @@ def execute_query(query, commit=False, transpose=True, only_id=False, raw=False)
     Executes a given Query, optionally committing changes. Results are
     transposed by default.
     """
-    global _database
 
-    connect()
+    _database = connect()
     cursor = _database.cursor(MySQLdb.cursors.DictCursor)
     try:
         cursor.execute(query.sql, query.params)
     except MySQLdb.OperationalError:
         print("Query failed, recocnecting...")
-        _database = None
-        connect()
-        cursor.execute(query.sql, query.params)
+        connect().execute(query.sql, query.params)
     if only_id:
         return cursor.lastrowid
     results = cursor.fetchall()
@@ -195,7 +186,7 @@ def _add_object(obj, table):
                         values=obj)
     return execute_query(query, commit=True, only_id=True)
 
-
+'''
 @atexit.register
 def _close():
     """
@@ -203,7 +194,7 @@ def _close():
     """
     if _database:
         _database.close()
-
+'''
 
 def object_exists(obj, table):
     """
