@@ -14,10 +14,16 @@ from csv import DictWriter
 from io import StringIO
 from tempfile import NamedTemporaryFile
 from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
-from .database import connect, execute_query
+from .database import (
+    add_update_object,
+    connect,
+    execute_query,
+    remove_object_by_id
+)
 from .frequency import overview
 from .imprt import import_file
-from .query import Condition, SelectQuery
+from .models import ConfigEntryFactory
+from .query import Condition, DeleteQuery, SelectQuery
 from .scrape import get_subreddits
 from .search import search as search_db
 from .utils import iso_to_date
@@ -57,34 +63,68 @@ def compile_js():
     return response
 
 
-@app.route('/config/subreddit')
-def config_subreddit():
-    results = get_subreddits()
-    col = "COUNT(*)"
-    for item in results:
-        condition = Condition("subreddit", item["value"])
-        post_condition = Condition("permalink", "IS NOT", None)
-        comment_condition = Condition("permalink", None)
-        query = SelectQuery(table=ENTRY_TABLE,
-                            where=condition & post_condition,
-                            columns=col)
-        item["posts"] = execute_query(query, transpose=False)[0][col]
-        query = SelectQuery(table=ENTRY_TABLE,
-                            where=condition & comment_condition,
-                            columns=col)
-        item["comments"] = execute_query(query, transpose=False)[0][col]
-    return flask.jsonify(results)
-
-
-@app.route('/config/<name>')
-def config_cloud(name):
-    condition = Condition("name", name)
+@app.route('/config/<_id>', methods=["GET", "DELETE"])
+def config_item(_id):
+    condition = Condition("id", _id)
     query = SelectQuery(table=CONFIG_TABLE,
                         where=condition)
     results = [e.dict for e in execute_query(query)]
-    if not results:
-        return flask.abort(400)
+    if flask.request.method == "GET":
+        if not results:
+            return flask.jsonify({})
+    else:
+        query = DeleteQuery(table=CONFIG_TABLE,
+                            where=condition)
+        execute_query(query, transpose=False, commit=True)
+    return flask.jsonify(results[0])
+
+
+@app.route('/config', methods=["GET"])
+def config_query():
+    request = flask.request.args
+    if "name" in request and request["name"] == "subreddit":
+        results = get_subreddits()
+        col = "COUNT(*)"
+        for item in results:
+            condition = Condition("subreddit", item["value"])
+            post_condition = Condition("permalink", "IS NOT", None)
+            comment_condition = Condition("permalink", None)
+            query = SelectQuery(table=ENTRY_TABLE,
+                                where=condition & post_condition,
+                                columns=col)
+            item["posts"] = execute_query(query, transpose=False)[0][col]
+            query = SelectQuery(table=ENTRY_TABLE,
+                                where=condition & comment_condition,
+                                columns=col)
+            item["comments"] = execute_query(query, transpose=False)[0][col]
+    else:
+        condition = Condition()
+        for key in request:
+            condition &= Condition(key, request[key])
+        query = SelectQuery(table=CONFIG_TABLE,
+                            where=condition)
+        results = [e.dict for e in execute_query(query)]
     return flask.jsonify(results)
+
+
+@app.route('/config', methods=['POST'])
+@app.route('/config/<_id>', methods=['POST'])
+def config_update(_id=None):
+    return flask.abort(400)
+    request = dict(flask.request.get_json())
+    if _id:
+        request["id"] = _id
+    if 'name' not in request or 'value' not in request:
+        return flask.abort(400)
+    item = ConfigEntryFactory.from_dict(request)
+    insert_id = add_update_object(item, CONFIG_TABLE)
+    if _id is None:
+        _id = insert_id
+    condition = Condition("id", _id)
+    query = SelectQuery(table=CONFIG_TABLE,
+                        where=condition)
+    result = execute_query(query)[0].dict
+    return flask.jsonify(result)
 
 
 @app.route('/entry/import', methods=['POST'])
@@ -95,14 +135,14 @@ def entry_import():
     f = flask.request.files['file']
     temp = NamedTemporaryFile()
     f.save(temp)
-    import_file(temp.name)
+    count = schedule_for_import(temp.name)
     return flask.jsonify({
         'success': True,
-        'status': 'File uploaded successfully'
+        'status': '{} permalinks scheduled for import'.format(count)
     })
 
 
-@app.route('/entry/')
+@app.route('/entry')
 def entry_query():
     """
     Search wtihout expressions

@@ -6,7 +6,7 @@ import atexit
 import MySQLdb
 import os
 
-from .constants import CHAR_SET, CONFIG_TABLE, ENTRY_TABLE, FREQUENCY_TABLE
+from .constants import CHAR_SET, CONFIG_TABLE, ENTRY_TABLE, FREQUENCY_TABLE, IMPORT_TABLE
 from .models import (
     CommentFactory,
     ConfigEntryFactory,
@@ -17,7 +17,8 @@ from .query import (
     Condition,
     InsertQuery,
     SelectQuery,
-    UpdateQuery
+    UpdateQuery,
+    DeleteQuery
 )
 
 
@@ -49,7 +50,6 @@ def connect(**kwargs):
         _database = MySQLdb.connect(charset=CHAR_SET, **kwargs)
 
 
-
 def add_update_object(obj, table):
     """
     Add an Entry to the database or update if it already exists.
@@ -57,9 +57,9 @@ def add_update_object(obj, table):
     """
 
     if object_exists(obj, table):
-        _update_object(obj, table)
+        return _update_object(obj, table)
     else:
-        _add_object(obj, table)
+        return _add_object(obj, table)
 
 
 def create_db():
@@ -78,6 +78,7 @@ def create_db():
     queries = ("DROP TABLE IF EXISTS {}".format(ENTRY_TABLE),
                "DROP TABLE IF EXISTS {}".format(FREQUENCY_TABLE),
                "DROP TABLE IF EXISTS {}".format(CONFIG_TABLE),
+			   "DROP TABLE IF EXISTS {}".format(IMPORT_TABLE),
                """
                CREATE TABLE {} (
                id varchar(255) PRIMARY KEY, permalink text, root_id text,
@@ -102,7 +103,12 @@ def create_db():
                value varchar(255)
                )
                DEFAULT CHARACTER SET {}
-               """.format(CONFIG_TABLE, CHAR_SET)
+               """.format(CONFIG_TABLE, CHAR_SET),
+			   """
+			   CREATE TABLE {} (
+			   permalink text)
+			   DEFAULT CHARACTER SET {}
+			   """.format(IMPORT_TABLE, CHAR_SET)
                )
 
     for query in queries:
@@ -112,7 +118,7 @@ def create_db():
     connection.close()
 
 
-def execute_query(query, commit=False, transpose=True):
+def execute_query(query, commit=False, transpose=True, only_id=False, raw=False):
     """
     Executes a given Query, optionally committing changes. Results are
     transposed by default.
@@ -128,13 +134,16 @@ def execute_query(query, commit=False, transpose=True):
         _database = None
         connect()
         cursor.execute(query.sql, query.params)
-    finally:
-        results = cursor.fetchall()
-        if commit:
-            _database.commit()
-        if transpose:
-            results = [_row_to_object(o) for o in results]
-        return results
+    if only_id:
+        return cursor.lastrowid
+    results = cursor.fetchall()
+    if commit:
+        _database.commit()
+	if raw:
+		return results
+    if transpose:
+        results = [_row_to_object(o) for o in results]
+    return results
 
 
 def get_entry(entry_id):
@@ -170,8 +179,11 @@ def get_latest_post(subreddit):
     return get_entry(latest_id)
 
 
-def add_subreddit(subreddit):
-    _add_object({"name":"subreddit", "value":subreddit}, CONFIG_TABLE)
+def remove_object_by_id(_id, table):
+    cond = Condition('id', _id)
+    query = DeleteQuery(table=table,
+                        where=cond)
+    execute_query(query, commit=True)
 
 
 def _add_object(obj, table):
@@ -180,8 +192,8 @@ def _add_object(obj, table):
     """
 
     query = InsertQuery(table=table,
-                        values=obj.dict)
-    execute_query(query, commit=True)
+                        values=obj)
+    return execute_query(query, commit=True, only_id=True)
 
 
 @atexit.register
@@ -234,7 +246,7 @@ def _update_object(obj, table):
                         values=obj.dict,
                         where=Condition("id", obj.id))
 
-    execute_query(query, commit=True)
+    return execute_query(query, commit=True, only_id=True)
 
 
 class DatabaseError(Exception):

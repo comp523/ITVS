@@ -14,7 +14,7 @@
 
         self.setObserver = function(func) {
             observer = func;
-        }
+        };
 
     };
 

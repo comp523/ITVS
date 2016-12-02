@@ -3,7 +3,9 @@
 
     var configFactory = function(database) {
 
-        var config = {},
+        var config = {
+            Item: database.ConfigItem
+            },
 
             types = {
                 ARRAY: 0,
@@ -23,6 +25,10 @@
                 totalWeight: {
                     type: types.NUMBER,
                     name: "totalWeight"
+                },
+                blacklist: {
+                    type: types.ARRAY,
+                    name: "blacklist"
                 }
             },
 
@@ -35,7 +41,7 @@
         angular.forEach(fields, function(properties, field){
             config[nameToGetter(field)] = function(){
                 return database.ConfigItem.query({
-                    id: properties.name
+                    name: properties.name
                 }).$promise.then(function(results) {
                     switch (properties.type) {
                         case types.ARRAY:

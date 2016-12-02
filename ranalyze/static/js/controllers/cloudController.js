@@ -6,17 +6,38 @@
         var self = this;
 
         $scope.cloudParams = {};
-
+        $scope.cloudParams.date = new Date();
         self.cloudMode = true;
+
 
         $scope.tableOrder = "-weight";
 
-        var entryPromise = config.getEntryWeight().then(function(item) {
+        $scope.selectedWords = [];
+
+        var entryPromise = config.getEntryWeight().then(function success(item) {
             $scope.cloudParams.entryWeight = item.value;
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get cloud parameter `entryWeight` from server."
+            });
         });
 
-        var totalPromise = config.getTotalWeight().then(function(item) {
+        var totalPromise = config.getTotalWeight().then(function success(item) {
             $scope.cloudParams.totalWeight = item.value;
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get cloud parameter `totalWeight` from server."
+            });
+        });
+
+        var blacklistPromise = config.getBlacklist().then(function success(items) {
+            $scope.cloudParams.blacklist = items.map(function(item){
+                return item.value;
+            });
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get cloud parameter `blacklist` from server."
+            });
         });
 
         self.updateWeights = function(){
@@ -28,44 +49,63 @@
                 }
                 // Trigger an update by deep copying the words array
                 $scope.words = angular.copy($scope.words);
+
+                // Adding non-blacklisted words to the cloud view
+                $scope.cloudParams.words = [];
+                $scope.words.forEach(function(word) {
+                    if (!$scope.cloudParams.blacklist.includes(word.text)) {
+                        $scope.cloudParams.words.push(word);
+                    }
+                });
             };
-            // Ensure both promises are resolved
+            // Ensure all promises are resolved
             entryPromise.then(function(){
-                totalPromise.then(_updateWeights);
+                totalPromise.then(function() {
+                    blacklistPromise.then(_updateWeights);
+                });
             });
         };
 
-        var d = new Date();
 
-        database.Frequency.overview({
-            gran: database.Frequency.granularity.DAY,
-            limit: 150,
-            year: 2016, //d.getFullYear()
-            month: 11, //d.getMonth() + 1
-            day: 14 //d.getDate()
-        }, function(data){
-            $scope.words = data.map(function(item){
-                return {
-                    text: item.word,
-                    entries: item.entries,
-                    total: item.total,
-                    html: {
-                        class: 'clickable'
-                    },
-                    handlers: {
-                        "click": function() {
-                            tabs.setTab(0);
-                            $rootScope.$broadcast('search', {
-                                query: item.word,
-                                advanced: false,
-                                subreddit: []
-                            });
+        /**
+         * Updates the cloud with new date and weight parameters
+         */
+        self.updateCloud = function() {
+            database.Frequency.overview({
+                gran: database.Frequency.granularity.DAY,
+                limit: 150,
+                year: $scope.cloudParams.date.getFullYear(),
+                month: $scope.cloudParams.date.getMonth() + 1,
+                day: $scope.cloudParams.date.getDate()
+            }, function success(data){
+                $scope.words = data.map(function(item){
+                    return {
+                        text: item.word,
+                        entries: item.entries,
+                        total: item.total,
+                        html: {
+                            class: 'clickable'
+                        },
+                        handlers: {
+                            "click": function() {
+                                tabs.setTab(0);
+                                $rootScope.$broadcast('search', {
+                                    query: item.word,
+                                    advanced: false,
+                                    subreddit: []
+                                });
+                            }
                         }
-                    }
-                };
+                    };
+                });
+                self.updateWeights();
+            }, function failure(){
+                $scope.$emit('ranalyze.error', {
+                    textContent: "Couldn't get word frequency from server."
+                });
             });
-            self.updateWeights();
-        });
+        };
+
 
     };
 

@@ -1,12 +1,12 @@
 <md-content class="md-padding" ng-controller="cloudController as ctrl" layout="column">
-    <md-tabs md-dynamic-height md-center-tabs md-border-bottom>
+    <md-tabs md-dynamic-height md-center-tabs md-border-bottom><!--md-center-tabs-->
         <md-tab>
             <md-tab-label>
                 <i class="material-icons label-icon">cloud</i>
                 cloud
             </md-tab-label>
             <md-tab-body>
-                <jqcloud ng-if="firstActive && (words.length > 0)" words="words" height="500" auto-resize="true"></jqcloud>
+                <jqcloud ng-if="firstActive && (words.length > 0)" words="cloudParams.words" height="500" auto-resize="true"></jqcloud>
             </md-tab-body>
         </md-tab>
         <md-tab>
@@ -16,7 +16,7 @@
             </md-tab-label>
             <md-tab-body>
                 <md-table-container>
-                    <table md-table>
+                    <table md-table >
                         <thead md-head md-order="tableOrder">
                             <tr md-row>
                                 <th md-column><span>Word</span></th>
@@ -43,6 +43,7 @@
         <div layout="column" layout-align="start center">
             <span>Entry Weight</span>
             <md-slider-container>
+				<md-tooltip md-direction="right">Total number of posts the word occurs in</md-tooltip>
                 <md-slider flex min="0" max="10" ng-model="cloudParams.entryWeight" aria-label="Entry Weight" id="entry-slider">
                 </md-slider>
                 <md-input-container>
@@ -54,13 +55,18 @@
         <div layout="column">
             <span>Total Occurrence Weight</span>
             <md-slider-container>
+			<md-tooltip md-direction="right">Total number of times the word occurs</md-tooltip>
                 <md-slider flex min="0" max="10" ng-model="cloudParams.totalWeight" aria-label="Total Occurrence Weight" id="total-slider">
-                </md-slider>
+				</md-slider>
                 <md-input-container>
                     <input flex type="number" ng-model="cloudParams.totalWeight" aria-label="Total Occurrence Weight" aria-controls="total-slider">
                 </md-input-container>
             </md-slider-container>
         </div>
-        <md-button class="md-primary" ng-click="ctrl.updateWeights()">Apply</md-button>
+        <md-input-container>
+            <label>Date</label>
+            <md-datepicker name="cloudDate" ng-model="cloudParams.date" aria-label="Date" id="cloud-date"></md-datepicker>
+        </md-input-container>
+        <md-button class="md-primary md-raised" ng-click="ctrl.updateCloud()">Apply</md-button>
     </div>
 </md-content>

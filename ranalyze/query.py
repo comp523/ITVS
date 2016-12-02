@@ -78,6 +78,26 @@ class Query(object, metaclass=abc.ABCMeta):
         pass
 
 
+class DeleteQuery(Query):
+    """
+    """
+
+    FORMAT = "DELETE FROM {table} WHERE {where}"
+
+    def __init__(self, table, where):
+        self._params = where.params
+        self._sql = DeleteQuery.FORMAT.format(table=table,
+                                              where=where.sql)
+
+    @property
+    def sql(self):
+        return self._sql
+
+    @property
+    def params(self):
+        return self._params
+
+
 class InsertQuery(Query):
     """"""
 
@@ -85,7 +105,7 @@ class InsertQuery(Query):
 
     def __init__(self, table, values):
 
-        params = {key: "_i{}".format(i) for i, key in enumerate(values)}
+        params = {key: "_i{}".format(i) for i, key in enumerate(values.keys())}
         self._params = {param: values[key] for key, param in params.items()}
         values = ", ".join(["%({})s".format(v) for v in params.values()])
         self._sql = InsertQuery.FORMAT.format(table=table,
@@ -158,6 +178,27 @@ class UpdateQuery(Query):
         self._sql = UpdateQuery.FORMAT.format(table=table,
                                               columns=columns,
                                               where=where.sql)
+
+    @property
+    def sql(self):
+        return self._sql
+
+    @property
+    def params(self):
+        return self._params
+
+
+class DeleteQuery(Query):
+    """
+    """
+
+    FORMAT = "DELETE FROM {table} WHERE {where}"
+
+    def __init__(self, table, where):
+        self._sql = DeleteQuery.FORMAT.format(table=table,
+                                              where=where.sql)
+        self._params = {}
+        self._params.update(where.params)
 
     @property
     def sql(self):

@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var databaseService = function($resource, $q, $http, $httpParamSerializer) {
+    var databaseService = function($resource, $httpParamSerializer, $window) {
 
         var self = this;
 
@@ -30,13 +30,19 @@
                 isArray: false,
                 transformResponse: function(json) {
                     var data = angular.fromJson(json);
-                    for (var i=0, j=data.results.length;i<j;i++) {
-                        data.results[i] = new self.Entry(data.results[i]);
-                    }
+                    data.results = data.results.map(function(item) {
+                        return new self.Entry(item);
+                    });
                     return data;
                 }
             }
         });
+
+        self.Entry.downloadQuery = function(params) {
+            params.download = true;
+            var url = '/entry?' + $httpParamSerializer(params);
+            $window.open(url);
+        };
 
         Object.defineProperty(self.Entry.prototype, "type", {
             get: function(){
@@ -58,7 +64,9 @@
             DAY: "day"
         };
 
-        self.ConfigItem = $resource('/config/:id');
+        self.ConfigItem = $resource('/config/:id', {
+            id: '@id'
+        });
 
     };
 

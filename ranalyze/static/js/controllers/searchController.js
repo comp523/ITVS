@@ -42,6 +42,13 @@
 
         };
 
+        self.downloadSearch = function(){
+            var params = angular.extend({}, $scope.form);
+            params.after = $filter('date')(params.after, strings.DATE.FORMAT);
+            params.before = $filter('date')(params.before, strings.DATE.FORMAT);
+            database.Entry.downloadQuery(params);
+        };
+
         self.search = function(){
             var params = {
                 limit: $scope.table.limit,
@@ -51,16 +58,12 @@
             angular.extend(params, $scope.form);
             params.after = $filter('date')(params.after, strings.DATE.FORMAT);
             params.before = $filter('date')(params.before, strings.DATE.FORMAT);
-            database.Entry.query(params, function(results){
+            database.Entry.query(params, function success(results){
                 if (results.total==0) {
-                    $mdDialog.show(
-                        $mdDialog.alert()
-                            .clickOutsideToClose(true)
-                            .title('No Results')
-                            .textContent('This search yielded no results. Try broadening your criteria.')
-                            .ariaLabel('No Results')
-                            .ok('Ok')
-                    );
+                    $scope.$emit('ranalyze.error', {
+                        title: "No Results",
+                        textContent: "This search yielded no results. Try broadening your criteria."
+                    });
                 }
                 if ($scope.form.advanced) {
                     var regex = /(["'])(.*?)\1/g;
@@ -75,11 +78,19 @@
                 }
                 self.entries = results.results;
                 self.entryCount = results.total;
+            }, function failure(){
+                $scope.$emit('ranalyze.error', {
+                    textContent: "Something went wrong while trying to search."
+                });
             });
         };
 
-        database.Entry.getSubreddits(function(subreddits){
+        database.Entry.getSubreddits(function success(subreddits){
             self.subreddits = subreddits;
+        }, function failure(){
+            $scope.$emit('ranalyze.error', {
+                textContent: "Couldn't get list of subreddits from server."
+            });
         });
 
         $scope.table = {
