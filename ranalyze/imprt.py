@@ -54,15 +54,12 @@ def import_from_table():
     connect()
     count = 1
     while count > 0:
-        dataQuery = SelectQuery(IMPORT_TABLE) #, limit=CHUNK_SIZE)
+        dataQuery = SelectQuery(IMPORT_TABLE, limit=CHUNK_SIZE)
         data = execute_query(dataQuery, transpose=False)
         for row in data:
             for entry in fetch_post(row["permalink"]):
-                add_update_object(entry, ENTRY_TABLE)
-
-# Hasn't been tested with DeleteQuery, almost certainly won't work without testing				
-				
-#			deleteQuery = DeleteQuery(IMPORT_TABLE, where={permalink: row[0]})
+                add_update_object(entry, ENTRY_TABLE)				
+            deleteQuery = DeleteQuery(IMPORT_TABLE, where=Condition("permalink", row["permalink"]))
         count = 0
-#		countQuery = SelectQuery(IMPORT_TABLE, "count(*)")
-#		count = execute_query(countQuery)
+        countQuery = SelectQuery(IMPORT_TABLE, "count(*) as numleft")
+        count = execute_query(countQuery, transpose=false)['numleft']
