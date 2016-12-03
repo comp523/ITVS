@@ -8,7 +8,8 @@ Tool to traverse a set of subreddits extracting post/comment information includi
 
 import praw
 
-from .constants import CONFIG_TABLE, ENTRY_TABLE
+from datetime import datetime
+from .constants import ENTRY_TABLE, SUBREDDIT_TABLE
 from .database import (
     add_update_object,
     connect,
@@ -21,7 +22,8 @@ from .models import (
     Post,
     PostFactory
 )
-from .query import Condition, SelectQuery
+from .query import Condition, SelectQuery, UpdateQuery
+from .utils import date_to_timestamp
 
 
 def traverse_comments(top_level_comments):
@@ -51,6 +53,14 @@ def fetch_data(subreddit_set):
 
     for subreddit_name in subreddit_set:
 
+        condition = Condition("name", subreddit_name)
+
+        query = UpdateQuery(table=SUBREDDIT_TABLE,
+                            values={"scraping": 1},
+                            where=condition)
+
+        execute_query(query, commit=True)
+
         subreddit = reddit.get_subreddit(subreddit_name)
 
         before = get_latest_post(subreddit_name)
@@ -67,6 +77,17 @@ def fetch_data(subreddit_set):
 
             for comment in traverse_comments(post.comments):
                 yield(comment)  # yields all post comments
+
+        timestamp = date_to_timestamp(datetime.now())
+
+        query = UpdateQuery(table=SUBREDDIT_TABLE,
+                            values={
+                                "scraping": 0,
+                                "last_scraped": timestamp
+                            },
+                            where=condition)
+
+        execute_query(query, commit=True)
 
 
 def fetch_post(permalink):
@@ -102,9 +123,7 @@ def update_posts(date_range):
 
 
 def get_subreddits():
-    condition = Condition("name", "subreddit")
-    query = SelectQuery(table=CONFIG_TABLE,
-                        where=condition)
+    query = SelectQuery(table=SUBREDDIT_TABLE)
     return execute_query(query, transpose=False)
 
 
@@ -113,8 +132,6 @@ def scrape(subreddits):
     Parse CLI arguments, fetch data from requested subreddits, and generate
     Excel workbook.
     """
-
-    connect()
 
     if type(subreddits) is str:
         subreddits = [subreddits]

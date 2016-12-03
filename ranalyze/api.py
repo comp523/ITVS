@@ -13,7 +13,7 @@ import os
 from csv import DictWriter
 from io import StringIO
 from tempfile import NamedTemporaryFile
-from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE
+from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE, SUBREDDIT_TABLE
 from .database import (
     add_update_object,
     connect,
@@ -21,7 +21,7 @@ from .database import (
 )
 from .frequency import BLACKLIST, overview
 from .imprt import schedule_for_import
-from .models import ConfigEntryFactory
+from .models import ConfigEntryFactory, SubredditFactory
 from .query import Condition, DeleteQuery, SelectQuery
 from .scrape import get_subreddits
 from .search import search as search_db
@@ -81,18 +81,7 @@ def config_item(_id):
 @app.route('/config', methods=["GET"])
 def config_query():
     request = flask.request.args
-    if "name" in request and request["name"] == "subreddit":
-        results = get_subreddits()
-        for item in results:
-            condition = Condition("subreddit", item["value"])
-            cols = "SUM(permalink IS NULL) as comments, SUM(permalink IS NOT NULL) as posts"
-            query = SelectQuery(table=ENTRY_TABLE,
-                                where=condition,
-                                columns=cols)
-            counts = execute_query(query, transpose=False)[0]
-            item["comments"] = counts["comments"]
-            item["posts"] = counts["posts"]
-    elif "name" in request and request["name"] == "serverBlacklist":
+    if "name" in request and request["name"] == "serverBlacklist":
         results = list(BLACKLIST)
     else:
         condition = Condition()
@@ -244,6 +233,55 @@ def frequency_overview():
             options[key] = [int(v) for v in request.getlist(key)]
 
     return flask.jsonify(overview(**options))
+
+
+@app.route('/subreddit', methods=["GET"])
+def subreddit_query():
+    request = dict(flask.request.args)
+    condition = Condition()
+    for key, value in request.items():
+        condition &= Condition(key, value)
+    query = SelectQuery(table=SUBREDDIT_TABLE,
+                        where=condition)
+    results = execute_query(query, transpose=False)
+    for item in results:
+        condition = Condition("subreddit", item["name"])
+        columns = ("SUM(permalink IS NULL) as comments, "
+                   "SUM(permalink IS NOT NULL) as posts")
+        query = SelectQuery(table=ENTRY_TABLE,
+                            columns=columns,
+                            where=condition)
+        item.update(execute_query(query, transpose=False)[0])
+    return flask.jsonify(results)
+
+
+@app.route('/subreddit/<_id>', methods=["GET", "DELETE"])
+def subreddit_item(_id):
+    condition = Condition("id", _id)
+    query = SelectQuery(table=SUBREDDIT_TABLE,
+                        where=condition)
+    results = execute_query(query, transpose=False)
+    if flask.request.method == "GET":
+        if not results:
+            return flask.jsonify({})
+    else:
+        query = DeleteQuery(table=SUBREDDIT_TABLE,
+                            where=condition)
+        execute_query(query, transpose=False, commit=True)
+    return flask.jsonify(results[0])
+
+
+@app.route('/subreddit/<name>', methods=['POST'])
+def subreddit_update(name):
+    request = dict(flask.request.get_json())
+    request["name"] = name
+    item = SubredditFactory.from_dict(request)
+    add_update_object(item, SUBREDDIT_TABLE)
+    condition = Condition("name", name)
+    query = SelectQuery(table=SUBREDDIT_TABLE,
+                        where=condition)
+    result = execute_query(query, transpose=False)[0]
+    return flask.jsonify(result)
 
 
 def env_shiv():

@@ -9,12 +9,15 @@ from .constants import (
     COMMENT_FIELDS,
     CONFIG_ENTRY_FIELDS,
     POST_FIELDS,
+    SUBREDDIT_FIELDS,
     WORD_DAY_FIELDS
 )
 from .utils import date_to_timestamp, sanitize_string
 
 
 class ModelObject(object, metaclass=abc.ABCMeta):
+
+    KEY = "id"
 
     def __init__(self, **kwargs):
         object.__setattr__(self, "_attrs",
@@ -222,6 +225,22 @@ class ConfigEntryFactory(ModelFactory):
     @staticmethod
     def _get_target():
         return ConfigEntry
+
+
+class Subreddit(ModelObject):
+
+    KEY = "name"
+
+    @staticmethod
+    def get_fields():
+        return SUBREDDIT_FIELDS
+
+
+class SubredditFactory(ModelFactory):
+
+    @staticmethod
+    def _get_target():
+        return Subreddit
 
 
 class NoSuchAttributeError(AttributeError):

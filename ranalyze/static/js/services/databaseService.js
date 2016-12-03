@@ -64,6 +64,10 @@
             DAY: "day"
         };
 
+        self.Subreddit = $resource('/subreddit/:name', {
+            name: '@name'
+        });
+
         self.ConfigItem = $resource('/config/:id', {
             id: '@id'
         });

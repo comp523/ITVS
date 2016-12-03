@@ -3,20 +3,25 @@
         <md-tab label="subreddits">
             <div layout="row">
                 <md-button class="md-raised md-primary" ng-click="settingsCtrl.subreddits.add()">
-				<md-tooltip md-direction="right">Add a new subreddit to be scraped</md-tooltip>
+				<md-tooltip md-direction="down">Add a new subreddit to be scraped</md-tooltip>
                     Add
                 </md-button>
                 <md-button class="md-raised md-warn" ng-click="settingsCtrl.subreddits.deleteSelected()"
                            ng-disabled="settingsCtrl.subreddits.selected.length == 0">
-						   <md-tooltip md-direction="right">Stop scraping selected subreddits</md-tooltip>
+						   <md-tooltip md-direction="down">Stop scraping selected subreddits</md-tooltip>
                     Delete Selected
+                </md-button>
+                <md-button ng-disabled="settingsCtrl.subreddits.getting" class="md-raised" ng-click="settingsCtrl.subreddits.get()">
+                    Refresh
                 </md-button>
             </div>
             <md-table-container>
                 <table md-table md-row-select multiple ng-model="settingsCtrl.subreddits.selected">
                     <thead md-head md-order="table.order">
                         <tr md-row>
-                            <th md-column md-order-by="value"><span>Subreddit</span></th>
+                            <th md-column md-order-by="name"><span>Subreddit</span></th>
+                            <th md-column md-order-by="added"><span>Added</span></th>
+                            <th md-column md-order-by="last_scraped"><span>Last Scraped</span></th>
                             <th md-column md-order-by="posts"><span>Posts</span></th>
                             <th md-column md-order-by="comments"><span>Comments</span></th>
                         </tr>
@@ -24,7 +29,12 @@
                     <tbody md-body>
                         <tr md-row md-select="sub" md-select-id="value" md-auto-select
                             ng-repeat="sub in settingsCtrl.subreddits.all | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
-                            <td md-cell>{{sub.value}}</td>
+                            <td md-cell>
+                                <i class="material-icons spinning-icon" ng-show="sub.scraping">refresh</i>
+                                {{sub.name}}
+                            </td>
+                            <td md-cell>{{ sub.added*1000 | date:'short' }}</td>
+                            <td md-cell>{{ sub.last_scraped*1000 | date:'short'}}</td>
                             <td md-cell>{{sub.posts || "-"}}</td>
                             <td md-cell>{{sub.comments || "-"}}</td>
                         </tr>
@@ -43,7 +53,7 @@
                     <div layout="row" layout-align="space-around center">
                         <span flex="25">Entry Weight</span>
                         <md-slider-container flex="66">
-							<md-tooltip md-direction="right">Total number of posts the word occurs in</md-tooltip>
+							<md-tooltip md-direction="down">Total number of posts the word occurs in</md-tooltip>
                             <md-slider flex min="0" max="10" ng-model="settingsCtrl.cloud.entryWeight.value" aria-label="Entry Weight" id="entry-config-slider">
                             </md-slider>
                         </md-slider-container>
@@ -52,7 +62,7 @@
                     <div layout="row" layout-align="space-around center">
                         <span flex="25">Total Occurrence Weight</span>
                         <md-slider-container flex="66">
-							<md-tooltip md-direction="right">Total number of times the word occurs</md-tooltip>
+							<md-tooltip md-direction="down">Total number of times the word occurs</md-tooltip>
                             <md-slider flex min="0" max="10" ng-model="settingsCtrl.cloud.totalWeight.value" aria-label="Total Occurrence Weight" id="total-config-slider">
                             </md-slider>
                         </md-slider-container>
@@ -106,11 +116,17 @@
                         This list is predefined and read-only.
                     </div>
                     <md-divider></md-divider>
-                    <md-list class="small-list md-dense">
-                        <md-list-item ng-repeat="item in settingsCtrl.blacklist.serverList | orderBy: item">
-                            {{ item }}
-                        </md-list-item>
-                    </md-list>
+                    <md-input-container>
+                        <label>Search</label>
+                        <input type="text" ng-model="serverListSearch">
+                    </md-input-container>
+                    <div class="small-list-wrapper">
+                        <div class="small-list">
+                            <div ng-repeat="item in settingsCtrl.blacklist.serverList | filter: serverListSearch | orderBy: item">
+                                {{ item }}
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </md-content>
         </md-tab>

@@ -2,6 +2,7 @@
 
 header {
     text-align: center;
+    position: relative;
 }
 
 span.highlight {
@@ -33,11 +34,41 @@ i.label-icon.material-icons {
     margin-right: auto;
 }
 
+#scraping-progress {
+    position: absolute;
+    font-size: 32px;
+    top: 13px;
+    left: calc(50% + 116px);
+    color: #438327;
+    padding-left: 0;
+    padding-right: 0;
+}
+
 .success-icon {
     color: darkgreen;
 }
 
-.small-list {
+.small-list-wrapper {
     max-height: 300px;
     overflow-y: auto;
+}
+
+.small-list {
+    column-count: 6;
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.spinning-icon {
+
+    transform-origin: 50% 50%;
+    animation: rotate 1s linear infinite;
+
 }

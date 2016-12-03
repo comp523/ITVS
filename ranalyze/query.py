@@ -61,6 +61,10 @@ class Condition:
         condition.params = self.params
         return condition
 
+    def __bool__(self):
+
+        return bool(self.sql)
+
 
 class Query(object, metaclass=abc.ABCMeta):
     """

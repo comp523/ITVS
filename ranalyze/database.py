@@ -2,15 +2,22 @@
 Database abstraction class for handling storage of Posts and Comments
 """
 
-import atexit
 import MySQLdb
 import os
 
-from .constants import CHAR_SET, CONFIG_TABLE, ENTRY_TABLE, FREQUENCY_TABLE, IMPORT_TABLE
+from .constants import (
+    CHAR_SET,
+    CONFIG_TABLE,
+    ENTRY_TABLE,
+    FREQUENCY_TABLE,
+    IMPORT_TABLE,
+    SUBREDDIT_TABLE
+)
 from .models import (
     CommentFactory,
     ConfigEntryFactory,
     PostFactory,
+    SubredditFactory,
     WordDayFactory
 )
 from .query import (
@@ -26,7 +33,6 @@ def connect(**kwargs):
     """
     Opens the connection to the database.
     """
-
 
     if not kwargs:
         kwargs = {
@@ -103,7 +109,24 @@ def create_db():
                CREATE TABLE {} (
                permalink text)
                DEFAULT CHARACTER SET {}
-               """.format(IMPORT_TABLE, CHAR_SET)
+               """.format(IMPORT_TABLE, CHAR_SET),
+               # We need a trigger to insert the integer unix timestamp
+               """
+               CREATE TABLE {} (
+               name varchar(20) PRIMARY KEY, scraping integer(1) DEFAULT 0,
+               last_scraped integer, added integer NULL
+               )
+               DEFAULT CHARACTER SET {};
+               delimiter $$
+               CREATE TRIGGER tr_sub_added BEFORE INSERT ON {} FOR EACH ROW
+               BEGIN
+                 if (new.added is null)
+                 then
+                   set new.added = unix_timestamp();
+                 end if;
+               end $$
+               delimiter ;
+               """.format(SUBREDDIT_TABLE, CHAR_SET, SUBREDDIT_TABLE)
                )
 
     for query in queries:
@@ -200,7 +223,7 @@ def object_exists(obj, table):
 
     query = SelectQuery(table=table,
                         columns="COUNT(*)",
-                        where=Condition("id", obj.id))
+                        where=Condition(obj.KEY, getattr(obj, obj.KEY)))
     result = execute_query(query, transpose=False)[0]
     return result['COUNT(*)'] == 1
 
@@ -218,6 +241,8 @@ def _row_to_object(row):
         factory = WordDayFactory
     elif "value" in row.keys():
         factory = ConfigEntryFactory
+    elif "scraping" in row.keys():
+        factory = SubredditFactory
     elif row["permalink"] is None:
         factory = CommentFactory
     else:
@@ -232,12 +257,12 @@ def _update_object(obj, table):
 
     values = obj.dict
 
-    if "id" in values:
-        del values["id"]
+    if obj.KEY in values:
+        del values[obj.KEY]
 
     query = UpdateQuery(table=table,
                         values=values,
-                        where=Condition("id", obj.id))
+                        where=Condition(obj.KEY, getattr(obj, obj.KEY)))
 
     return execute_query(query, commit=True, only_id=True)
 

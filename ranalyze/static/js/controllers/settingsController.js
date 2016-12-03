@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var settingsController = function($scope, $mdDialog, $timeout, config, constants){
+    var settingsController = function($scope, $mdDialog, $timeout, config, constants, database){
 
         var self = this;
 
@@ -42,9 +42,8 @@
                 )
                     .then(function(sub){
                         sub = sub.trim();
-                        var item = new config.Item({
-                            name: "subreddit",
-                            value: sub
+                        var item = new database.Subreddit({
+                            name: sub
                         });
                         item.$save()
                             .then(function success(){
@@ -55,8 +54,21 @@
                                 });
                             });
                     });
+            },
+            get: function(){
+                self.subreddits.getting = true;
+                database.Subreddit.query({}, function success(subs){
+                    self.subreddits.all = subs;
+                    self.subreddits.getting = false;
+                }, function failure(){
+                    $scope.$emit('ranalyze.error', {
+                        textContent: "Couldn't get list of subreddits from server."
+                    });
+                });
             }
         };
+
+        self.subreddits.get();
 
         self.blacklist = {
             all: [],
@@ -158,14 +170,6 @@
                 });
             }
         };
-
-        config.getSubreddits().then(function success(subs){
-            self.subreddits.all = subs;
-        }, function failure(){
-            $scope.$emit('ranalyze.error', {
-                textContent: "Couldn't get list of subreddits from server."
-            });
-        });
 
         config.getEntryWeight().then(function success(value) {
             self.cloud.entryWeight = value;

@@ -14,10 +14,6 @@
             },
 
             fields = {
-                subreddits: {
-                    type: types.ARRAY,
-                    name: "subreddit"
-                },
                 entryWeight: {
                     type: types.NUMBER,
                     name: "entryWeight"

@@ -10,6 +10,8 @@ FREQUENCY_TABLE = "frequency"
 
 IMPORT_TABLE = "import"
 
+SUBREDDIT_TABLE = "subreddits"
+
 CONFIG_ENTRY_FIELDS = {"id", "name", "value"}
 
 BASE_FIELDS = {"id", "up_votes", "time_submitted", "time_updated", "posted_by",
@@ -20,6 +22,8 @@ COMMENT_FIELDS = BASE_FIELDS | {"root_id", "parent_id"}
 POST_FIELDS = BASE_FIELDS | {"permalink", "up_ratio", "title", "external_url"}
 
 ENTRY_FIELDS = COMMENT_FIELDS | POST_FIELDS
+
+SUBREDDIT_FIELDS = {"name", "scraping", "last_scraped"}
 
 
 WORD_DAY_FIELDS = {"id", "word", "day", "month", "year", "total", "entries"}
