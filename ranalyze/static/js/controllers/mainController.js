@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var mainController = function($scope, database, tabs) {
+    var mainController = function($scope, $interval, database, tabs) {
 
         $scope.selectedIndex = 0;
 
@@ -9,9 +9,11 @@
             $scope.selectedIndex = index;
         });
 
-        database.Subreddit.query({scraping: 1}, function(res) {
-            $scope.scraping = res.length > 0;
-        });
+        $interval(function(){
+            database.Subreddit.query({scraping: 1}, function(res) {
+                $scope.scraping = res.length > 0;
+            });
+        }, 5000);
 
     };
 

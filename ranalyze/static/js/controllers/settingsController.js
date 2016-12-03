@@ -216,7 +216,7 @@
         $scope.table = {
             limit: 10,
             page: 1,
-            order: 'name'
+            order: 'posts'
         };
 
     };

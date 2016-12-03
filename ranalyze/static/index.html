@@ -25,7 +25,7 @@
 	<body ng-app="RanalyzeApp" ng-cloak ng-controller="mainController">
 
 		<header>
-			<img class="md-padding" src="itvs-logo.png">
+			<img class="md-padding" src="ranalyze-logo.png">
             <i title="Scrape in progress" id="scraping-progress" class="material-icons spinning-icon md-padding" ng-show="scraping">refresh</i>
 		</header>
 
@@ -40,7 +40,7 @@
 							<ng-include src="'templates/search.html'"></ng-include>
 						</md-tab-body>
 					</md-tab>
-					<md-tab label="word frequency" md-on-select="firstActive=true">
+					<md-tab md-on-select="firstActive=true">
 						<md-tab-label>
 							<i class="material-icons label-icon">trending_up</i> word frequency
 						</md-tab-label>
@@ -48,12 +48,20 @@
 							<ng-include src="'templates/word-frequency.html'"></ng-include>
 						</md-tab-body>
 					</md-tab>
-					<md-tab label="Settings">
+					<md-tab>
 						<md-tab-label>
 							<i class="material-icons label-icon">settings</i> settings
 						</md-tab-label>
 						<md-tab-body>
 							<ng-include src="'templates/settings.html'"></ng-include>
+						</md-tab-body>
+					</md-tab>
+                    <md-tab>
+						<md-tab-label>
+							<i class="material-icons label-icon">info_outline</i> about
+						</md-tab-label>
+						<md-tab-body>
+							<ng-include src="'templates/about.html'"></ng-include>
 						</md-tab-body>
 					</md-tab>
 				</md-tabs>

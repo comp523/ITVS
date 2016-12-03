@@ -1,25 +1,37 @@
 <md-content class="md-padding" ng-controller="settingsController as settingsCtrl">
     <md-tabs md-dynamic-height md-center-tabs md-border-bottom>
         <md-tab label="subreddits">
-            <div layout="row">
-                <md-button class="md-raised md-primary" ng-click="settingsCtrl.subreddits.add()">
-				<md-tooltip md-direction="down">Add a new subreddit to be scraped</md-tooltip>
-                    Add
+            <div layout="row" class="md-padding">
+                <md-button class="md-raised md-primary md-icon-button" ng-click="settingsCtrl.subreddits.add()">
+				    <md-tooltip md-direction="down">Scrape a new Subreddit</md-tooltip>
+                    <i class="material-icons">add</i>
                 </md-button>
-                <md-button class="md-raised md-warn" ng-click="settingsCtrl.subreddits.deleteSelected()"
+                <md-button class="md-raised md-warn md-icon-button" ng-click="settingsCtrl.subreddits.deleteSelected()"
                            ng-disabled="settingsCtrl.subreddits.selected.length == 0">
-						   <md-tooltip md-direction="down">Stop scraping selected subreddits</md-tooltip>
-                    Delete Selected
+						   <md-tooltip md-direction="down">Stop scraping selected Subreddits</md-tooltip>
+                    <i class="material-icons">delete</i>
                 </md-button>
-                <md-button ng-disabled="settingsCtrl.subreddits.getting" class="md-raised" ng-click="settingsCtrl.subreddits.get()">
-                    Refresh
+                <md-button ng-disabled="settingsCtrl.subreddits.getting" class="md-raised md-icon-button" ng-click="settingsCtrl.subreddits.get()">
+                    <md-tooltip md-direction="down">Refresh stats</md-tooltip>
+                    <i class="material-icons">sync</i>
                 </md-button>
             </div>
             <md-table-container>
                 <table md-table md-row-select multiple ng-model="settingsCtrl.subreddits.selected">
                     <thead md-head md-order="table.order">
                         <tr md-row>
-                            <th md-column md-order-by="name"><span>Subreddit</span></th>
+                            <th md-column>
+                                <md-input-container>
+                                    <md-tooltip md-direction="down">
+                                        Search by Subreddit name
+                                    </md-tooltip>
+                                    <label>
+                                        <i class="material-icons label-icon">search</i>
+                                        Subreddit
+                                    </label>
+                                    <input type="text" ng-model="subredditSearch">
+                                </md-input-container>
+                            </th>
                             <th md-column md-order-by="added"><span>Added</span></th>
                             <th md-column md-order-by="last_scraped"><span>Last Scraped</span></th>
                             <th md-column md-order-by="posts"><span>Posts</span></th>
@@ -28,7 +40,7 @@
                     </thead>
                     <tbody md-body>
                         <tr md-row md-select="sub" md-select-id="value" md-auto-select
-                            ng-repeat="sub in settingsCtrl.subreddits.all | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
+                            ng-repeat="sub in settingsCtrl.subreddits.all | filter:subredditSearch | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
                             <td md-cell>
                                 <i class="material-icons spinning-icon" ng-show="sub.scraping">refresh</i>
                                 {{sub.name}}
@@ -85,25 +97,27 @@
                         Words in this list are not excluded when calculating frequencies.
                     </div>
                     <md-divider></md-divider>
-                    <div layout="row">
-                        <md-button class="md-raised md-primary" ng-click="settingsCtrl.blacklist.add()">
-                            Add
+                    <div layout="row" class="md-padding">
+                        <md-button class="md-raised md-primary md-icon-button" ng-click="settingsCtrl.blacklist.add()">
+                            <md-tooltip md-direction="down">Add word</md-tooltip>
+                            <i class="material-icons">add</i>
                         </md-button>
-                        <md-button class="md-raised md-warn" ng-click="settingsCtrl.blacklist.deleteSelected()"
+                        <md-button class="md-raised md-warn md-icon-button" ng-click="settingsCtrl.blacklist.deleteSelected()"
                                    ng-disabled="settingsCtrl.blacklist.selected.length == 0">
-                            Delete Selected
+                            <md-tooltip md-direction="down">Delete selected words</md-tooltip>
+                            <i class="material-icons">delete</i>
                         </md-button>
                     </div>
                     <md-table-container>
                         <table md-table md-row-select multiple ng-model="settingsCtrl.blacklist.selected">
-                            <thead md-head md-order="table.order">
+                            <thead md-head>
                                 <tr md-row>
-                                    <th md-column md-order-by="value"><span>Blacklisted Words</span></th>
+                                    <th md-column><span>Blacklisted Words</span></th>
                                 </tr>
                             </thead>
                             <tbody md-body>
                                 <tr md-row md-select="word" md-select-id="value" md-auto-select
-                                    ng-repeat="word in settingsCtrl.blacklist.all | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
+                                    ng-repeat="word in settingsCtrl.blacklist.all | orderBy: 'value' | limitTo: table.limit : (table.page -1) * table.limit">
                                     <td md-cell>{{word.value}}</td>
                                 </tr>
                             </tbody>
@@ -120,7 +134,10 @@
                     </div>
                     <md-divider></md-divider>
                     <md-input-container>
-                        <label>Search</label>
+                        <label>
+                            <i class="material-icons label-icon">search</i>
+                            Search
+                        </label>
                         <input type="text" ng-model="serverListSearch">
                     </md-input-container>
                     <div class="small-list-wrapper">
