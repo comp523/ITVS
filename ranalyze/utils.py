@@ -15,7 +15,7 @@ def date_to_timestamp(date):
     """
     convert datetime.datetime or datetime.date object to Unix timestamp
     """
-    if isinstance(date, datetime.date):
+    if type(date) is datetime.date:
         date = datetime.datetime.combine(date, datetime.time.min)
     return floor((date - EPOCH).total_seconds())
 
