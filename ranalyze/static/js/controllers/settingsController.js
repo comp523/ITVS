@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var settingsController = function($scope, $mdDialog, $timeout, config, constants, database){
+    var settingsController = function($scope, $mdDialog, $rootScope, $timeout, config, constants, database){
 
         var self = this;
 
@@ -87,9 +87,18 @@
                         .cancel('Never mind')
                 )
                     .then(function success(){
+                        var promiseCount = 0,
+                            broadcastWhenDone = function(){
+                                if (promiseCount==0) {
+                                    $rootScope.$broadcast('ranalyze.blacklist.change');
+                                }
+                            };
                         self.blacklist.selected.forEach(function(obj){
+                            promiseCount ++;
                             obj.$delete()
                                 .then(function success(){
+                                    promiseCount--;
+                                    broadcastWhenDone();
                                     self.blacklist.all.splice(self.blacklist.all.indexOf(obj), 1);
                                     self.blacklist.selected.splice(self.blacklist.selected.indexOf(obj), 1);
                                 }, function failure(){
@@ -126,7 +135,8 @@
                             var item = new config.Item(obj);
                             item.$save()
                                 .then(function success(){
-                                    self.blacklist.all.push(obj);
+                                    self.blacklist.all.push(item);
+                                    $rootScope.$broadcast('ranalyze.blacklist.change');
                                 }, function failure(response){
                                     $scope.$emit('ranalyze.error', {
                                         textContent: response

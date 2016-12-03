@@ -30,14 +30,25 @@
             });
         });
 
-        var blacklistPromise = config.getBlacklist().then(function success(items) {
-            $scope.cloudParams.blacklist = items.map(function(item){
-                return item.value;
+        var blacklistPromise;
+
+        var updateBlacklist = function() {
+            blacklistPromise = config.getBlacklist().then(function success(items) {
+                $scope.cloudParams.blacklist = items.map(function (item) {
+                    return item.value;
+                });
+            }, function failure() {
+                $scope.$emit('ranalyze.error', {
+                    textContent: "Couldn't get cloud parameter `blacklist` from server."
+                });
             });
-        }, function failure(){
-            $scope.$emit('ranalyze.error', {
-                textContent: "Couldn't get cloud parameter `blacklist` from server."
-            });
+        };
+
+        updateBlacklist();
+
+        $scope.$on('ranalyze.blacklist.change', function(){
+            updateBlacklist();
+            self.updateWeights();
         });
 
         self.search = function(word) {
@@ -74,7 +85,6 @@
                 });
             });
         };
-
 
         /**
          * Updates the cloud with new date and weight parameters
