@@ -11,7 +11,7 @@
 						   <md-tooltip md-direction="down">Stop scraping selected Subreddits</md-tooltip>
                     <i class="material-icons">delete</i>
                 </md-button>
-                <md-button ng-disabled="ctrl.subreddits.getting" class="md-raised md-icon-button" ng-click="ctrl.subreddits.get()">
+                <md-button ng-disabled="ctrl.subreddits.refreshing" class="md-raised md-icon-button" ng-click="ctrl.subreddits.refreshAll()">
                     <md-tooltip md-direction="down">Refresh stats</md-tooltip>
                     <i class="material-icons">sync</i>
                 </md-button>

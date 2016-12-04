@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var databaseService = function($resource, $httpParamSerializer, $window) {
+    var databaseService = function($httpParamSerializer, $log, $resource, $timeout, $window) {
 
         var self = this;
 
@@ -67,6 +67,35 @@
         self.Subreddit = $resource('/subreddit/:name', {
             name: '@name'
         });
+
+        var refreshPromise;
+
+        angular.extend(self.Subreddit, {
+            all: [],
+            refreshAll: function(){
+                if (refreshPromise) {
+                    $timeout.cancel(refreshPromise);
+                }
+                self.Subreddit.refreshing = true;
+                self.Subreddit.query({}, function success(results) {
+                    self.Subreddit.all = results;
+                    var scraping = false;
+                    angular.forEach(self.Subreddit.all, function(item){
+                        scraping |= item.scraping;
+                    });
+                    self.Subreddit.scraping = scraping;
+                    self.Subreddit.refreshing = false;
+                    refreshPromise = $timeout(self.Subreddit.refreshAll, 10000);
+                }, function failure(){
+                    $log.error("Couldn't refresh subreddits");
+                });
+            },
+            refreshing: false,
+            scraping: false
+        });
+
+        self.Subreddit.refreshAll();
+
 
         self.ConfigItem = $resource('/config/:id', {
             id: '@id'

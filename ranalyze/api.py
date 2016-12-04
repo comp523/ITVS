@@ -255,19 +255,26 @@ def subreddit_query():
     return flask.jsonify(results)
 
 
-@app.route('/subreddit/<_id>', methods=["GET", "DELETE"])
-def subreddit_item(_id):
-    condition = Condition("id", _id)
+@app.route('/subreddit/<name>', methods=["GET", "DELETE"])
+def subreddit_item(name, get=False):
+    condition = Condition("name", name)
     query = SelectQuery(table=SUBREDDIT_TABLE,
                         where=condition)
     results = execute_query(query, transpose=False)
-    if flask.request.method == "GET":
+    if flask.request.method == "GET" or get:
         if not results:
             return flask.jsonify({})
     else:
         query = DeleteQuery(table=SUBREDDIT_TABLE,
                             where=condition)
         execute_query(query, transpose=False, commit=True)
+    condition = Condition("subreddit", results[0]["name"])
+    columns = ("SUM(permalink IS NULL) as comments, "
+               "SUM(permalink IS NOT NULL) as posts")
+    query = SelectQuery(table=ENTRY_TABLE,
+                        columns=columns,
+                        where=condition)
+    results[0].update(execute_query(query, transpose=False)[0])
     return flask.jsonify(results[0])
 
 
@@ -277,11 +284,7 @@ def subreddit_update(name):
     request["name"] = name
     item = SubredditFactory.from_dict(request)
     add_update_object(item, SUBREDDIT_TABLE)
-    condition = Condition("name", name)
-    query = SelectQuery(table=SUBREDDIT_TABLE,
-                        where=condition)
-    result = execute_query(query, transpose=False)[0]
-    return flask.jsonify(result)
+    return subreddit_item(name, True)
 
 
 def env_shiv():

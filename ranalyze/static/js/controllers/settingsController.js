@@ -18,8 +18,8 @@
             };
 
         self.subreddits = {
-            all: [],
             selected: [],
+            refreshAll: database.Subreddit.refreshAll,
             deleteSelected: function(){
                 var numSubs = self.subreddits.selected.length;
                 $mdDialog.show(
@@ -67,17 +67,6 @@
                             });
                     });
             },
-            get: function(){
-                self.subreddits.getting = true;
-                database.Subreddit.query({}, function success(subs){
-                    self.subreddits.all = subs;
-                    self.subreddits.getting = false;
-                }, function failure(){
-                    $scope.$emit('ranalyze.error', {
-                        textContent: "Couldn't get list of subreddits from server."
-                    });
-                });
-            },
             table: {
                 limit: 10,
                 limitOptions: [10, 25, 50, 100],
@@ -85,6 +74,19 @@
                 order: 'posts'
             }
         };
+
+        Object.defineProperties(self.subreddits, {
+            all: {
+                get: function(){
+                    return database.Subreddit.all;
+                }
+            },
+            refreshing: {
+                get: function(){
+                    return database.Subreddit.refreshing;
+                }
+            }
+        });
 
         self.blacklist = {
             all: [],
@@ -246,8 +248,6 @@
                 textContent: "Couldn't get cloud parameter `serverBlacklist` from server."
             })
         });
-
-        self.subreddits.get();
 
     };
 
