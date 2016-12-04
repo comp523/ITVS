@@ -3,7 +3,19 @@
 
     var settingsController = function($scope, $mdDialog, $rootScope, $timeout, config, constants, database){
 
-        var self = this;
+        var self = this,
+
+            broadcastChange = function(){
+                $rootScope.$broadcast('ranalyze.cloudConfig.change', {
+                    blacklist: self.blacklist.all.map(function(item){
+                        return item.value;
+                    }),
+                    params: {
+                        entryWeight: self.cloud.entryWeight.value,
+                        totalWeight: self.cloud.totalWeight.value
+                    }
+                });
+            };
 
         self.subreddits = {
             all: [],
@@ -65,10 +77,14 @@
                         textContent: "Couldn't get list of subreddits from server."
                     });
                 });
+            },
+            table: {
+                limit: 10,
+                limitOptions: [10, 25, 50, 100],
+                page: 1,
+                order: 'posts'
             }
         };
-
-        self.subreddits.get();
 
         self.blacklist = {
             all: [],
@@ -87,20 +103,16 @@
                         .cancel('Never mind')
                 )
                     .then(function success(){
-                        var promiseCount = 0,
-                            broadcastWhenDone = function(){
-                                if (promiseCount==0) {
-                                    $rootScope.$broadcast('ranalyze.blacklist.change');
-                                }
-                            };
+                        var promiseCount = 0;
                         self.blacklist.selected.forEach(function(obj){
                             promiseCount ++;
                             obj.$delete()
                                 .then(function success(){
-                                    promiseCount--;
-                                    broadcastWhenDone();
                                     self.blacklist.all.splice(self.blacklist.all.indexOf(obj), 1);
                                     self.blacklist.selected.splice(self.blacklist.selected.indexOf(obj), 1);
+                                    if (--promiseCount==0) {
+                                        broadcastChange();
+                                    }
                                 }, function failure(){
                                     $scope.$emit('ranalyze.error', {
                                         textContent: 'An error occurred while trying to delete the blacklist word `' + obj.value + '`'
@@ -136,7 +148,7 @@
                             item.$save()
                                 .then(function success(){
                                     self.blacklist.all.push(item);
-                                    $rootScope.$broadcast('ranalyze.blacklist.change');
+                                    broadcastChange();
                                 }, function failure(response){
                                     $scope.$emit('ranalyze.error', {
                                         textContent: response
@@ -146,6 +158,11 @@
 
 
                     })
+            },
+            table: {
+                limit: 10,
+                limitOptions: [10, 25, 50, 100],
+                page: 1
             }
         };
 
@@ -171,11 +188,28 @@
                         });
                 entryPromise.then(function(){
                     totalPromise.then(function(){
+                        broadcastChange();
                         self.cloud.saving = false;
                         // wait 3 second before hiding success indicator
                         $timeout(function(){
                             self.cloud.savingDelayed = false;
                         }, 3000);
+                    });
+                });
+            }
+        };
+
+        self.import = {
+            submit: function() {
+
+                database.Entry.import({
+                    file: self.import.files[0]
+                }, function success(data) {
+                    self.import.response = data;
+                    self.import.file.value = null;
+                }, function failure() {
+                    $scope.$emit('ranalyze.error', {
+                        textContent: "Couldn't import csv."
                     });
                 });
             }
@@ -213,11 +247,7 @@
             })
         });
 
-        $scope.table = {
-            limit: 10,
-            page: 1,
-            order: 'posts'
-        };
+        self.subreddits.get();
 
     };
 

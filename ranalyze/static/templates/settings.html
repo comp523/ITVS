@@ -1,24 +1,24 @@
-<md-content class="md-padding" ng-controller="settingsController as settingsCtrl">
+<md-content class="md-padding" ng-controller="settingsController as ctrl">
     <md-tabs md-dynamic-height md-center-tabs md-border-bottom>
         <md-tab label="subreddits">
             <div layout="row" class="md-padding">
-                <md-button class="md-raised md-primary md-icon-button" ng-click="settingsCtrl.subreddits.add()">
+                <md-button class="md-raised md-primary md-icon-button" ng-click="ctrl.subreddits.add()">
 				    <md-tooltip md-direction="down">Scrape a new Subreddit</md-tooltip>
                     <i class="material-icons">add</i>
                 </md-button>
-                <md-button class="md-raised md-warn md-icon-button" ng-click="settingsCtrl.subreddits.deleteSelected()"
-                           ng-disabled="settingsCtrl.subreddits.selected.length == 0">
+                <md-button class="md-raised md-warn md-icon-button" ng-click="ctrl.subreddits.deleteSelected()"
+                           ng-disabled="ctrl.subreddits.selected.length == 0">
 						   <md-tooltip md-direction="down">Stop scraping selected Subreddits</md-tooltip>
                     <i class="material-icons">delete</i>
                 </md-button>
-                <md-button ng-disabled="settingsCtrl.subreddits.getting" class="md-raised md-icon-button" ng-click="settingsCtrl.subreddits.get()">
+                <md-button ng-disabled="ctrl.subreddits.getting" class="md-raised md-icon-button" ng-click="ctrl.subreddits.get()">
                     <md-tooltip md-direction="down">Refresh stats</md-tooltip>
                     <i class="material-icons">sync</i>
                 </md-button>
             </div>
             <md-table-container>
-                <table md-table md-row-select multiple ng-model="settingsCtrl.subreddits.selected">
-                    <thead md-head md-order="table.order">
+                <table md-table md-row-select multiple ng-model="ctrl.subreddits.selected">
+                    <thead md-head md-order="ctrl.subreddits.table.order">
                         <tr md-row>
                             <th md-column>
                                 <md-input-container>
@@ -40,7 +40,7 @@
                     </thead>
                     <tbody md-body>
                         <tr md-row md-select="sub" md-select-id="value" md-auto-select
-                            ng-repeat="sub in settingsCtrl.subreddits.all | filter:subredditSearch | orderBy: table.order | limitTo: table.limit : (table.page -1) * table.limit">
+                            ng-repeat="sub in ctrl.subreddits.all | filter:subredditSearch | orderBy: ctrl.subreddits.table.order | limitTo: ctrl.subreddits.table.limit : (ctrl.subreddits.table.page -1) * ctrl.subreddits.table.limit">
                             <td md-cell>
                                 <i class="material-icons spinning-icon" ng-show="sub.scraping">refresh</i>
                                 {{sub.name}}
@@ -56,7 +56,7 @@
                     </tbody>
                 </table>
             </md-table-container>
-            <md-table-pagination md-page="table.page" md-total="{{settingsCtrl.entries.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+            <md-table-pagination md-page="ctrl.subreddits.table.page" md-total="{{ctrl.subreddits.all.length}}" md-limit="ctrl.subreddits.table.limit" md-limit-options="ctrl.subreddits.limitOptions" md-page-select></md-table-pagination>
         </md-tab>
         <md-tab label="word frequency">
             <md-content class="md-padding center">
@@ -68,24 +68,24 @@
                     <div layout="row" layout-align="space-around center">
                         <span flex="25">Entry Weight</span>
                         <md-slider-container flex="66">
-							<md-tooltip md-direction="down">Total number of posts the word occurs in</md-tooltip>
-                            <md-slider flex min="0" max="10" ng-model="settingsCtrl.cloud.entryWeight.value" aria-label="Entry Weight" id="entry-config-slider">
+							<md-tooltip md-direction="down">Weight for unique posts/comments</md-tooltip>
+                            <md-slider flex min="0" max="10" ng-model="ctrl.cloud.entryWeight.value" aria-label="Entry Weight" id="entry-config-slider">
                             </md-slider>
                         </md-slider-container>
-                        <span flex class="md-padding" ng-bind="settingsCtrl.cloud.entryWeight.value"></span>
+                        <span flex class="md-padding" ng-bind="ctrl.cloud.entryWeight.value"></span>
                     </div>
                     <div layout="row" layout-align="space-around center">
                         <span flex="25">Total Occurrence Weight</span>
                         <md-slider-container flex="66">
-							<md-tooltip md-direction="down">Total number of times the word occurs</md-tooltip>
-                            <md-slider flex min="0" max="10" ng-model="settingsCtrl.cloud.totalWeight.value" aria-label="Total Occurrence Weight" id="total-config-slider">
+							<md-tooltip md-direction="down">Weight for total occurrences</md-tooltip>
+                            <md-slider flex min="0" max="10" ng-model="ctrl.cloud.totalWeight.value" aria-label="Total Occurrence Weight" id="total-config-slider">
                             </md-slider>
                         </md-slider-container>
-                        <span flex class="md-padding" ng-bind="settingsCtrl.cloud.totalWeight.value"></span>
+                        <span flex class="md-padding" ng-bind="ctrl.cloud.totalWeight.value"></span>
                     </div>
                     <div layout="row" layout-align="end center">
-                        <i ng-show="!settingsCtrl.cloud.saving && settingsCtrl.cloud.savingDelayed" class="material-icons success-icon">check</i>
-                        <md-button ng-click="settingsCtrl.cloud.save()" ng-disabled="settingsCtrl.cloud.saving" class="md-primary md-raised">
+                        <i ng-show="!ctrl.cloud.saving && ctrl.cloud.savingDelayed" class="material-icons success-icon">check</i>
+                        <md-button ng-click="ctrl.cloud.save()" ng-disabled="ctrl.cloud.saving" class="md-primary md-raised">
                             Save
                         </md-button>
                     </div>
@@ -98,32 +98,43 @@
                     </div>
                     <md-divider></md-divider>
                     <div layout="row" class="md-padding">
-                        <md-button class="md-raised md-primary md-icon-button" ng-click="settingsCtrl.blacklist.add()">
+                        <md-button class="md-raised md-primary md-icon-button" ng-click="ctrl.blacklist.add()">
                             <md-tooltip md-direction="down">Add word</md-tooltip>
                             <i class="material-icons">add</i>
                         </md-button>
-                        <md-button class="md-raised md-warn md-icon-button" ng-click="settingsCtrl.blacklist.deleteSelected()"
-                                   ng-disabled="settingsCtrl.blacklist.selected.length == 0">
+                        <md-button class="md-raised md-warn md-icon-button" ng-click="ctrl.blacklist.deleteSelected()"
+                                   ng-disabled="ctrl.blacklist.selected.length == 0">
                             <md-tooltip md-direction="down">Delete selected words</md-tooltip>
                             <i class="material-icons">delete</i>
                         </md-button>
                     </div>
                     <md-table-container>
-                        <table md-table md-row-select multiple ng-model="settingsCtrl.blacklist.selected">
+                        <table md-table md-row-select multiple ng-model="ctrl.blacklist.selected">
                             <thead md-head>
                                 <tr md-row>
-                                    <th md-column><span>Blacklisted Words</span></th>
+                                    <th md-column>
+                                        <md-input-container>
+                                            <md-tooltip md-direction="down">
+                                                Search
+                                            </md-tooltip>
+                                            <label>
+                                                <i class="material-icons label-icon">search</i>
+                                                Blacklisted Words
+                                            </label>
+                                            <input type="text" ng-model="blacklistSearch.value">
+                                        </md-input-container>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody md-body>
                                 <tr md-row md-select="word" md-select-id="value" md-auto-select
-                                    ng-repeat="word in settingsCtrl.blacklist.all | orderBy: 'value' | limitTo: table.limit : (table.page -1) * table.limit">
+                                    ng-repeat="word in ctrl.blacklist.all | filter: blacklistSearch | orderBy: 'value' | limitTo: ctrl.blacklist.table.limit : (ctrl.blacklist.table.page -1) * ctrl.blacklist.table.limit">
                                     <td md-cell>{{word.value}}</td>
                                 </tr>
                             </tbody>
                         </table>
                     </md-table-container>
-                    <md-table-pagination md-page="table.page" md-total="{{settingsCtrl.blacklist.all.length}}" md-limit="table.limit" md-limit-options="[10, 25, 50]" md-page-select></md-table-pagination>
+                    <md-table-pagination md-page="ctrl.blacklist.table.page" md-total="{{ctrl.blacklist.all.length}}" md-limit="ctrl.blacklist.table.limit" md-limit-options="ctrl.blacklist.limitOptions" md-page-select></md-table-pagination>
                     <h2 class="md-headline">
                         Default Blacklist
                     </h2>
@@ -142,7 +153,7 @@
                     </md-input-container>
                     <div class="small-list-wrapper">
                         <div class="small-list">
-                            <div ng-repeat="item in settingsCtrl.blacklist.serverList | filter: serverListSearch | orderBy: item">
+                            <div ng-repeat="item in ctrl.blacklist.serverList | filter: serverListSearch | orderBy: item">
                                 {{ item }}
                             </div>
                         </div>
@@ -151,18 +162,18 @@
             </md-content>
         </md-tab>
         <md-tab label="import">
-            <md-content ng-controller="importController as importCtrl" class="md-padding" layout="row" layout-align="center start">
-                <form name="inputForm" ng-submit="importCtrl.submit()" layout="column" layout-align="start center" flex="95" flex-gt-sm="60" flex-gt-md="40">
+            <md-content class="md-padding" layout="row" layout-align="center start">
+                <form name="inputForm" ng-submit="ctrl.import.submit()" layout="column" layout-align="start center" flex="95" flex-gt-sm="60" flex-gt-md="40">
                     <input ng-required="true" type="file" id="file" name="file" accept=".csv" class="ng-hide"
-                    ng-file-model="file">
+                    ng-file-model="ctrl.import.file">
                     <p>
                         Use this form to upload a CSV (comma separated values) file containing
                         Reddit post permalinks. Each post and its respective comments will be
                         imported to the database.
                     </p>
                     <div>
-                        <span ng-show="file.value">Selected File: <i ng-bind="file.value | fileName"></i></span>
-                        <span ng-hide="file.value">No file selected</span>
+                        <span ng-show="ctrl.import.file.value">Selected File: <i ng-bind="ctrl.import.file.value | fileName"></i></span>
+                        <span ng-hide="ctrl.import.file.value">No file selected</span>
                     </div>
                     <div layout="row">
                         <md-button ng-for="file" class="md-raised">
@@ -172,7 +183,7 @@
                             Upload
                         </md-button>
                     </div>
-                    <strong ng-bind="response.status"></strong>
+                    <strong ng-bind="ctrl.import.response.status"></strong>
                 </form>
             </md-content>
         </md-tab>

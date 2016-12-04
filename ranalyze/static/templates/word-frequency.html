@@ -1,4 +1,4 @@
-<md-content class="md-padding" ng-controller="cloudController as ctrl" layout="column">
+<md-content class="md-padding" ng-controller="frequencyController as ctrl" layout="column">
     <md-tabs md-dynamic-height md-center-tabs md-border-bottom><!--md-center-tabs-->
         <md-tab>
             <md-tab-label>
@@ -6,7 +6,7 @@
                 cloud
             </md-tab-label>
             <md-tab-body>
-                <jqcloud ng-if="firstActive && (words.length > 0)" words="cloudParams.words" height="500" auto-resize="true"></jqcloud>
+                <jqcloud ng-if="firstActive && (ctrl.cloud.words.length > 0)" words="ctrl.cloud.words" height="500" auto-resize="true"></jqcloud>
             </md-tab-body>
         </md-tab>
         <md-tab>
@@ -15,9 +15,10 @@
                 table
             </md-tab-label>
             <md-tab-body>
+                <md-table-pagination md-page="ctrl.frequency.table.page" md-total="{{ctrl.frequency.words.length}}" md-limit="ctrl.frequency.table.limit" md-limit-options="ctrl.frequency.table.limitOptions" md-page-select></md-table-pagination>
                 <md-table-container>
                     <table md-table >
-                        <thead md-head md-order="tableOrder">
+                        <thead md-head md-order="ctrl.frequency.table.order">
                             <tr md-row>
                                 <th md-column md-order-by="text"><span>Word</span></th>
                                 <th md-column md-order-by="entries"><span>Entries</span></th>
@@ -27,7 +28,7 @@
                         </thead>
                         <tbody md-body>
                             <tr md-row
-                                ng-repeat="word in words | orderBy: tableOrder">
+                                ng-repeat="word in ctrl.frequency.words | orderBy: ctrl.frequency.table.order | limitTo: ctrl.frequency.table.limit : (ctrl.frequency.table.page -1) * ctrl.frequency.table.limit">
                                 <td md-cell ng-click="ctrl.search(word.text)">{{word.text}}</td>
                                 <td md-cell>{{word.entries}}</td>
                                 <td md-cell>{{word.total}}</td>
@@ -36,6 +37,7 @@
                         </tbody>
                     </table>
                 </md-table-container>
+                <md-table-pagination md-page="ctrl.frequency.table.page" md-total="{{ctrl.frequency.words.length}}" md-limit="ctrl.frequency.table.limit" md-limit-options="ctrl.frequency.table.limitOptions" md-page-select></md-table-pagination>
             </md-tab-body>
         </md-tab>
     </md-tabs>
@@ -44,10 +46,10 @@
             <span>Entry Weight</span>
             <md-slider-container>
 				<md-tooltip md-direction="right">Total number of posts the word occurs in</md-tooltip>
-                <md-slider flex min="0" max="10" ng-model="cloudParams.entryWeight" aria-label="Entry Weight" id="entry-slider">
+                <md-slider ng-change="ctrl.frequency.updateWeights()" flex min="0" max="10" ng-model="ctrl.frequency.params.entryWeight" aria-label="Entry Weight" id="entry-slider">
                 </md-slider>
                 <md-input-container>
-                    <input flex type="number" ng-model="cloudParams.entryWeight" aria-label="Entry Weight" aria-controls="Entry-slider">
+                    <input flex ng-change="ctrl.frequency.updateWeights()" type="number" ng-model="ctrl.frequency.params.entryWeight" aria-label="Entry Weight" aria-controls="Entry-slider">
                 </md-input-container>
             </md-slider-container>
         </div>
@@ -56,17 +58,16 @@
             <span>Total Occurrence Weight</span>
             <md-slider-container>
 			<md-tooltip md-direction="right">Total number of times the word occurs</md-tooltip>
-                <md-slider flex min="0" max="10" ng-model="cloudParams.totalWeight" aria-label="Total Occurrence Weight" id="total-slider">
+                <md-slider ng-change="ctrl.frequency.updateWeights()" flex min="0" max="10" ng-model="ctrl.frequency.params.totalWeight" aria-label="Total Occurrence Weight" id="total-slider">
 				</md-slider>
                 <md-input-container>
-                    <input flex type="number" ng-model="cloudParams.totalWeight" aria-label="Total Occurrence Weight" aria-controls="total-slider">
+                    <input flex ng-change="ctrl.frequency.updateWeights()" type="number" ng-model="ctrl.frequency.params.totalWeight" aria-label="Total Occurrence Weight" aria-controls="total-slider">
                 </md-input-container>
             </md-slider-container>
         </div>
         <md-input-container>
             <label>Date</label>
-            <md-datepicker name="cloudDate" ng-model="cloudParams.date" aria-label="Date" id="cloud-date"></md-datepicker>
+            <md-datepicker name="cloudDate" ng-change="ctrl.frequency.updateWords()" ng-model="ctrl.frequency.params.date" aria-label="Date" id="cloud-date"></md-datepicker>
         </md-input-container>
-        <md-button class="md-primary md-raised" ng-click="ctrl.updateCloud()">Apply</md-button>
     </div>
 </md-content>
