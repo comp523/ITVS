@@ -38,6 +38,10 @@ def schedule_for_import(fname):
     connect()
     count = 0
     print (fname)
+    f = file(fname, "r")
+    s = f.read()
+    f.close()
+    print (s)
     with open(fname, newline='') as importcsv:
         csvreader = csv.reader(importcsv)
         print ("b")
