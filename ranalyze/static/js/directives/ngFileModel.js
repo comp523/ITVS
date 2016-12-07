@@ -3,9 +3,12 @@
 
     var ngFileModelDirective = function(){
         return {
-            link: function(scope, element, attrs) {
-                scope[attrs.ngFileModel] = {};
-                Object.defineProperties(scope[attrs.ngFileModel], {
+            scope: {
+                ngFileModel: "="
+            },
+            link: function(scope, element) {
+                scope.ngFileModel = scope.ngFileModel || {};
+                Object.defineProperties(scope.ngFileModel, {
                     files: {
                         get: function(){
                             return element[0].files;
@@ -24,7 +27,7 @@
                     }
                 });
                 element.on("change", function(){
-                    scope.$apply(angular.noop);
+                    scope.$apply();
                 });
             },
             restrict: 'A'

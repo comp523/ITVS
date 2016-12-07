@@ -8,6 +8,15 @@
         },
         resources = {
             Entry: $resource('/entry/:action', {}, {
+                import: {
+                    method: 'POST',
+                    params: {
+                        action: "import"
+                    },
+                    headers: {
+                        'content-type': undefined
+                    }
+                },
                 search: {
                     method: 'GET',
                     params: {
@@ -28,7 +37,6 @@
                 name: '@name'
             })
         };
-        var logged;
 
         /**
          * Factory for creating constructors for  Models are wrappers
@@ -68,71 +76,78 @@
                         $uncommitted: collectionMode ? [] : undefined
                     });
                 }
+            var ProxyFactory = function(model) {
+                return new Proxy(model, proxyHandler);
+            },
+            proxyHandler = {
+                get: function(target, name, proxy) {
+                    if (name in target && target[name] !== target.$resourceInstance) {
+                        if (!target.hasOwnProperty(name) && typeof target[name] === 'function'){
+                            return target[name].bind(target);
+                        }
+                        return target[name];
+                    }
+                    if (name in instanceProperties) {
+                        return instanceProperties[name].call(proxy);
+                    }
+                    if (name in target.$resourceInstance &&
+                        typeof target.$resourceInstance[name] !== 'function') {
+                        return target.$resourceInstance[name];
+                    }
+                    return undefined;
+                },
+                set: function(target, name, value) {
+                    if (name.startsWith("$")) {
+                        return target[name] = value;
+                    }
+                    else if (name in instanceProperties || name in target) {
+                        $log.error("Can't set value of getter");
+                    }
+                    else {
+                        return target.$resourceInstance[name] = value;
+                    }
+                }
+            },
             /**
              *
              * @param a {$resource|Object}
              * @param committed {Boolean|undefined}
              * @constructor
              */
-            var Model = function(a, committed) {
+            Model = function(a, committed) {
+                this.proxy = ProxyFactory(this);
                 this.$resourceInstance = (a instanceof resource) ? a : new resource(a);
-                var proxy = new Proxy(this, {
-                    get: function(target, name) {
-                        if (name in target) {
-                            return target[name];
-                        }
-                        if (name in instanceProperties) {
-                            return instanceProperties[name].call(proxy);
-                        }
-                        if (name in target.$resourceInstance) {
-                            return target.$resourceInstance[name];
-                        }
-                        if (name in prototype) {
-                            return prototype[name];
-                        }
-                        return undefined;
-                    },
-                    set: function(target, name, value) {
-                        if (name.startsWith("$")) {
-                            return target[name] = value;
-                        }
-                        else if (name in instanceProperties || name in target) {
-                            $log.error("Can't set value of getter");
-                        }
-                        else {
-                            return target.$resourceInstance[name] = value;
-                        }
-                    }
-                });
-                var prototype = angular.extend({
-                    commit: function () {
-                        return proxy.$resourceInstance.$save().then(function () {
-                            if (collectionMode) {
-                                Model.$uncommitted.splice(Model.$uncommitted.indexOf(proxy));
-                                Model.$collection.push(proxy);
-                            }
-                            return this;
-                        });
-                    },
-                    delete: function () {
-                        return proxy.$resourceInstance.$delete()
-                            .then(function(){
-                                if (collectionMode) {
-                                    if (Model.$uncommitted.indexOf(proxy) !== -1) {
-                                        Model.$uncommitted.splice(Model.$uncommitted.indexOf(proxy), 1);
-                                    }
-                                    else if (Model.$collection.indexOf(proxy) !== -1) {
-                                        Model.$collection.splice(Model.$collection.indexOf(proxy), 1);
-                                    }
-                                }
-                            });
-                    }
-                }, instanceMethods);
                 if (collectionMode && committed !== true) {
-                    Model.$uncommitted.push(proxy);
+                    Model.$uncommitted.push(this.proxy);
                 }
-                return proxy;
+                return this.proxy;
             };
+            angular.extend(Model.prototype, {
+                commit: function () {
+                    var self = this;
+                    return self.$resourceInstance.$save().then(function () {
+                        if (collectionMode) {
+                            Model.$uncommitted.splice(Model.$uncommitted.indexOf(self.proxy));
+                            Model.$collection.push(self.proxy);
+                        }
+                        return this;
+                    });
+                },
+                delete: function () {
+                    var self = this;
+                    return self.$resourceInstance.$delete()
+                        .then(function(){
+                            if (collectionMode) {
+                                if (Model.$uncommitted.indexOf(self.proxy) !== -1) {
+                                    Model.$uncommitted.splice(Model.$uncommitted.indexOf(self.proxy), 1);
+                                }
+                                else if (Model.$collection.indexOf(self.proxy) !== -1) {
+                                    Model.$collection.splice(Model.$collection.indexOf(self.proxy), 1);
+                                }
+                            }
+                        });
+                }
+            }, instanceMethods);
             return angular.extend(Model, staticProperties);
         };
 
@@ -161,7 +176,7 @@
                     angular.forEach(params, function(value, key) {
                         formData.append(key, value);
                     });
-                    return Entry.$resource.post(formData).$promise;
+                    return Entry.$resource.import(formData).$promise;
                 },
                 searchSubreddits: function(name){
                     return Entry.$resource.query({
@@ -245,8 +260,6 @@
         });
 
         Subreddit.refresh();
-
-        window["s"] = Subreddit;
 
     };
 

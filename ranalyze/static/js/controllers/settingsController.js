@@ -205,7 +205,7 @@
         self.import = {
             submit: function() {
                 models.Entry.import({
-                    file: self.import.files[0]
+                    file: self.import.file.files[0]
                 }).then(function success(data) {
                     self.import.response = data;
                     self.import.file.value = null;
