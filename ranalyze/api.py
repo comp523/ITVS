@@ -121,7 +121,6 @@ def entry_import():
     temp = NamedTemporaryFile()
     f.save(temp)
     f.flush()
-    os.fsync(f.fileno())
     count = schedule_for_import(temp.name)
     return flask.jsonify({
         'success': True,
