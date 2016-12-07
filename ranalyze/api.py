@@ -118,10 +118,11 @@ def entry_import():
     on POST: imports a csv file into the database
     """
     f = flask.request.files['file']
-    temp = NamedTemporaryFile()
+    temp = NamedTemporaryFile(delete=False)
     f.save(temp)
-    f.flush()
+    temp.close()
     count = schedule_for_import(temp.name)
+    os.remove(temp.name)
     return flask.jsonify({
         'success': True,
         'status': '{} permalinks scheduled for import'.format(count)
