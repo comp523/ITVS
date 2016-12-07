@@ -21,7 +21,8 @@
 
         self.frequency = {
             params: {
-                date: new Date()
+                date_before: new Date(),
+                date_after: new Date()
             },
             selectedWords: [],
             words: [],
@@ -44,9 +45,13 @@
                 models.Frequency.getOverview({
                     gran: models.Frequency.granularity.DAY,
                     limit: 150,
-                    year: self.frequency.params.date.getFullYear(),
-                    month: self.frequency.params.date.getMonth() + 1,
-                    day: self.frequency.params.date.getDate()
+                    year_before: self.frequency.params.date_before.getFullYear(),
+                    month_before: self.frequency.params.date_before.getMonth()+1,
+                    day_before: self.frequency.params.date_before.getDate(),
+
+                    year_after: self.frequency.params.date_after.getFullYear(),
+                    month_after: self.frequency.params.date_after.getMonth()+1,
+                    day_after: self.frequency.params.date_after.getDate()
                 }).then(function success(data){
                     self.frequency.words = data.map(function(item){
                         return {
@@ -84,6 +89,8 @@
             tabs.setTab(0);
             $rootScope.$broadcast('ranalyze.search', {
                 query: word,
+                after: self.frequency.params.date_after,
+                before: self.frequency.params.date_before,
                 advanced: false,
                 subreddit: []
             });

@@ -234,13 +234,22 @@ def frequency_overview():
         "gran": request["gran"],
         "limit": int(request["limit"])
     }
+    if "year" in request:
+        for key in ("year", "month", "day"):
+            if key in request:
+                options[key] = [int(v) for v in request.getlist(key)]
 
-    for key in ("year", "month", "day"):
-        if key in request:
-            options[key] = [int(v) for v in request.getlist(key)]
+        return flask.jsonify(overview(**options))
 
-    return flask.jsonify(overview(**options))
+    if "year_before" in request:
+        for key in ("year_before", "month_before", "day_before",
+                    "year_after", "month_after", "day_after"):
+            if key in request:
+                print(key, request[key])
+                options[key] = int(request[key])
+        return flask.jsonify(overview(**options))
 
+    return flask.abort(400)
 
 @app.route('/subreddit', methods=["GET"])
 def subreddit_query():

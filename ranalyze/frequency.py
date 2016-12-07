@@ -133,29 +133,49 @@ def digest_entry(entry):
             add_update_object(word_day, FREQUENCY_TABLE)
 
 
-def overview(gran, limit, day=None, month=None, year=None):
+def overview(gran, limit, day=None, month=None, year=None,
+             day_before=None, month_before=None, year_before=None,
+             day_after=None, month_after=None, year_after=None):
     connect()
-    column_map = {
-        "year": year,
-        "month": month,
-        "day": day
-    }
-    date_condition = Condition()
-    for key, value in column_map.items():
-        if not value:
-            continue
-        sub_condition = Condition()
-        try:
-            for item in value:
-                sub_condition |= Condition(key, item)
-        except TypeError:
-            sub_condition = Condition(key, value)
-        date_condition &= sub_condition
-    cols_clause = gran + ", sum(entries) as entries, sum(total) as total, word"
-    query = SelectQuery(columns=cols_clause,
-                        table=FREQUENCY_TABLE,
-                        where=date_condition,
-                        order="(entries + total) DESC",
-                        limit=limit,
-                        group=gran+", word")
-    return execute_query(query, transpose=False)
+    if day or month or year:
+        column_map = {
+            "year": year,
+            "month": month,
+            "day": day
+        }
+        date_condition = Condition()
+        for key, value in column_map.items():
+            if not value:
+                continue
+            sub_condition = Condition()
+            try:
+                for item in value:
+                    sub_condition |= Condition(key, item)
+            except TypeError:
+                sub_condition = Condition(key, value)
+            date_condition &= sub_condition
+        cols_clause = gran + ", sum(entries) as entries, sum(total) as total, word"
+        query = SelectQuery(columns=cols_clause,
+                            table=FREQUENCY_TABLE,
+                            where=date_condition,
+                            order="(entries + total) DESC",
+                            limit=limit,
+                            group=gran+", word")
+        return execute_query(query, transpose=False)
+    else: # assuming everything else is here, otherwise will error
+        # constructs date from day,month,year columns
+        existing_date = "cast(rtrim(year *10000+ month *100+ day) as datetime)"
+        before_date = "{}-{}-{}".format(year_before, month_before, day_before)
+        after_date = "{}-{}-{}".format(year_after, month_after, day_after)
+        date_condition = Condition()
+        date_condition &= Condition(existing_date, "<=", before_date)
+        date_condition &= Condition(existing_date, ">=", after_date)
+        cols_clause = gran + ", sum(entries) as entries, sum(total) as total, word"
+        query = SelectQuery(columns=cols_clause,
+                            table=FREQUENCY_TABLE,
+                            where=date_condition,
+                            order="(entries + total) DESC",
+                            limit=limit,
+                            group=gran+", word")
+        return execute_query(query, transpose=False)
+

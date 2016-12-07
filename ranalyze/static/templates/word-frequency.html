@@ -65,9 +65,17 @@
                 </md-input-container>
             </md-slider-container>
         </div>
-        <md-input-container>
+        <!--<md-input-container>
             <label>Date</label>
             <md-datepicker name="cloudDate" ng-change="ctrl.frequency.updateWords()" ng-model="ctrl.frequency.params.date" aria-label="Date" id="cloud-date"></md-datepicker>
+        </md-input-container>-->
+        <md-input-container>
+            <label>After</label>
+            <md-datepicker name="cloudDate" ng-change="ctrl.frequency.updateWords()" ng-model="ctrl.frequency.params.date_after" aria-label="Date" id="cloud-date"></md-datepicker>
+        </md-input-container>
+        <md-input-container>
+            <label>Before</label>
+            <md-datepicker name="cloudDate" ng-change="ctrl.frequency.updateWords()" ng-model="ctrl.frequency.params.date_before" aria-label="Date" id="cloud-date"></md-datepicker>
         </md-input-container>
     </div>
 </md-content>
