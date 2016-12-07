@@ -252,13 +252,14 @@ def subreddit_query():
     for item in results:
         condition = Condition("subreddit", item["name"])
         columns = ("SUM(permalink IS NULL) as comments, "
-                   "SUM(permalink IS NOT NULL) as posts")
+                   "SUM(permalink IS NOT NULL) as posts, "
+                   "MIN(time_submitted) as oldest_entry")
         query = SelectQuery(table=ENTRY_TABLE,
                             columns=columns,
                             where=condition)
         item.update(execute_query(query, transpose=False)[0])
-        for key in ("comments", "posts"):
-            if not item[key]:
+        for key in item:
+            if item[key] is None:
                 item[key] = 0
     return flask.jsonify(results)
 
@@ -278,11 +279,15 @@ def subreddit_item(name, get=False):
         execute_query(query, transpose=False, commit=True)
     condition = Condition("subreddit", results[0]["name"])
     columns = ("SUM(permalink IS NULL) as comments, "
-               "SUM(permalink IS NOT NULL) as posts")
+               "SUM(permalink IS NOT NULL) as posts, "
+               "MIN(time_submitted) as oldest_entry")
     query = SelectQuery(table=ENTRY_TABLE,
                         columns=columns,
                         where=condition)
     results[0].update(execute_query(query, transpose=False)[0])
+    for key in results[0]:
+        if results[0][key] is None:
+            results[0][key] = 0
     return flask.jsonify(results[0])
 
 

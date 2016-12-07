@@ -34,6 +34,7 @@
                             </th>
                             <th md-column md-order-by="added"><span>Added</span></th>
                             <th md-column md-order-by="last_scraped"><span>Last Scraped</span></th>
+                            <th md-column md-order-by="oldest_entry"><span>Oldest Entry</span></th>
                             <th md-column md-order-by="posts"><span>Posts</span></th>
                             <th md-column md-order-by="comments"><span>Comments</span></th>
                         </tr>
@@ -49,6 +50,10 @@
                             <td md-cell>
                                 <span ng-show="sub.last_scraped">{{ sub.last_scraped*1000 | date:'short'}}</span>
                                 <span ng-hide="sub.last_scraped">-</span>
+                            </td>
+                            <td md-cell>
+                                <span ng-show="sub.oldest_entry">{{ sub.oldest_entry*1000 | date:'short'}}</span>
+                                <span ng-hide="sub.oldest_entry">-</span>
                             </td>
                             <td md-cell>{{sub.posts || "-"}}</td>
                             <td md-cell>{{sub.comments || "-"}}</td>
