@@ -37,13 +37,16 @@ def schedule_for_import(fname):
     """
     connect()
     count = 0
+    print "a"
     with open(fname, newline='') as importcsv:
         csvreader = csv.reader(importcsv)
+        print "b"
         for row in csvreader:
             for cell in row:
-
+                print "c"
                 add_update_object({"permalink" : cell}, IMPORT_TABLE)
                 count += 1
+    print "d"
     return count
 
 
