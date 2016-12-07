@@ -32,12 +32,10 @@
 
         /**
          * Factory for creating constructors for  Models are wrappers
-         * for angular's $resource. Properties of the underlying resource object
-         * are accessible via a generic get method. Additional instance methods
-         * may be defined in options.instanceMethods, and properties in
-         * options.instanceProperties, if the value of a key in
-         * options.instanceProperties is a function, it will be treated as a
-         * getter. Additional static properties and methods may be defined in
+         * for angular's $resource. Additional instance methods may be defined
+         * in options.instanceMethods, and properties in
+         * options.instanceProperties, instance properties are treated as
+         * getters. Additional static properties and methods may be defined in
          * options.staticProperties. If options.collection is set to true, all
          * created instances will be stored in an array available via the getAll
          * method of the constructor.
@@ -70,7 +68,13 @@
                         $uncommitted: collectionMode ? [] : undefined
                     });
                 }
-            var Model = function(a, commited) {
+            /**
+             *
+             * @param a {$resource|Object}
+             * @param committed {Boolean|undefined}
+             * @constructor
+             */
+            var Model = function(a, committed) {
                 this.$resourceInstance = (a instanceof resource) ? a : new resource(a);
                 var proxy = new Proxy(this, {
                     get: function(target, name) {
@@ -124,7 +128,7 @@
                             });
                     }
                 }, instanceMethods);
-                if (collectionMode && commited !== true) {
+                if (collectionMode && committed !== true) {
                     Model.$uncommitted.push(proxy);
                 }
                 return proxy;
