@@ -13,7 +13,8 @@
                 }], function(){
                     var regex = new RegExp('(' + scope.keywords().join('|') + ')', 'gi'),
                         text = element.text(),
-                        highlighted = text.replace(regex, "<span class=\"highlight\">$1</span>");
+                        highlightClass = attrs.ngHighlightClass || "highlight",
+                        highlighted = text.replace(regex, "<span class=\"" + highlightClass + "\">$1</span>");
                     element.html(highlighted);
                 });
 

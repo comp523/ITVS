@@ -1,15 +1,15 @@
 <md-content class="md-padding" ng-controller="searchController as ctrl">
-    <form ng-submit="ctrl.search()" name="searchForm" layout="column" layout-align="start center">
+    <form ng-submit="ctrl.search.execute()" name="searchForm" layout="column" layout-align="start center">
         <div layout="row">
             <md-input-container>
                 <label>Search Mode</label>
-                <md-select ng-model="form.advanced">
+                <md-select ng-model="ctrl.search.form.advanced">
                     <md-option ng-value="false">Keywords</md-option>
                     <md-option ng-value="true">Expression</md-option>
                 </md-select>
             </md-input-container>
             <md-input-container>
-                <input type="text" aria-label="query" required ng-model="form.query" name="query">
+                <input type="text" aria-label="query" required ng-model="ctrl.search.form.query" name="query">
                 <div ng-messages="searchForm.query.$error">
                     <div ng-message="required">This field is required.</div>
                 </div>
@@ -18,7 +18,7 @@
         <div layout="row">
             <md-input-container>
                 <label>Search Mode</label>
-                <md-select ng-model="form.subredditMode">
+                <md-select ng-model="ctrl.search.form.subredditMode">
                     <md-option value="inclusive">Include Only</md-option>
                     <md-option value="exclusive">Exclude Only</md-option>
                 </md-select>
@@ -26,15 +26,15 @@
             <div class="down-1">
                 <md-tooltip md-direction="right">Leave this blank for all subreddits</md-tooltip>
                 <md-chips
-                    ng-model="form.subreddit"
+                    ng-model="ctrl.search.form.subreddit"
                     md-autocomplete-snap
                     md-require-match="true">
                     <md-autocomplete
-                        md-items="item in ctrl.filterSubs(ctrl.searchText)"
+                        md-items="item in ctrl.search.querySubreddits(searchText)"
                         md-item-text="item"
-                        md-search-text="ctrl.searchText"
+                        md-search-text="searchText"
                         placeholder="Subreddits">
-                        {{ item }}
+                        <span md-highlight-text="searchText" md-highlight-flags="i">{{ item }}</span>
                     </md-autocomplete>
                 </md-chips>
             </div>
@@ -44,32 +44,34 @@
             <md-input-container>
 				<md-tooltip md-direction="right">Leave this blank to search from the beginning of time</md-tooltip>
                 <label>Start Date</label>
-                <md-datepicker name="after" ng-model="form.after"></md-datepicker>
+                <md-datepicker name="after" ng-change="ctrl.search.checkDates()" ng-model="ctrl.search.form.after"></md-datepicker>
             </md-input-container>
             <md-input-container>
 				<md-tooltip md-direction="right">Leave this blank to search up to today</md-tooltip>
                 <label>End Date</label>
-                <md-datepicker name="before" ng-model="form.before"></md-datepicker>
+                <md-datepicker name="before" ng-change="ctrl.search.checkDates()" ng-model="ctrl.search.form.before"></md-datepicker>
                 <div ng-messages="searchForm.before.$error">
                     <div ng-message="order">End Date must be &gt; Start Date</div>
                 </div>
             </md-input-container>
         </div>
 
-        <md-button class="md-raised md-warn" ng-click="ctrl.clearForm()">Clear Fields</md-button>
+        <md-button class="md-raised md-warn" ng-click="ctrl.search.clear()">Clear Fields</md-button>
 
         <div layout="row">
-            <md-button ng-click="ctrl.downloadSearch()" ng-disabled="searchForm.$invalid" class="md-raised">Download as CSV</md-button>
+            <md-button ng-click="ctrl.search.download()" ng-disabled="searchForm.$invalid" class="md-raised">Download as CSV</md-button>
             <md-button type="submit" ng-disabled="searchForm.$invalid" class="md-primary md-raised">Search</md-button>
         </div>
 
     </form>
 
-    <div ng-show="ctrl.entries.length > 0">
-        <md-table-pagination md-page="table.page" md-total="{{ctrl.entryCount}}" md-limit="table.limit" md-limit-options="table.limitOptions" md-page-select></md-table-pagination>
+    <div ng-show="ctrl.results.entries.length > 0">
+        <md-table-pagination md-page="ctrl.results.table.page" md-total="{{ctrl.results.count}}"
+                             md-limit="ctrl.results.table.limit" md-limit-options="ctrl.results.table.limitOptions"
+                             md-page-select></md-table-pagination>
         <md-table-container>
             <table md-table>
-                <thead md-head md-order="table.order">
+                <thead md-head md-order="ctrl.results.table.order">
                     <tr md-row>
                         <th md-column md-order-by="time_submitted"><span>Posted</span></th>
                         <th md-column md-order-by="(permalink IS NULL)"><span>Type</span></th>
@@ -79,19 +81,21 @@
                     </tr>
                 </thead>
                 <tbody md-body>
-                    <tr md-row ng-repeat="entry in ctrl.entries">
+                    <tr md-row ng-repeat="entry in ctrl.results.entries">
                         <td md-cell>{{1000*entry.time_submitted | date:'M/d/yy H:mm':'GMT'}} GMT</td>
                         <td md-cell>
-                            <a ng-href="{{ctrl.getLink(entry)}}" target="_blank">{{entry.type}}</a>
+                            <a ng-href="{{entry.permalink}}" target="_blank">{{entry.type}}</a>
                         </td>
                         <td md-cell>{{entry.subreddit}}</td>
-                        <td md-cell ng-highlight="highlight">{{entry.title}}</td>
-                        <td md-cell ng-highlight="highlight">{{ entry.text_content }}</td>
+                        <td md-cell ng-highlight-class="highlight-yellow" ng-highlight="ctrl.results.highlight">{{entry.title}}</td>
+                        <td md-cell ng-highlight-class="highlight-yellow" ng-highlight="ctrl.results.highlight">{{ entry.text_content }}</td>
                     </tr>
                 </tbody>
             </table>
         </md-table-container>
-        <md-table-pagination md-page="table.page" md-total="{{ctrl.entryCount}}" md-limit="table.limit" md-limit-options="table.limitOptions" md-page-select></md-table-pagination>
+        <md-table-pagination md-page="ctrl.results.table.page" md-total="{{ctrl.results.count}}"
+                             md-limit="ctrl.results.table.limit" md-limit-options="ctrl.results.table.limitOptions"
+                             md-page-select></md-table-pagination>
     </div>
 
 </md-content>

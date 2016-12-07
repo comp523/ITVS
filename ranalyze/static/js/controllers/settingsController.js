@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var settingsController = function($scope, $mdDialog, $rootScope, $timeout, config, constants, database){
+    var settingsController = function($scope, $mdDialog, $rootScope, $timeout, config, constants, models){
 
         var self = this,
 
@@ -15,35 +15,16 @@
                         totalWeight: self.cloud.totalWeight.value
                     }
                 });
+            },
+            findSubredditByName = function(name) {
+                for (var i=0,subs=self.subreddits.getAll(),j=subs.length;i<j;i++){
+                    if (subs[i].name === name) {
+                        return subs[i];
+                    }
+                }
             };
 
         self.subreddits = {
-            selected: [],
-            refreshAll: database.Subreddit.refreshAll,
-            deleteSelected: function(){
-                var numSubs = self.subreddits.selected.length;
-                $mdDialog.show(
-                    $mdDialog.confirm()
-                        .title('Delete Subreddits')
-                        .textContent(constants.STRINGS.DELETE_SUBREDDIT_WARNING)
-                        .ariaLabel('Delete Subreddits')
-                        .ok('Delete')
-                        .cancel('Never mind')
-                )
-                    .then(function(){
-                        angular.forEach(self.subreddits.selected, function(sub){
-                            sub.$delete()
-                                .then(function success(){
-                                    self.subreddits.all.splice(self.subreddits.all.indexOf(sub), 1);
-                                    self.subreddits.selected.splice(self.subreddits.selected.indexOf(sub), 1);
-                                }, function failure(){
-                                    $scope.$emit('ranalyze.error', {
-                                        textContent: 'An error occurred while trying to delete the subreddit `' + sub.value + '`'
-                                    });
-                                });
-                        });
-                    })
-            },
             add: function(){
                 $mdDialog.show(
                     $mdDialog.prompt()
@@ -54,39 +35,59 @@
                 )
                     .then(function(sub){
                         sub = sub.trim();
-                        var item = new database.Subreddit({
+                        new models.Subreddit({
                             name: sub
-                        });
-                        item.$save()
-                            .then(function success(){
-                                self.subreddits.all.push(item);
-                            }, function failure(){
+                        }).commit()
+                            .catch(function failure(){
                                 $scope.$emit('ranalyze.error', {
                                     textContent: 'An error occurred while trying to save the subreddit `' + sub + '`'
                                 });
                             });
                     });
             },
+            deleteSelected: function(){
+                $mdDialog.show(
+                    $mdDialog.confirm()
+                        .title('Delete Subreddits')
+                        .textContent(constants.STRINGS.DELETE_SUBREDDIT_WARNING)
+                        .ariaLabel('Delete Subreddits')
+                        .ok('Delete')
+                        .cancel('Never mind')
+                )
+                    .then(function(){
+                        angular.forEach(self.subreddits.selected, function(name){
+                            var sub = findSubredditByName(name);
+                            if (!sub) {
+                                $scope.$emit('ranalyze.error', {
+                                    textContent: 'Subreddit `' + sub.name + '` has already been deleted'
+                                });
+                            }
+                            sub.delete()
+                                .then(function success(){
+                                    self.subreddits.selected.splice(self.subreddits.selected.indexOf(name), 1);
+                                }, function failure(){
+                                    $scope.$emit('ranalyze.error', {
+                                        textContent: 'An error occurred while trying to delete the subreddit `' + sub.name + '`'
+                                    });
+                                });
+                        });
+                    })
+            },
+            getAll: function(){
+                return models.Subreddit.$collection
+            },
+            isRefreshing: function(){
+                return models.Subreddit.refreshing
+            },
+            refresh: models.Subreddit.refresh,
+            selected: [],
             table: {
                 limit: 10,
                 limitOptions: [10, 25, 50, 100],
                 page: 1,
-                order: 'posts'
+                order: '-posts'
             }
         };
-
-        Object.defineProperties(self.subreddits, {
-            all: {
-                get: function(){
-                    return database.Subreddit.all;
-                }
-            },
-            refreshing: {
-                get: function(){
-                    return database.Subreddit.refreshing;
-                }
-            }
-        });
 
         self.blacklist = {
             all: [],
@@ -203,10 +204,9 @@
 
         self.import = {
             submit: function() {
-
-                database.Entry.import({
+                models.Entry.import({
                     file: self.import.files[0]
-                }, function success(data) {
+                }).then(function success(data) {
                     self.import.response = data;
                     self.import.file.value = null;
                 }, function failure() {

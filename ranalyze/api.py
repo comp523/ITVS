@@ -207,10 +207,15 @@ def entry_query():
 @app.route('/entry/subreddits')
 def entry_subreddits():
 
+    request = flask.request.args
+
+    condition = (Condition("subreddit", "like", "%{}%".format(request["name"]))
+                 if "name" in request else Condition())
 
     query = SelectQuery(table=ENTRY_TABLE,
                         distinct=True,
-                        columns="subreddit")
+                        columns="subreddit",
+                        where=condition)
 
     return flask.jsonify([e['subreddit'] for e in
                           execute_query(query, transpose=False)])
@@ -252,6 +257,9 @@ def subreddit_query():
                             columns=columns,
                             where=condition)
         item.update(execute_query(query, transpose=False)[0])
+        for key in ("comments", "posts"):
+            if not item[key]:
+                item[key] = 0
     return flask.jsonify(results)
 
 

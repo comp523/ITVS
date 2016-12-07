@@ -11,7 +11,7 @@
 						   <md-tooltip md-direction="down">Stop scraping selected Subreddits</md-tooltip>
                     <i class="material-icons">delete</i>
                 </md-button>
-                <md-button ng-disabled="ctrl.subreddits.refreshing" class="md-raised md-icon-button" ng-click="ctrl.subreddits.refreshAll()">
+                <md-button ng-disabled="ctrl.subreddits.isRefreshing()" class="md-raised md-icon-button" ng-click="ctrl.subreddits.refresh()">
                     <md-tooltip md-direction="down">Refresh stats</md-tooltip>
                     <i class="material-icons">sync</i>
                 </md-button>
@@ -39,8 +39,8 @@
                         </tr>
                     </thead>
                     <tbody md-body>
-                        <tr md-row md-select="sub" md-select-id="value" md-auto-select
-                            ng-repeat="sub in ctrl.subreddits.all | filter:subredditSearch | orderBy: ctrl.subreddits.table.order | limitTo: ctrl.subreddits.table.limit : (ctrl.subreddits.table.page -1) * ctrl.subreddits.table.limit">
+                        <tr md-row md-select="sub.name" md-select-id="value" md-auto-select
+                            ng-repeat="sub in ctrl.subreddits.getAll() | filter:subredditSearch | orderBy: ctrl.subreddits.table.order | limitTo: ctrl.subreddits.table.limit : (ctrl.subreddits.table.page -1) * ctrl.subreddits.table.limit">
                             <td md-cell>
                                 <i class="material-icons spinning-icon" ng-show="sub.scraping">refresh</i>
                                 {{sub.name}}

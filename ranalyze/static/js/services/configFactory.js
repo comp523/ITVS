@@ -1,46 +1,48 @@
 (function(app){
 "use strict";
 
-    var configFactory = function(database) {
+    var configFactory = function($resource) {
 
         var config = {
-            Item: database.ConfigItem
-            },
+            Item: $resource('/config/:id', {
+                id: '@id'
+            })
+        },
 
-            types = {
-                ARRAY: 0,
-                BOOLEAN: 1,
-                NUMBER: 2
-            },
+        types = {
+            ARRAY: 0,
+            BOOLEAN: 1,
+            NUMBER: 2
+        },
 
-            fields = {
-                entryWeight: {
-                    type: types.NUMBER,
-                    name: "entryWeight"
-                },
-                totalWeight: {
-                    type: types.NUMBER,
-                    name: "totalWeight"
-                },
-                blacklist: {
-                    type: types.ARRAY,
-                    name: "blacklist"
-                },
-                serverBlacklist: {
-                    type: types.ARRAY,
-                    name: "serverBlacklist"
-                }
+        fields = {
+            entryWeight: {
+                type: types.NUMBER,
+                name: "entryWeight"
             },
+            totalWeight: {
+                type: types.NUMBER,
+                name: "totalWeight"
+            },
+            blacklist: {
+                type: types.ARRAY,
+                name: "blacklist"
+            },
+            serverBlacklist: {
+                type: types.ARRAY,
+                name: "serverBlacklist"
+            }
+        },
 
-            nameToGetter = function(name) {
-                return 'get' +
-                    name.substring(0, 1).toUpperCase() +
-                    name.substring(1);
-            };
+        nameToGetter = function(name) {
+            return 'get' +
+                name.substring(0, 1).toUpperCase() +
+                name.substring(1);
+        };
 
         angular.forEach(fields, function(properties, field){
             config[nameToGetter(field)] = function(){
-                return database.ConfigItem.query({
+                return config.Item.query({
                     name: properties.name
                 }).$promise.then(function(results) {
                     switch (properties.type) {

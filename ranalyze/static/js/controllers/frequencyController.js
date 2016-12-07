@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var frequencyController = function($scope, $rootScope, database, config, tabs) {
+    var frequencyController = function($scope, $rootScope, config, models, tabs) {
 
         var self = this;
 
@@ -41,13 +41,13 @@
                 });
             },
             updateWords: function() {
-                database.Frequency.overview({
-                    gran: database.Frequency.granularity.DAY,
+                models.Frequency.getOverview({
+                    gran: models.Frequency.granularity.DAY,
                     limit: 150,
                     year: self.frequency.params.date.getFullYear(),
                     month: self.frequency.params.date.getMonth() + 1,
                     day: self.frequency.params.date.getDate()
-                }, function success(data){
+                }).then(function success(data){
                     self.frequency.words = data.map(function(item){
                         return {
                             text: item.word,
@@ -82,7 +82,7 @@
 
         self.search = function(word) {
             tabs.setTab(0);
-            $rootScope.$broadcast('search', {
+            $rootScope.$broadcast('ranalyze.search', {
                 query: word,
                 advanced: false,
                 subreddit: []

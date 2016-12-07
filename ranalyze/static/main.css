@@ -3,7 +3,7 @@ header {
     position: relative;
 }
 
-span.highlight {
+span.highlight-yellow {
     display: inline-block;
     background-color: yellow;
     vertical-align: top !important;

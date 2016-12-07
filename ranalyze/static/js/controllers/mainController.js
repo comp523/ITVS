@@ -1,17 +1,17 @@
 (function(app){
 "use strict";
 
-    var mainController = function($scope, database, tabs) {
+    var mainController = function($scope, models, tabs) {
 
-        $scope.selectedIndex = 0;
+        var self = this;
+
+        self.selectedIndex = 0;
 
         tabs.setObserver(function(index) {
-            $scope.selectedIndex = index;
+            self.selectedIndex = index;
         });
 
-        $scope.isScraping = function(){
-            return database.Subreddit.scraping;
-        };
+        self.isScraping = models.Subreddit.isScraping;
 
     };
 
