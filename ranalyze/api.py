@@ -245,7 +245,6 @@ def frequency_overview():
         for key in ("year_before", "month_before", "day_before",
                     "year_after", "month_after", "day_after"):
             if key in request:
-                print(key, request[key])
                 options[key] = int(request[key])
         return flask.jsonify(overview(**options))
 
