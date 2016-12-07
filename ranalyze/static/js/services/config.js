@@ -1,6 +1,11 @@
 (function(app){
 "use strict";
 
+    /**
+     * The config service provides getters for retrieving configuration
+     * parameters from the server. Getters return a promise which will be
+     * resolved once the request to the server is completed.
+     */
     var configFactory = function($resource) {
 
         var config = {
@@ -16,22 +21,10 @@
         },
 
         fields = {
-            entryWeight: {
-                type: types.NUMBER,
-                name: "entryWeight"
-            },
-            totalWeight: {
-                type: types.NUMBER,
-                name: "totalWeight"
-            },
-            blacklist: {
-                type: types.ARRAY,
-                name: "blacklist"
-            },
-            serverBlacklist: {
-                type: types.ARRAY,
-                name: "serverBlacklist"
-            }
+            entryWeight: types.NUMBER,
+            totalWeight: types.NUMBER,
+            blacklist: types.ARRAY,
+            serverBlacklist: types.ARRAY
         },
 
         nameToGetter = function(name) {
@@ -40,12 +33,12 @@
                 name.substring(1);
         };
 
-        angular.forEach(fields, function(properties, field){
+        angular.forEach(fields, function(type, field){
             config[nameToGetter(field)] = function(){
                 return config.Item.query({
-                    name: properties.name
+                    name: field
                 }).$promise.then(function(results) {
-                    switch (properties.type) {
+                    switch (type) {
                         case types.ARRAY:
                             return results;
                         case types.BOOLEAN:

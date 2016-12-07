@@ -3,15 +3,16 @@
 
     var mainController = function($scope, models, tabs) {
 
-        var self = this;
+        var ctrl = this;
 
-        self.selectedIndex = 0;
-
-        tabs.setObserver(function(index) {
-            self.selectedIndex = index;
+        angular.extend(ctrl, {
+            isScraping: models.Subreddit.isScraping,
+            activeTab: 0
         });
 
-        self.isScraping = models.Subreddit.isScraping;
+        tabs.setObserver(function(index) {
+            ctrl.activeTab = index;
+        });
 
     };
 

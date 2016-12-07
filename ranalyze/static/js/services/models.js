@@ -43,7 +43,8 @@
          * for angular's $resource. Additional instance methods may be defined
          * in options.instanceMethods, and properties in
          * options.instanceProperties, instance properties are treated as
-         * getters. Additional static properties and methods may be defined in
+         * getters, and will be passed the underlying $resource instance as an
+         * argument. Additional static properties and methods may be defined in
          * options.staticProperties. If options.collection is set to true, all
          * created instances will be stored in an array available via the getAll
          * method of the constructor.
@@ -52,11 +53,6 @@
          * commit(): save changes to the server, if collection mode is on,
          *     this adds an object to the set of instances.
          * delete(): delete the element from the server.
-         * get(property, skipCustom): retrieve a property from the underlying
-         *     resource object, if skipCustom===true, instance properties
-         *     defined in options.instanceProperties will be ignored.
-         * set(property, value): set a property on the underlying resource
-         *     object.
          *
          * The constructor ob
          * @param resource {$resource}
@@ -72,7 +68,7 @@
                 staticProperties.$resource = resource;
                 if (collectionMode){
                     angular.extend(staticProperties, {
-                        $collection: collectionMode ? [] : undefined,
+                        collection: collectionMode ? [] : undefined,
                         $uncommitted: collectionMode ? [] : undefined
                     });
                 }
@@ -81,25 +77,43 @@
             },
             proxyHandler = {
                 get: function(target, name, proxy) {
+
+                    /* $resource instance is a private property, don't pass it through the proxy */
                     if (name in target && target[name] !== target.$resourceInstance) {
-                        if (!target.hasOwnProperty(name) && typeof target[name] === 'function'){
+
+                        /* if the requested property is a function and not defined on the underlying
+                           model object itself (e.g. is inherited prototypically), bind the underlying
+                           model object to the function and return it. */
+                        if (!target.hasOwnProperty(name) && angular.isFunction(target[name])){
                             return target[name].bind(target);
                         }
                         return target[name];
                     }
-                    if (name in instanceProperties) {
+
+                    /* if the requested property is a getter defined in instanceProperties
+                       call it bound to the proxy object with the underlying $resource as an
+                       argument. */
+                    else if (name in instanceProperties) {
                         return instanceProperties[name].call(proxy, target.$resourceInstance);
                     }
-                    if (name in target.$resourceInstance &&
-                        typeof target.$resourceInstance[name] !== 'function') {
+
+                    /* if the requested property exists on the underlying $resource object,
+                       and is not an instance method (i.e. $save, $delete, etc.) return that
+                       property.
+                     */
+                    else if (name in target.$resourceInstance && !angular.isFunction(target.$resourceInstance[name])) {
                         return target.$resourceInstance[name];
                     }
                     return undefined;
                 },
                 set: function(target, name, value) {
+                    /* Only allow angular prefixed values to be assigned to the model,
+                       not the underlying $resource instance. */
                     if (name.startsWith("$")) {
                         return target[name] = value;
                     }
+
+                    /* Don't allow getters to be overridden */
                     else if (name in instanceProperties || name in target) {
                         $log.error("Can't set value of getter");
                     }
@@ -108,6 +122,7 @@
                     }
                 }
             },
+
             /**
              *
              * @param a {$resource|Object}
@@ -128,24 +143,23 @@
                     return self.$resourceInstance.$save().then(function () {
                         if (collectionMode) {
                             Model.$uncommitted.splice(Model.$uncommitted.indexOf(self.proxy));
-                            Model.$collection.push(self.proxy);
+                            Model.collection.push(self.proxy);
                         }
                         return this;
                     });
                 },
                 delete: function () {
                     var self = this;
-                    return self.$resourceInstance.$delete()
-                        .then(function(){
-                            if (collectionMode) {
-                                if (Model.$uncommitted.indexOf(self.proxy) !== -1) {
-                                    Model.$uncommitted.splice(Model.$uncommitted.indexOf(self.proxy), 1);
-                                }
-                                else if (Model.$collection.indexOf(self.proxy) !== -1) {
-                                    Model.$collection.splice(Model.$collection.indexOf(self.proxy), 1);
-                                }
+                    return self.$resourceInstance.$delete().then(function(){
+                        if (collectionMode) {
+                            if (Model.$uncommitted.indexOf(self.proxy) !== -1) {
+                                Model.$uncommitted.splice(Model.$uncommitted.indexOf(self.proxy), 1);
                             }
-                        });
+                            else if (Model.collection.indexOf(self.proxy) !== -1) {
+                                Model.collection.splice(Model.collection.indexOf(self.proxy), 1);
+                            }
+                        }
+                    });
                 }
             }, instanceMethods);
             return angular.extend(Model, staticProperties);
@@ -235,7 +249,7 @@
                     }
                     Subreddit.refreshing = true;
                     Subreddit.$resource.query({}, function success(results){
-                        Subreddit.$collection = results.map(function(item){
+                        Subreddit.collection = results.map(function(item){
                             item = new Subreddit(item, true);
                             return item;
                         });
@@ -254,7 +268,7 @@
                 },
                 isScraping: function(){
                     var isScraping = false;
-                    angular.forEach(Subreddit.$collection, function(item) {
+                    angular.forEach(Subreddit.collection, function(item) {
                         isScraping |= item.scraping;
                     });
                     return isScraping;

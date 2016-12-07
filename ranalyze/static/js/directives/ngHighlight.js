@@ -1,6 +1,12 @@
 (function(app){
 "use strict";
 
+    /**
+     *  Directive to provide text highlighting of multiple keywords.
+     *  Matching keywords will be wrapped in a span element with a class
+     *  name taken from the ng-highlight-class property if it exists,
+     *  defaulting to 'highlight'.
+     */
     var ngHighlightDirective = function(){
         return {
             scope: {

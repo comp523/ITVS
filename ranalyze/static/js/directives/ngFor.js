@@ -1,6 +1,9 @@
 (function(app){
 "use strict";
 
+    /**
+     *  Directive to give label-like input focusing to any element.
+     */
     var ngForDirective = function(){
         return {
             link: function(scope, element, attrs) {

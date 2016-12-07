@@ -1,6 +1,12 @@
 (function(app){
 "use strict";
 
+    /**
+     *  Directive for binding the value of a file input object
+     *  to a special object with two properties:
+     *  files: the array of File objects selected
+     *  value: the text value of the file input element
+     */
     var ngFileModelDirective = function(){
         return {
             scope: {
@@ -8,26 +14,11 @@
             },
             link: function(scope, element) {
                 scope.ngFileModel = scope.ngFileModel || {};
-                Object.defineProperties(scope.ngFileModel, {
-                    files: {
-                        get: function(){
-                            return element[0].files;
-                        },
-                        set: function(){
-                            throw new Error("<HTMLInputElement>.files is not writeable.");
-                        }
-                    },
-                    value: {
-                        get: function(){
-                            return element.val();
-                        },
-                        set: function(value) {
-                            element.val(value);
-                        }
-                    }
-                });
                 element.on("change", function(){
-                    scope.$apply();
+                    scope.$apply(function(){
+                        scope.ngFileModel['files'] = element[0].files;
+                        scope.ngFileModel['value'] = element.val();
+                    });
                 });
             },
             restrict: 'A'

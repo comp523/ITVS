@@ -19,8 +19,7 @@ var app = (function(){
                 ok: "Okay"
             };
             $rootScope.$on('ranalyze.error', function(event, args){
-                var params = angular.copy(defaults);
-                angular.extend(params, args);
+                var params = angular.extend({}, defaults, args);
                 $mdDialog.show(
                     $mdDialog.alert(params)
                 )

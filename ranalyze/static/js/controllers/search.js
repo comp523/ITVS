@@ -4,12 +4,13 @@
     var searchController = function($scope, $mdDialog, constants, models) {
 
         var ctrl = this,
-            baseForm = {
-                advanced: false,
-                subreddit: [],
-                subredditMode: 'inclusive'
-            },
-            searchPromise, falseTableTrigger = false;
+        baseForm = {
+            advanced: false,
+            subreddit: [],
+            subredditMode: 'inclusive'
+        },
+        searchPromise, falseTableTrigger = false;
+
         angular.extend(ctrl, {
             search: {
                 checkDates: function(){
