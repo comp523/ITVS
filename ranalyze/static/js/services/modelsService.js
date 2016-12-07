@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var modelsService = function($httpParamSerializer, $log, $resource, $timeout, $window, constants) {
+    var modelsService = function($filter, $httpParamSerializer, $log, $resource, $timeout, $window, constants) {
 
         var sanitizeDate = function(value) {
             return value ? $filter('date')(value, constants.DATE.FORMAT) : value;
@@ -88,7 +88,7 @@
                         return target[name];
                     }
                     if (name in instanceProperties) {
-                        return instanceProperties[name].call(proxy);
+                        return instanceProperties[name].call(proxy, target.$resourceInstance);
                     }
                     if (name in target.$resourceInstance &&
                         typeof target.$resourceInstance[name] !== 'function') {
@@ -153,16 +153,16 @@
 
         var Entry = this.Entry = modelConstructorFactory(resources.Entry, {
             instanceProperties: {
-                permalink: function getter(){
+                permalink: function getter($resourceInstance){
                     if (this.type === Entry.types.POST) {
-                        return this.$resourceInstance.permalink;
+                        return $resourceInstance.permalink;
                     }
                     return "https://www.reddit.com/r/" + this.subreddit +
                         "/comments/" + this.root_id.substring(3) + "/slug/" +
                         this.id.substring(3);
                 },
-                type: function getter(){
-                    return this.$resourceInstance.permalink ? Entry.types.POST : Entry.types.COMMENT;
+                type: function getter($resourceInstance){
+                    return $resourceInstance.permalink ? Entry.types.POST : Entry.types.COMMENT;
                 }
             },
             staticProperties: {
@@ -185,6 +185,9 @@
                     }).$promise;
                 },
                 search: function(params) {
+                    angular.forEach(["after", "before"], function(key) {
+                        params[key] = sanitizeDate(params[key]);
+                    });
                     return Entry.$resource.search(params).$promise
                         .then(function success(data){
                             data.results = data.results.map(function(item) {
