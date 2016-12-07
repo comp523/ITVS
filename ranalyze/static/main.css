@@ -46,6 +46,16 @@ i.label-icon.material-icons {
     color: darkgreen;
 }
 
+.slide {
+    transition: height 1s;
+    overflow: hidden;
+    height: 18px;
+}
+
+.slide.ng-hide {
+    height: 0;
+}
+
 .small-list-wrapper {
     height: 300px;
     overflow-y: auto;

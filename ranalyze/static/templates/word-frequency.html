@@ -41,7 +41,7 @@
             </md-tab-body>
         </md-tab>
     </md-tabs>
-    <div layout="row" layout-align="center" class="md-padding">
+    <form layout="row" layout-align="center" class="md-padding" name="paramForm">
         <div layout="column" layout-align="start center">
             <span>Entry Weight</span>
             <md-slider-container>
@@ -57,25 +57,29 @@
         <div layout="column">
             <span>Total Occurrence Weight</span>
             <md-slider-container>
-			<md-tooltip md-direction="right">Total number of times the word occurs</md-tooltip>
+            <md-tooltip md-direction="right">Total number of times the word occurs</md-tooltip>
                 <md-slider ng-change="ctrl.frequency.updateWeights()" flex min="0" max="10" ng-model="ctrl.frequency.params.totalWeight" aria-label="Total Occurrence Weight" id="total-slider">
-				</md-slider>
+                </md-slider>
                 <md-input-container>
                     <input flex ng-change="ctrl.frequency.updateWeights()" type="number" ng-model="ctrl.frequency.params.totalWeight" aria-label="Total Occurrence Weight" aria-controls="total-slider">
                 </md-input-container>
             </md-slider-container>
         </div>
-        <!--<md-input-container>
-            <label>Date</label>
-            <md-datepicker name="cloudDate" ng-change="ctrl.frequency.updateWords()" ng-model="ctrl.frequency.params.date" aria-label="Date" id="cloud-date"></md-datepicker>
-        </md-input-container>-->
-        <md-input-container>
-            <label>After</label>
-            <md-datepicker name="cloudDate" ng-change="ctrl.frequency.updateWords()" ng-model="ctrl.frequency.params.date_after" aria-label="Date" id="cloud-date"></md-datepicker>
-        </md-input-container>
-        <md-input-container>
-            <label>Before</label>
-            <md-datepicker name="cloudDate" ng-change="ctrl.frequency.updateWords()" ng-model="ctrl.frequency.params.date_before" aria-label="Date" id="cloud-date"></md-datepicker>
-        </md-input-container>
-    </div>
+        <div layout="column" layout-align="start center">
+            <div layout="row">
+                <md-input-container>
+                    <label>After</label>
+                    <md-datepicker ng-change="ctrl.frequency.checkDates() && ctrl.frequency.updateWords()" ng-model="ctrl.frequency.params.after" aria-label="Date" id="cloud-date"></md-datepicker>
+                </md-input-container>
+                <md-input-container>
+                    <label>Before</label>
+                    <md-datepicker ng-change=" ctrl.frequency.checkDates() && ctrl.frequency.updateWords()" ng-model="ctrl.frequency.params.before" aria-label="Date" id="cloud-date"></md-datepicker>
+                </md-input-container>
+            </div>
+            <div md-colors="{color:'warn'}" ng-show="!ctrl.frequency.params.valid" class="slide">
+                End Date must be &gt; Start Date
+            </div>
+        </div>
+
+    </form>
 </md-content>

@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var frequencyController = function($scope, $rootScope, config, models, tabs) {
+    var frequencyController = function($scope, $rootScope, config, datesInOrder, models, tabs) {
 
         var ctrl = this,
         blacklistPromise, blacklist = [],
@@ -46,9 +46,24 @@
                 }
             },
             frequency: {
+                checkDates: function(){
+                    ctrl.frequency.params.valid = datesInOrder(ctrl.frequency.params.after, ctrl.frequency.params.before);
+                    return ctrl.frequency.params.valid;
+                },
+                lastDateRange: {},
                 params: {
-                    date_before: new Date(),
-                    date_after: new Date()
+                    before: (function tomorrow(){
+                        var date = new Date();
+                        date.setDate(date.getDate() + 1);
+                        date.setHours(0,0,0,0);
+                        return date;
+                    })(),
+                    after: (function today(){
+                        var date = new Date();
+                        date.setHours(0,0,0,0);
+                        return date;
+                    })(),
+                    valid: true
                 },
                 selectedWords: [],
                 words: [],
@@ -71,15 +86,19 @@
                     models.Frequency.getOverview({
                         gran: models.Frequency.granularity.DAY,
                         limit: 150,
-                        year_before: ctrl.frequency.params.date_before.getFullYear(),
-                        month_before: ctrl.frequency.params.date_before.getMonth()+1,
-                        day_before: ctrl.frequency.params.date_before.getDate(),
+                        year_before: ctrl.frequency.params.before.getFullYear(),
+                        month_before: ctrl.frequency.params.before.getMonth() + 1,
+                        day_before: ctrl.frequency.params.before.getDate(),
 
-                        year_after: ctrl.frequency.params.date_after.getFullYear(),
-                        month_after: ctrl.frequency.params.date_after.getMonth()+1,
-                        day_after: ctrl.frequency.params.date_after.getDate()
-                    }).then(function success(data){
-                        ctrl.frequency.words = data.map(function(item){
+                        year_after: ctrl.frequency.params.after.getFullYear(),
+                        month_after: ctrl.frequency.params.after.getMonth() + 1,
+                        day_after: ctrl.frequency.params.after.getDate()
+                    }).then(function success(data) {
+                        ctrl.frequency.lastDateRange = {
+                            before: ctrl.frequency.params.before,
+                            after: ctrl.frequency.params.after
+                        };
+                        ctrl.frequency.words = data.map(function (item) {
                             return {
                                 text: item.word,
                                 entries: item.entries,
@@ -88,8 +107,8 @@
                                     class: 'clickable'
                                 },
                                 handlers: {
-                                    "click": function() {
-                                        $rootScope.$apply(function(){
+                                    "click": function () {
+                                        $rootScope.$apply(function () {
                                             ctrl.search(item.word);
                                         });
                                     }
@@ -97,7 +116,7 @@
                             };
                         });
                         ctrl.frequency.updateWeights();
-                    }, function failure(){
+                    }, function failure() {
                         $scope.$emit('ranalyze.error', {
                             textContent: "Couldn't get word frequency from server."
                         });
@@ -112,13 +131,11 @@
             },
             search: function(word) {
                 tabs.setTab(0);
-                $rootScope.$broadcast('ranalyze.search', {
+                $rootScope.$broadcast('ranalyze.search', angular.extend({
                     query: word,
-                    after: ctrl.frequency.params.date_after,
-                    before: ctrl.frequency.params.date_before,
                     advanced: false,
                     subreddit: []
-                });
+                }, ctrl.frequency.lastDateRange));
             }
         });
 

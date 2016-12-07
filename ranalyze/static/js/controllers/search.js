@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var searchController = function($scope, $mdDialog, constants, models) {
+    var searchController = function($scope, $mdDialog, constants, datesInOrder, models) {
 
         var ctrl = this,
         baseForm = {
@@ -14,13 +14,8 @@
         angular.extend(ctrl, {
             search: {
                 checkDates: function(){
-                    var date1 = ctrl.search.form.after,
-                        date2 = ctrl.search.form.before;
-
-                    var valid = !(date1 && date2 && date1.getTime() >= date2.getTime());
-
+                    var valid = datesInOrder(ctrl.search.form.after, ctrl.search.form.before);
                     $scope.searchForm.before.$setValidity('order', valid);
-
                 },
                 clear: function(){
                     ctrl.search.form = angular.copy(baseForm);
