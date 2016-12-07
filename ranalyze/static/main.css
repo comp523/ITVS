@@ -47,7 +47,7 @@ i.label-icon.material-icons {
 }
 
 .small-list-wrapper {
-    max-height: 300px;
+    height: 300px;
     overflow-y: auto;
 }
 
