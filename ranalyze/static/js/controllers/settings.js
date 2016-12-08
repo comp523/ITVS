@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var settingsController = function($scope, $mdDialog, $rootScope, $timeout, config, models){
+    var settingsController = function($scope, $mdDialog, $q, $rootScope, $timeout, config, models){
 
         var ctrl = this,
 
@@ -99,32 +99,32 @@
             },
             cloud: {
                 save: function(){
-                    ctrl.cloud.saving = true;
-                    ctrl.cloud.savingDelayed = true;
-                    var entryPromise = ctrl.cloud.entryWeight.$save().then(function success(){
+                    ctrl.cloud.saving.inProgress = true;
+                    ctrl.cloud.saving.failed = false;
+                    var promises = [];
+                    promises.push(ctrl.cloud.entryWeight.$save().then(function success(){
                         ctrl.cloud.entryWeight.value = parseFloat(ctrl.cloud.entryWeight.value);
-                    }, function failure(){
-                        $scope.$emit('ranalyze.error', {
-                            textContent: 'An error occurred while trying to save cloud parameter `entryWeight`'
-                        });
-                    }),
-                    totalPromise = ctrl.cloud.totalWeight.$save().then(function(){
+                    }));
+                    promises.push(ctrl.cloud.totalWeight.$save().then(function(){
                         ctrl.cloud.totalWeight.value = parseFloat(ctrl.cloud.totalWeight.value);
+                    }));
+                    $q.all(promises).then(function success(){
+                        broadcastChange();
+                        ctrl.cloud.saving.succeeded = true;
+                        // wait 3 second before hiding success indicator
+                        $timeout(function(){
+                            ctrl.cloud.saving.succeeded = false;
+                        }, 3000);
                     }, function failure(){
-                        $scope.$emit('ranalyze.error', {
-                            textContent: 'An error occurred while trying to save cloud parameter `totalWeight`'
-                        });
+                        ctrl.cloud.saving.failed = true;
+                    }).finally(function(){
+                        ctrl.cloud.saving.inProgress = false;
                     });
-                    entryPromise.then(function(){
-                        totalPromise.then(function(){
-                            broadcastChange();
-                            ctrl.cloud.saving = false;
-                            // wait 3 second before hiding success indicator
-                            $timeout(function(){
-                                ctrl.cloud.savingDelayed = false;
-                            }, 3000);
-                        });
-                    });
+                },
+                saving: {
+                    failed: false,
+                    inProgress: false,
+                    succeeded: false
                 }
             },
             import: {

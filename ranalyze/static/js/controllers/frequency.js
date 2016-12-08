@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var frequencyController = function($scope, $rootScope, config, datesInOrder, models, tabs) {
+    var frequencyController = function($scope, $q, $rootScope, config, datesInOrder, models, tabs) {
 
         var ctrl = this,
         blacklistPromise, blacklist = [],
@@ -68,7 +68,8 @@
                 selectedWords: [],
                 words: [],
                 updateWeights: function(){
-                    var _updateWeights = function(){
+                    // Ensure all promises are resolved
+                    $q.all([entryPromise, totalPromise]).then(function success(){
                         var entryWeight = ctrl.frequency.params.entryWeight,
                         totalWeight = ctrl.frequency.params.totalWeight;
                         for (var i=0,j=ctrl.frequency.words.length,word;i<j;i++) {
@@ -76,10 +77,6 @@
                             word.weight = entryWeight * word.entries + totalWeight * word.total;
                         }
                         ctrl.cloud.update();
-                    };
-                    // Ensure all promises are resolved
-                    entryPromise.then(function(){
-                        totalPromise.then(_updateWeights);
                     });
                 },
                 updateWords: function() {

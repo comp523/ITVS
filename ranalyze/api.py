@@ -13,7 +13,7 @@ import os
 from csv import DictWriter
 from io import StringIO
 from tempfile import NamedTemporaryFile
-from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE, SUBREDDIT_TABLE
+from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE, IMPORT_TABLE, SUBREDDIT_TABLE
 from .database import (
     add_update_object,
     connect,
@@ -112,11 +112,18 @@ def config_update(_id=None):
     return flask.jsonify(result)
 
 
-@app.route('/entry/import', methods=['POST'])
+@app.route('/entry/import', methods=['GET', 'POST'])
 def entry_import():
     """
+    on GET: returns how many records are in the import queue
     on POST: imports a csv file into the database
     """
+    if flask.request.method == 'GET':
+        query = SelectQuery(table=IMPORT_TABLE,
+                            columns="COUNT(*) as items")
+        return flask.jsonify({
+            "queueLength": execute_query(query, transpose=False)[0]["items"]
+        })
     f = flask.request.files['file']
     temp = NamedTemporaryFile(delete=False)
     f.save(temp)

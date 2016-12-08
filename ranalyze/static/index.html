@@ -26,7 +26,10 @@
 
 		<header>
 			<img class="md-padding" src="ranalyze-logo.png">
-            <i title="Scrape in progress" id="scraping-progress" class="material-icons spinning-icon md-padding" ng-show="mainCtrl.isScraping()">refresh</i>
+            <div class="status-icons" ng-messages="mainCtrl.getStatus()" multiple>
+                <i title="Scrape in progress" class="material-icons spinning-icon md-padding" ng-message="scraping">refresh</i>
+                <i title="Import in progress" class="material-icons pulsing-icon md-padding" ng-message="importing">cloud_upload</i>
+            </div>
 		</header>
 
 		<div ng-cloak layout="row" layout-align="space-around">

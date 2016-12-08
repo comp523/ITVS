@@ -89,8 +89,11 @@
                         <span flex class="md-padding" ng-bind="ctrl.cloud.totalWeight.value"></span>
                     </div>
                     <div layout="row" layout-align="end center">
-                        <i ng-show="!ctrl.cloud.saving && ctrl.cloud.savingDelayed" class="material-icons success-icon">check</i>
-                        <md-button ng-click="ctrl.cloud.save()" ng-disabled="ctrl.cloud.saving" class="md-primary md-raised">
+                        <div ng-messages="ctrl.cloud.saving">
+                            <i ng-message="succeeded" class="material-icons success-icon">check</i>
+                            <i ng-message="failed" class="material-icons failure-icon">error_outline</i>
+                        </div>
+                        <md-button ng-click="ctrl.cloud.save()" ng-disabled="ctrl.cloud.saving.inProgress" class="md-primary md-raised">
                             Save
                         </md-button>
                     </div>
@@ -185,6 +188,7 @@
                             Choose CSV File
                         </md-button>
                         <md-button type="submit" class="md-raised md-primary" ng-disabled="!ctrl.import.file.value">
+                            <i class="material-icons label-icon">file_upload</i>
                             Upload
                         </md-button>
                     </div>

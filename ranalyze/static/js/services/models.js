@@ -1,10 +1,59 @@
 (function(app){
 "use strict";
 
-    var modelsService = function($filter, $httpParamSerializer, $log, $resource, $timeout, $window, constants) {
+    var modelsService = function($filter, $httpParamSerializer, $log, $q, $resource, $timeout, $window, constants) {
 
         var sanitizeDate = function(value) {
             return value ? $filter('date')(value, constants.DATE.FORMAT) : value;
+        },
+        refreshFailCount = 0,
+        refreshFunctions = {
+            import: function(){
+                return Entry.$resource.get({action: "import"}, function success(results){
+                    Entry.importing = results.queueLength > 0;
+                }).$promise;
+            },
+            subreddits: function(){
+                Subreddit.refreshing = true;
+                return Subreddit.$resource.query({}, function success(results){
+                    Subreddit.collection = results.map(function(item){
+                        item = new Subreddit(item, true);
+                        return item;
+                    });
+                    Subreddit.refreshing = false;
+                }).$promise;
+            }
+        },
+        refreshPromise,
+        refreshStats = function(){
+            var promises = [];
+            if (refreshPromise) {
+                $timeout.cancel(refreshPromise);
+            }
+            angular.forEach(refreshFunctions, function(fn, key) {
+                promises.push(fn().then(function success(){
+                    fn.failCount = 0;
+                }, function failure(){
+                    fn.failCount = (fn.failCount || 0) + 1;
+                    var warning = "Refreshing stats for " + key + " failed "
+                        + "(attempt " + fn.failCount + "/"
+                        + constants.MAX_REFRESH_TRIES + ")...";
+                    if (fn.failCount >= constants.MAX_REFRESH_TRIES) {
+                        warning += " exceeded maximum attempts... aborting.";
+                        delete refreshFunctions[key];
+                    }
+                    else {
+                        warning += " retrying in " + constants.REFRESH_INTERVAL/1000 + " seconds.";
+                    }
+                    $log.warn(warning);
+                }));
+            });
+            $q.all(promises)
+                .finally(function(){
+                    if (Object.keys(refreshFunctions).length > 0) {
+                        refreshPromise = $timeout(refreshStats, constants.REFRESH_INTERVAL/4);
+                    }
+                });
         },
         resources = {
             Entry: $resource('/entry/:action', {}, {
@@ -192,6 +241,7 @@
                     });
                     return Entry.$resource.import(formData).$promise;
                 },
+                importing: false,
                 searchSubreddits: function(name){
                     return Entry.$resource.query({
                         action: "subreddits",
@@ -241,42 +291,19 @@
         var Subreddit = this.Subreddit =  modelConstructorFactory(resources.Subreddit, {
             collection: true,
             staticProperties: {
-                $failCount: 0,
                 refreshing: false,
-                refresh: function(){
-                    if (Subreddit.$refreshPromise) {
-                        $timeout.cancel(Subreddit.$refreshPromise);
-                    }
-                    Subreddit.refreshing = true;
-                    Subreddit.$resource.query({}, function success(results){
-                        Subreddit.collection = results.map(function(item){
-                            item = new Subreddit(item, true);
-                            return item;
-                        });
-                        Subreddit.refreshing = false;
-                        Subreddit.$failCount = 0;
-                        Subreddit.$refreshPromise = $timeout(Subreddit.refresh, constants.REFRESH_INTERVAL);
-                    }, function failure(){
-                        $log.warn("Couldn't refresh subreddits");
-                        if (Subreddit.$failCount++ <= constants.MAX_REFRESH_TRIES) {
-                            Subreddit.$refreshPromise = $timeout(Subreddit.refresh, constants.REFRESH_INTERVAL);
-                        }
-                        else {
-                            $log.warn("Exceeded max refresh retries. Aborting.")
-                        }
-                    });
-                },
+                refresh: refreshStats,
                 isScraping: function(){
                     var isScraping = false;
                     angular.forEach(Subreddit.collection, function(item) {
                         isScraping |= item.scraping;
                     });
-                    return isScraping;
+                    return !!isScraping;
                 }
             }
         });
 
-        Subreddit.refresh();
+        refreshStats();
 
     };
 

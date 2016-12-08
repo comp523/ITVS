@@ -3,11 +3,19 @@
 
     var mainController = function($scope, models, tabs) {
 
-        var ctrl = this;
+        var ctrl = this,
+        status = {
+            importing: false,
+            scraping: false
+        };
 
         angular.extend(ctrl, {
-            isScraping: models.Subreddit.isScraping,
-            activeTab: 0
+            activeTab: 0,
+            getStatus: function(){
+                status.scraping = models.Subreddit.isScraping();
+                status.importing = models.Entry.importing;
+                return status;
+            }
         });
 
         tabs.setObserver(function(index) {

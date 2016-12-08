@@ -32,11 +32,14 @@ i.label-icon.material-icons {
     margin-right: auto;
 }
 
-#scraping-progress {
+.status-icons {
     position: absolute;
-    font-size: 32px;
     top: 13px;
     left: calc(50% + 116px);
+}
+
+.status-icons i {
+    font-size: 32px;
     color: #438327;
     padding-left: 0;
     padding-right: 0;
@@ -44,6 +47,10 @@ i.label-icon.material-icons {
 
 .success-icon {
     color: darkgreen;
+}
+
+.failure-icon {
+    color: red;
 }
 
 .slide {
@@ -74,9 +81,22 @@ i.label-icon.material-icons {
     }
 }
 
+@keyframes pulse {
+    0%, 100% {
+        color: #438327;
+    }
+    50% {
+        color: #80b1d6;
+    }
+}
+
 .spinning-icon {
 
     transform-origin: 50% 50%;
-    animation: rotate 1s linear infinite;
+    animation: rotate 2s linear infinite;
 
+}
+
+.pulsing-icon {
+    animation: pulse 2s linear infinite;
 }
