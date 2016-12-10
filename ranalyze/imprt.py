@@ -56,7 +56,7 @@ def import_from_table():
             for entry in fetch_post(row["permalink"]):
                 add_update_object(entry, ENTRY_TABLE)				
             deleteQuery = DeleteQuery(IMPORT_TABLE, where=Condition("permalink", row["permalink"]))
-            execute_query(deleteQuery, commit=true)
+            execute_query(deleteQuery, commit=True)
         count = 0
         countQuery = SelectQuery(IMPORT_TABLE, "count(*) as numleft")
         count = execute_query(countQuery, transpose=False)[0]['numleft']
