@@ -8,7 +8,7 @@ Tool to traverse a set of subreddits extracting post/comment information includi
 
 import praw
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from .constants import ENTRY_TABLE, SUBREDDIT_TABLE
 from .database import add_update_object, execute_query, get_latest_post
 from .frequency import digest_entry
@@ -95,13 +95,15 @@ def fetch_post(permalink):
         yield(comment)
 
 
-def update_posts(date_range):
+def update_posts(days_ago):
     """
     Updates all posts in the database in a specified range
     """
-
-    condition = (Condition("time_submitted", ">=", date_range[0]) &
-                 Condition("time_submitted", "<=", date_range[1]))
+    last_week = date_to_timestamp(datetime.today() - timedelta(days=-days_ago))
+    last_week_and_a_day = date_to_timestamp(datetime.today() - timedelta(days=-days_ago-1))
+    
+    condition = (Condition("time_submitted", ">=", last_week_and_a_day) &
+                 Condition("time_submitted", "<=", last_week))
 
     query = SelectQuery(table=ENTRY_TABLE,
                         where=condition)
