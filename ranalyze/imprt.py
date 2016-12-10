@@ -58,4 +58,4 @@ def import_from_table():
             deleteQuery = DeleteQuery(IMPORT_TABLE, where=Condition("permalink", row["permalink"]))
         count = 0
         countQuery = SelectQuery(IMPORT_TABLE, "count(*) as numleft")
-        count = execute_query(countQuery, transpose=False)['numleft']
+        count = execute_query(countQuery, transpose=False)[0]
