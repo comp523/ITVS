@@ -56,7 +56,7 @@
                     });
                     if (Object.keys(rejected).length > 0) {
                         $scope.$emit('ranalyze.error', {
-                            controller: 'basicDialogController',
+                            controller: basicDialogController,
                             controllerAs: 'ctrl',
                             locals: {
                                 title: dialogTitle,
@@ -214,6 +214,14 @@
 
         ctrl.frequency.updateWords();
 
+
+    };
+
+    var basicDialogController = function($scope, $mdDialog){
+
+        var ctrl = this;
+
+        ctrl.close = $mdDialog.hide;
 
     };
 

@@ -43,8 +43,8 @@ def static_files(filename):
 @app.route('/app.js')
 def compile_js():
     cur_path = os.path.dirname(os.path.realpath(__file__))
-    sub_dirs = ['controllers', 'directives', 'filters', 'services']
-    js_files = ['main.js']
+    sub_dirs = ['controllers', 'config', 'directives', 'filters', 'services']
+    js_files = ['ranalyze.js']
     for sub in sub_dirs:
         path = os.path.join(cur_path, 'static/js', sub)
         js_files.extend([os.path.join(path, file) for file in os.listdir(path)])
