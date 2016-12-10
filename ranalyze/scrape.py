@@ -88,11 +88,15 @@ def fetch_post(permalink):
     For use in updating and importing from csv
     """
     # api wrapper connection
-    reddit = praw.Reddit(user_agent="Documenting ecig subs")
-    post = reddit.get_submission(permalink)
-    yield(PostFactory.from_praw(post))
-    for comment in traverse_comments(post.comments):
-        yield(comment)
+    try:
+        reddit = praw.Reddit(user_agent="Documenting ecig subs")
+        post = reddit.get_submission(permalink)
+        post.replace_more_comments(limit=None, threshold=0)
+        yield(PostFactory.from_praw(post))
+        for comment in traverse_comments(post.comments):
+            yield(comment)
+    except praw.errors.NotFound:
+        return
 
 
 def update_posts(days_ago):
