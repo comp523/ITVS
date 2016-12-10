@@ -103,8 +103,8 @@ def update_posts(days_ago):
     """
     Updates all posts in the database in a specified range
     """
-    range_start = datetime.date.today() - datetime.timedelta(days=days_ago)
-    range_end = datetime.date.today() - datetime.timedelta(days=days_ago+1)
+    range_start = datetime.date.today() - datetime.timedelta(days=days_ago+1)
+    range_end = datetime.date.today() - datetime.timedelta(days=days_ago)
     
     cond = Condition("time_submitted", ">=", date_to_timestamp(range_start))
     cond &= Condition("time_submitted", "<", date_to_timestamp(range_end))
