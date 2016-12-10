@@ -6,9 +6,9 @@ Tool to traverse a set of subreddits extracting post/comment information includi
  - Number of upvotes/downvotes
 """
 
+import datetime
 import praw
 
-from datetime import datetime, timedelta
 from .constants import ENTRY_TABLE, SUBREDDIT_TABLE
 from .database import add_update_object, execute_query, get_latest_post
 from .frequency import digest_entry
@@ -69,7 +69,7 @@ def fetch_data(subreddit_set):
             for comment in traverse_comments(post.comments):
                 yield(comment)  # yields all post comments
 
-        timestamp = date_to_timestamp(datetime.now())
+        timestamp = date_to_timestamp(datetime.datetime.now())
 
         query = UpdateQuery(table=SUBREDDIT_TABLE,
                             values={
@@ -99,14 +99,14 @@ def update_posts(days_ago):
     """
     Updates all posts in the database in a specified range
     """
-    last_week = date_to_timestamp(datetime.today() - timedelta(days=-days_ago))
-    last_week_and_a_day = date_to_timestamp(datetime.today() - timedelta(days=-days_ago-1))
+    range_start = datetime.date.today() - datetime.timedelta(days=-days_ago)
+    range_end = datetime.date.today() - datetime.timedelta(days=-days_ago-1)
     
-    condition = (Condition("time_submitted", ">=", last_week_and_a_day) &
-                 Condition("time_submitted", "<=", last_week))
+    cond = Condition("time_submitted", ">=", date_to_timestamp(range_start))
+    cond &= Condition("time_submitted", "<", date_to_timestamp(range_end))
 
     query = SelectQuery(table=ENTRY_TABLE,
-                        where=condition)
+                        where=cond)
 
     posts = filter(lambda entry: isinstance(entry, Post), execute_query(query))
 
