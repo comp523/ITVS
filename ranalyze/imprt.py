@@ -7,7 +7,7 @@ import csv
 from .constants import ENTRY_TABLE, IMPORT_CHUNK_SIZE, IMPORT_TABLE
 from .database import add_update_object, execute_query
 from .scrape import fetch_post
-from .query import Condition, SelectQuery, DeleteQuery
+from .query import Condition, SelectQuery, DeleteQuery, InsertQuery
 
 def import_file(fname):
     """
@@ -36,7 +36,8 @@ def schedule_for_import(fname):
             print ((row,))
             for cell in row:
                 print ("c")
-                add_update_object({"permalink" : cell}, IMPORT_TABLE)
+                q = InsertQuery(IMPORT_TABLE, {"permalink":cell})
+                execute_query(q, commit=True)
                 count += 1
     print (count)
     return count
