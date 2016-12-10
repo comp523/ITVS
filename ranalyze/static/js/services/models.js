@@ -267,6 +267,8 @@
 
         subredditIsRefreshing = false;
 
+        refreshStats();
+
     };
 
     app.service("models", modelsService);
