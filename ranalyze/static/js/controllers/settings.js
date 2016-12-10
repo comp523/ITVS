@@ -1,15 +1,13 @@
 (function(app){
 "use strict";
 
-    var settingsController = function($scope, $mdDialog, $q, $rootScope, $timeout, config, models){
+    var settingsController = function($scope, $mdDialog, $q, $rootScope, $timeout, models){
 
         var ctrl = this,
 
         broadcastChange = function(){
             $rootScope.$broadcast('ranalyze.cloudConfig.change', {
-                blacklist: ctrl.blacklist.all.map(function(item){
-                    return item.value;
-                }),
+                blacklist: ctrl.blacklist.all,
                 params: {
                     entryWeight: ctrl.cloud.entryWeight.value,
                     totalWeight: ctrl.cloud.totalWeight.value
@@ -43,7 +41,7 @@
                         var promiseCount = 0;
                         ctrl.blacklist.selected.forEach(function(obj){
                             promiseCount ++;
-                            obj.$delete().then(function success(){
+                            obj.delete().then(function success(){
                                 ctrl.blacklist.all.splice(ctrl.blacklist.all.indexOf(obj), 1);
                                 ctrl.blacklist.selected.splice(ctrl.blacklist.selected.indexOf(obj), 1);
                                 if (--promiseCount==0) {
@@ -65,30 +63,15 @@
                             .placeholder('Word to blacklist')
                             .ok('Add')
                             .cancel('Cancel')
-                    ).then(function(res) {
-                        res = res.trim();
-                        var contains = false;
-                        for(var i=0,j=ctrl.blacklist.all.length;i<j;i++){
-                            if (ctrl.blacklist.all[i].value == res) {
-                                contains = true;
-                                break;
-                            }
-                        }
-                        if (!contains) {
-                            var obj = {
-                                'name': 'blacklist',
-                                'value': res,
-                            };
-                            var item = new config.Item(obj);
-                            item.$save().then(function success(){
-                                ctrl.blacklist.all.push(item);
-                                broadcastChange();
-                            }, function failure(response){
-                                $scope.$emit('ranalyze.error', {
-                                    textContent: response
-                                });
+                    ).then(function(word){
+                        models.Config.addToBlackList(word).then(function success(item){
+                            ctrl.blacklist.all.push(item);
+                            broadcastChange();
+                        }, function failure(){
+                            $scope.$emit('ranalyze.error', {
+                                textContent: 'An error occurred while trying to add ' + word + ' to the blacklist'
                             });
-                        }
+                        });
                     });
                 },
                 table: {
@@ -102,10 +85,10 @@
                     ctrl.cloud.saving.inProgress = true;
                     ctrl.cloud.saving.failed = false;
                     var promises = [];
-                    promises.push(ctrl.cloud.entryWeight.$save().then(function success(){
+                    promises.push(ctrl.cloud.entryWeight.commit().then(function success(){
                         ctrl.cloud.entryWeight.value = parseFloat(ctrl.cloud.entryWeight.value);
                     }));
-                    promises.push(ctrl.cloud.totalWeight.$save().then(function(){
+                    promises.push(ctrl.cloud.totalWeight.commit().then(function(){
                         ctrl.cloud.totalWeight.value = parseFloat(ctrl.cloud.totalWeight.value);
                     }));
                     $q.all(promises).then(function success(){
@@ -208,7 +191,7 @@
             }
         });
 
-        config.getEntryWeight().then(function success(value) {
+        models.Config.getEntryWeight().then(function success(value) {
             ctrl.cloud.entryWeight = value;
         }, function failure(){
             $scope.$emit('ranalyze.error', {
@@ -216,7 +199,7 @@
             });
         });
 
-        config.getTotalWeight().then(function success(value) {
+        models.Config.getTotalWeight().then(function success(value) {
             ctrl.cloud.totalWeight = value;
         }, function failure(){
             $scope.$emit('ranalyze.error', {
@@ -224,7 +207,7 @@
             });
         });
 
-        config.getBlacklist().then(function success(value) {
+        models.Config.getBlacklist().then(function success(value) {
             ctrl.blacklist.all = value;
         }, function failure(){
             $scope.$emit('ranalyze.error', {
@@ -232,7 +215,7 @@
             })
         });
 
-        config.getServerBlacklist().then(function success(value){
+        models.Config.getServerBlacklist().then(function success(value){
             ctrl.blacklist.serverList = value;
         }, function failure(){
             $scope.$emit('ranalyze.error', {

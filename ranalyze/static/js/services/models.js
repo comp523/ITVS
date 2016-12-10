@@ -1,7 +1,8 @@
 (function(app){
 "use strict";
 
-    var modelsService = function($filter, $httpParamSerializer, $log, $q, $resource, $timeout, $window, constants) {
+    var modelsService = function($filter, $httpParamSerializer, $log, $q,
+                                 $resource, $timeout, $window, constants, modelFactory) {
 
         var sanitizeDate = function(value) {
             return value ? $filter('date')(value, constants.DATE.FORMAT) : value;
@@ -29,16 +30,27 @@
                 }).$promise;
             }
         },
+
+
         refreshPromise,
+
+        /**
+         * Runs on an interruptable timer, periodically running each function in refreshFunctions,
+         * on an interval equal to constants.REFRESH_INTERVAL. If a promise returned by a function is rejected,
+         * a fail counter is incremented, and once it exceeds constants.MAX_REFRESH_TRIES,
+         * that function will be removed from refreshFunctions. Returns a combined promise which will be
+         * rejected if any of the promised from refreshFunctions are rejected.
+         * @returns {Promise}
+         */
         refreshStats = function(){
             var promises = {};
             if (refreshPromise) {
                 $timeout.cancel(refreshPromise);
             }
             angular.forEach(refreshFunctions, function(fn, key) {
-                var promise = fn().then(function success(){
+                promises[key] = fn().then(function success(){
                     fn.failCount = 0;
-                }, function failure(result){
+                }, function failure(){
                     fn.failCount = (fn.failCount || 0) + 1;
                     var warning = "Refreshing stats for " + key + " failed "
                         + "(attempt " + fn.failCount + "/"
@@ -51,9 +63,8 @@
                         warning += " retrying in " + constants.REFRESH_INTERVAL/1000 + " seconds.";
                     }
                     $log.warn(warning);
-                    return $q.reject(result);
+                    return $q.reject(warning);
                 });
-                promises[key] = promise;
             });
             return $q.all(promises)
                 .finally(function(){
@@ -62,7 +73,17 @@
                     }
                 });
         },
+
+
+        /**
+         * Dictionary of $resource objects for use by the models.
+         *
+         * @type {object<string, $resource>}
+         */
         resources = {
+            Config: $resource('/config/:id', {
+                id: '@id'
+            }),
             Entry: $resource('/entry/:action', {}, {
                 import: {
                     method: 'POST',
@@ -92,136 +113,65 @@
             Subreddit: $resource('/subreddit/:name', {
                 name: '@name'
             })
-        };
+        },
+
 
         /**
-         * Factory for creating constructors for  Models are wrappers
-         * for angular's $resource. Additional instance methods may be defined
-         * in options.instanceMethods, and properties in
-         * options.instanceProperties, instance properties are treated as
-         * getters, and will be passed the underlying $resource instance as an
-         * argument. Additional static properties and methods may be defined in
-         * options.staticProperties. If options.collection is set to true, all
-         * created instances will be stored in an array available via the getAll
-         * method of the constructor.
          *
-         * The constructor creates objects with the following instance methods:
-         * commit(): save changes to the server, if collection mode is on,
-         *     this adds an object to the set of instances.
-         * delete(): delete the element from the server.
-         *
-         * The constructor ob
-         * @param resource {$resource}
-         * @param options {Object|null}
-         * @returns {Function}
+         * @param name
+         * @param options {object=}
+         * @param options.isArray {boolean=true}
+         * @param options.transformValues {function=}
+         * @param options.transpose {boolean=true}
+         * @returns {function(): Promise}
          */
-        var modelConstructorFactory = function(resource, options) {
+        configGetterFactory = function(name, options) {
             options = options || {};
-            var collectionMode = options.collection === true,
-                instanceMethods = options.instanceMethods || {},
-                instanceProperties = options.instanceProperties || {},
-                staticProperties = options.staticProperties;
-                staticProperties.$resource = resource;
-                if (collectionMode){
-                    angular.extend(staticProperties, {
-                        collection: collectionMode ? [] : undefined,
-                        $uncommitted: collectionMode ? [] : undefined
-                    });
-                }
-            var ProxyFactory = function(model) {
-                return new Proxy(model, proxyHandler);
-            },
-            proxyHandler = {
-                get: function(target, name, proxy) {
-
-                    /* $resource instance is a private property, don't pass it through the proxy */
-                    if (name in target && target[name] !== target.$resourceInstance) {
-
-                        /* if the requested property is a function and not defined on the underlying
-                           model object itself (e.g. is inherited prototypically), bind the underlying
-                           model object to the function and return it. */
-                        if (!target.hasOwnProperty(name) && angular.isFunction(target[name])){
-                            return target[name].bind(target);
+            var isArray = options.isArray !== false,
+                transformValue = options.transformValues,
+                transpose = options.transpose !== false;
+            return function getter(){
+                return Config.$resource.query({
+                    name: name
+                }).$promise.then(function(results){
+                    results = results.map(function(item){
+                        if (transformValue) {
+                            item.value = transformValue(item.value);
                         }
-                        return target[name];
-                    }
+                        return transpose ? new Config(item) : item;
+                    });
+                    return isArray ? results : results[0];
+                });
+            }
+        },
 
-                    /* if the requested property is a getter defined in instanceProperties
-                       call it bound to the proxy object with the underlying $resource as an
-                       argument. */
-                    else if (name in instanceProperties) {
-                        return instanceProperties[name].call(proxy, target.$resourceInstance);
-                    }
-
-                    /* if the requested property exists on the underlying $resource object,
-                       and is not an instance method (i.e. $save, $delete, etc.) return that
-                       property.
-                     */
-                    else if (name in target.$resourceInstance && !angular.isFunction(target.$resourceInstance[name])) {
-                        return target.$resourceInstance[name];
-                    }
-                    return undefined;
+        Config = this.Config = modelFactory(resources.Config, {
+            staticProperties: {
+                addToBlacklist: function(word) {
+                    word = word.trim().toLowerCase();
+                    var obj = {
+                        'name': 'blacklist',
+                        'value': word,
+                    };
+                    var item = new Config(obj);
+                    return item.commit();
                 },
-                set: function(target, name, value) {
-                    /* Only allow angular prefixed values to be assigned to the model,
-                       not the underlying $resource instance. */
-                    if (name.startsWith("$")) {
-                        return target[name] = value;
-                    }
+                getBlacklist: configGetterFactory("blacklist"),
+                getEntryWeight: configGetterFactory("entryWeight", {
+                    isArray:false,
+                    transformValues: parseFloat
+                }),
+                getTotalWeight: configGetterFactory("totalWeight", {
+                    isArray:false,
+                    transformValues: parseFloat
+                }),
+                getServerBlacklist: configGetterFactory("serverBlacklist", {
+                    transpose: false
+                })
+            }
+        }),
 
-                    /* Don't allow getters to be overridden */
-                    else if (name in instanceProperties || name in target) {
-                        $log.error("Can't set value of getter");
-                    }
-                    else {
-                        return target.$resourceInstance[name] = value;
-                    }
-                }
-            },
-
-            /**
-             *
-             * @param a {$resource|Object}
-             * @param committed {Boolean|undefined}
-             * @constructor
-             */
-            Model = function(a, committed) {
-                this.proxy = ProxyFactory(this);
-                this.$resourceInstance = (a instanceof resource) ? a : new resource(a);
-                if (collectionMode && committed !== true) {
-                    Model.$uncommitted.push(this.proxy);
-                }
-                return this.proxy;
-            };
-            angular.extend(Model.prototype, {
-                commit: function () {
-                    var self = this;
-                    return self.$resourceInstance.$save().then(function () {
-                        if (collectionMode) {
-                            Model.$uncommitted.splice(Model.$uncommitted.indexOf(self.proxy));
-                            Model.collection.push(self.proxy);
-                        }
-                        return this;
-                    });
-                },
-                delete: function () {
-                    var self = this;
-                    return self.$resourceInstance.$delete().then(function(){
-                        if (collectionMode) {
-                            if (Model.$uncommitted.indexOf(self.proxy) !== -1) {
-                                Model.$uncommitted.splice(Model.$uncommitted.indexOf(self.proxy), 1);
-                            }
-                            else if (Model.collection.indexOf(self.proxy) !== -1) {
-                                Model.collection.splice(Model.collection.indexOf(self.proxy), 1);
-                            }
-                        }
-                    });
-                }
-            }, instanceMethods);
-            return angular.extend(Model, staticProperties);
-        };
-
-        var Entry = this.Entry = modelConstructorFactory(resources.Entry, {
+        Entry = this.Entry = modelFactory(resources.Entry, {
             instanceProperties: {
                 permalink: function getter($resourceInstance){
                     if (this.type === Entry.types.POST) {
@@ -272,9 +222,9 @@
                     POST: "Post"
                 }
             }
-        });
+        }),
 
-        var Frequency = this.Frequency = modelConstructorFactory(resources.Frequency, {
+        Frequency = this.Frequency = modelFactory(resources.Frequency, {
             staticProperties: {
                 granularity: {
                     YEAR: "year",
@@ -293,9 +243,9 @@
                         });
                 }
             }
-        });
+        }),
 
-        var Subreddit = this.Subreddit =  modelConstructorFactory(resources.Subreddit, {
+        Subreddit = this.Subreddit =  modelFactory(resources.Subreddit, {
             collection: true,
             staticProperties: {
                 isRefreshing: function(){
@@ -314,9 +264,8 @@
                 }
             }
         }),
-        subredditIsRefreshing = false;
 
-        refreshStats();
+        subredditIsRefreshing = false;
 
     };
 

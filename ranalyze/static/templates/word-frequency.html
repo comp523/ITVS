@@ -15,9 +15,21 @@
                 table
             </md-tab-label>
             <md-tab-body>
+                <div class="md-padding">
+                    <md-button class="md-icon-button md-warn md-raised" ng-click="ctrl.frequency.blacklistSelected()"
+                               ng-disabled="ctrl.frequency.selectedWords.length==0">
+                        <md-tooltip md-direction="down">Add Selected Words to Blacklist</md-tooltip>
+                        <i class="material-icons">assignment_late</i>
+                    </md-button>
+                    <md-button class="md-icon-button md-raised" ng-click="ctrl.frequency.unblacklistSelected()"
+                               ng-disabled="ctrl.frequency.selectedWords.length==0">
+                        <md-tooltip md-direction="down">Remove Selected Words from Blacklist</md-tooltip>
+                        <i class="material-icons">assignment_turned_in</i>
+                    </md-button>
+                </div>
                 <md-table-pagination md-page="ctrl.frequency.table.page" md-total="{{ctrl.frequency.words.length}}" md-limit="ctrl.frequency.table.limit" md-limit-options="ctrl.frequency.table.limitOptions" md-page-select></md-table-pagination>
                 <md-table-container>
-                    <table md-table >
+                    <table md-table md-row-select multiple ng-model="ctrl.frequency.selectedWords">
                         <thead md-head md-order="ctrl.frequency.table.order">
                             <tr md-row>
                                 <th md-column md-order-by="text"><span>Word</span></th>
@@ -27,10 +39,22 @@
                             </tr>
                         </thead>
                         <tbody md-body>
-                            <tr md-row
+                            <tr md-row md-select="word"
                                 ng-repeat="word in ctrl.frequency.words | orderBy: ctrl.frequency.table.order | limitTo: ctrl.frequency.table.limit : (ctrl.frequency.table.page -1) * ctrl.frequency.table.limit">
-                                <td md-cell ng-click="ctrl.search(word.text)">{{word.text}}</td>
-                                <td md-cell>{{word.entries}}</td>
+                                <td md-cell>
+                                    <span>
+                                        <i ng-click="ctrl.search(word.text)" class="material-icons label-icon clickable">search</i>
+                                        <md-tooltip direction="down">Search for this word</md-tooltip>
+                                    </span>
+                                    {{word.text}}
+                                </td>
+                                <td md-cell>
+                                    <span ng-show="ctrl.frequency.inBlacklist(word.text)">
+                                        <i class="material-icons label-icon">assignment_late</i>
+                                        <md-tooltip direction="down">Blacklisted</md-tooltip>
+                                    </span>
+                                    {{word.entries}}
+                                </td>
                                 <td md-cell>{{word.total}}</td>
                                 <td md-cell>{{word.weight}}</td>
                             </tr>
