@@ -14,16 +14,11 @@ from csv import DictWriter
 from io import StringIO
 from tempfile import NamedTemporaryFile
 from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE, IMPORT_TABLE, SUBREDDIT_TABLE
-from .database import (
-    add_update_object,
-    connect,
-    execute_query
-)
+from .database import add_update_object, execute_query
 from .frequency import BLACKLIST, overview
 from .imprt import schedule_for_import
 from .models import ConfigEntryFactory, SubredditFactory
 from .query import Condition, DeleteQuery, SelectQuery
-from .scrape import get_subreddits
 from .search import search as search_db
 from .utils import iso_to_date, timestamp_to_str
 
@@ -337,8 +332,6 @@ def env_shiv():
 
 if "OPENSHIFT_DATA_DIR" not in os.environ:
     env_shiv()
-
-connect()
 
 if __name__ == '__main__':
     app.run()

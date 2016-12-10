@@ -10,18 +10,9 @@ import praw
 
 from datetime import datetime
 from .constants import ENTRY_TABLE, SUBREDDIT_TABLE
-from .database import (
-    add_update_object,
-    connect,
-    execute_query,
-    get_latest_post
-)
+from .database import add_update_object, execute_query, get_latest_post
 from .frequency import digest_entry
-from .models import (
-    CommentFactory,
-    Post,
-    PostFactory
-)
+from .models import CommentFactory, Post, PostFactory
 from .query import Condition, SelectQuery, UpdateQuery
 from .utils import date_to_timestamp
 

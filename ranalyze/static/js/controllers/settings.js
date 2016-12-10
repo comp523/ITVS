@@ -190,10 +190,14 @@
                 getAll: function(){
                     return models.Subreddit.collection
                 },
-                isRefreshing: function(){
-                    return models.Subreddit.refreshing
+                isRefreshing: models.Subreddit.isRefreshing,
+                refresh: function(){
+                   models.Subreddit.refresh().catch(function(){
+                        $scope.$emit('ranalyze.error', {
+                            textContent: 'An error occurred while trying to refresh subreddit stats'
+                        });
+                   });
                 },
-                refresh: models.Subreddit.refresh,
                 selected: [],
                 table: {
                     limit: 10,

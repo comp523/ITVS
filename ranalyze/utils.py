@@ -5,8 +5,6 @@ Common utilities
 import datetime
 import re
 from math import floor
-from string import printable
-from .constants import CHAR_SET
 
 EPOCH = datetime.datetime.utcfromtimestamp(0)
 

@@ -1,4 +1,5 @@
 """
+
 """
 
 import re
@@ -6,7 +7,7 @@ import re
 from datetime import datetime
 from types import SimpleNamespace
 from .constants import ENTRY_TABLE, FREQUENCY_TABLE
-from .database import add_update_object, connect, execute_query, object_exists
+from .database import add_update_object, execute_query, object_exists
 from .models import WordDay
 from .query import Condition, SelectQuery
 
@@ -100,8 +101,11 @@ granularity = SimpleNamespace(YEAR='year', MONTH='month', DAY='day')
 
 
 def digest_entry(entry):
-
-    connect()
+    """
+    Process an entry for word frequency
+    :param entry:
+    :return:
+    """
 
     if not object_exists(entry, ENTRY_TABLE):
         date = datetime.fromtimestamp(entry.time_submitted)
@@ -136,7 +140,7 @@ def digest_entry(entry):
 def overview(gran, limit, day=None, month=None, year=None,
              day_before=None, month_before=None, year_before=None,
              day_after=None, month_after=None, year_after=None):
-    connect()
+
     if day or month or year:
         column_map = {
             "year": year,

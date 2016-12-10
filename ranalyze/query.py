@@ -12,26 +12,41 @@ class Condition:
     params = {}
 
     def __init__(self, *args):
+        """
+        Takes 0, 2, or 3 arguments. The first is always the key/column.
+        If there are 3 total arguments, the second is the operator, and the
+        third is the value. If there are 2 total arguments, the operator is
+        assumed to be "=" and the second argument is the value. If there are 0
+        arguments, the condition is empty.
+
+        Conditions implement the following boolean operators | (or), & (and),
+        ~ (not/invert).
+        :param args:
+        """
         self.sql = ""
         nargs = len(args)
-        if nargs > 0:
-            column = args[0]
-            operand, value = (args[1], args[2]) if nargs == 3 else ("=", args[1])
-            if value is None:
-                param = "NULL"
-                if operand == "=":
-                    operand = "IS"
+        if nargs == 0:
+            return
+        elif nargs == 1 or nargs > 3:
+            raise TypeError('Illegal number of arguments: {}.'
+                            ' Only 0, 2, or 3 allowed'.format(nargs))
+        column = args[0]
+        operand, value = (args[1], args[2]) if nargs == 3 else ("=", args[1])
+        if value is None:
+            param = "NULL"
+            if operand == "=":
+                operand = "IS"
+        else:
+            if value in Condition.params.values():
+                keys = Condition.params.keys()
+                values = Condition.params.values()
+                param_id = list(keys)[list(values).index(value)]
+                param = "%({})s".format(param_id)
             else:
-                if value in Condition.params.values():
-                    keys = Condition.params.keys()
-                    values = Condition.params.values()
-                    param_id = list(keys)[list(values).index(value)]
-                    param = "%({})s".format(param_id)
-                else:
-                    param = "%(_c{})s".format(Condition._param_counter)
-                    Condition._param_counter += 1
-                    self.params[param[2:-2]] = value  # slice the colon from param
-            self.sql = "{} {} {}".format(column, operand, param)
+                param = "%(_c{})s".format(Condition._param_counter)
+                Condition._param_counter += 1
+                self.params[param[2:-2]] = value  # slice the colon from param
+        self.sql = "{} {} {}".format(column, operand, param)
 
     def __and__(self, other):
 

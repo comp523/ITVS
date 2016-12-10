@@ -6,7 +6,12 @@
         var sanitizeDate = function(value) {
             return value ? $filter('date')(value, constants.DATE.FORMAT) : value;
         },
-        refreshFailCount = 0,
+
+        /**
+         * Dictionary of functions to refresh various stats. Each function should
+         * return a Promise indicating the success or failure of the refresh.
+         * @type {Object<string, function(): Promise>}
+         */
         refreshFunctions = {
             import: function(){
                 return Entry.$resource.get({action: "import"}, function success(results){
@@ -14,26 +19,26 @@
                 }).$promise;
             },
             subreddits: function(){
-                Subreddit.refreshing = true;
+
                 return Subreddit.$resource.query({}, function success(results){
                     Subreddit.collection = results.map(function(item){
                         item = new Subreddit(item, true);
+                        Subreddit.$setRefreshing(false);
                         return item;
-                    });
-                    Subreddit.refreshing = false;
+                    }, Subreddit.$setRefreshing);
                 }).$promise;
             }
         },
         refreshPromise,
         refreshStats = function(){
-            var promises = [];
+            var promises = {};
             if (refreshPromise) {
                 $timeout.cancel(refreshPromise);
             }
             angular.forEach(refreshFunctions, function(fn, key) {
-                promises.push(fn().then(function success(){
+                var promise = fn().then(function success(){
                     fn.failCount = 0;
-                }, function failure(){
+                }, function failure(result){
                     fn.failCount = (fn.failCount || 0) + 1;
                     var warning = "Refreshing stats for " + key + " failed "
                         + "(attempt " + fn.failCount + "/"
@@ -46,12 +51,14 @@
                         warning += " retrying in " + constants.REFRESH_INTERVAL/1000 + " seconds.";
                     }
                     $log.warn(warning);
-                }));
+                    return $q.reject(result);
+                });
+                promises[key] = promise;
             });
-            $q.all(promises)
+            return $q.all(promises)
                 .finally(function(){
                     if (Object.keys(refreshFunctions).length > 0) {
-                        refreshPromise = $timeout(refreshStats, constants.REFRESH_INTERVAL/4);
+                        refreshPromise = $timeout(refreshStats, constants.REFRESH_INTERVAL);
                     }
                 });
         },
@@ -291,8 +298,13 @@
         var Subreddit = this.Subreddit =  modelConstructorFactory(resources.Subreddit, {
             collection: true,
             staticProperties: {
-                refreshing: false,
+                isRefreshing: function(){
+                    return subredditIsRefreshing;
+                },
                 refresh: refreshStats,
+                $setRefreshing: function(value) {
+                    subredditIsRefreshing = !!value;
+                },
                 isScraping: function(){
                     var isScraping = false;
                     angular.forEach(Subreddit.collection, function(item) {
@@ -301,7 +313,8 @@
                     return !!isScraping;
                 }
             }
-        });
+        }),
+        subredditIsRefreshing = false;
 
         refreshStats();
 

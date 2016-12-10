@@ -1,5 +1,5 @@
 """
-Database abstraction class for handling storage of Posts and Comments
+Database abstraction class for handling storing and retrieving data.
 """
 
 import MySQLdb

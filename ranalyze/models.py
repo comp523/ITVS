@@ -1,5 +1,7 @@
 """
-Provides Entry base class, as well as Comment and Post subclasses.
+Provides classes for various database tables. All models are subclasses of
+ModelObject, and each ModelObject subclass should have a corresponding
+ModelObjectFactory subclass
 """
 
 import abc
