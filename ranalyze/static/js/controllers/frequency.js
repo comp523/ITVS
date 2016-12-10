@@ -27,6 +27,47 @@
                     textContent: "Couldn't get cloud parameter `blacklist` from server."
                 });
             });
+        },
+        batchBlacklistActionFactory = function(eachWordFn, dialogTitle){
+            return function(){
+                var promises = {};
+                angular.forEach(ctrl.frequency.selectedWords, function(word) {
+                    promises[word.text] = eachWordFn(word);
+                });
+                angular.forEach(promises, function(promise, key){
+                    promises[key] = promise.then(function success() {
+                        return {rejected: false};
+                    }, function failure(reason) {
+                        return {
+                            reason: reason,
+                            rejected: true
+                        };
+                    });
+                });
+                $q.all(promises).then(function success(all){
+                    $scope.$emit('ranalyze.blacklist.change', blacklist);
+                    ctrl.frequency.selectedWords = [];
+                    var rejected = {};
+                    angular.forEach(all, function(descriptor, word) {
+                        if (descriptor.rejected) {
+                            (rejected[descriptor.reason] || (rejected[descriptor.reason] = []))
+                                .push(word);
+                        }
+                    });
+                    if (Object.keys(rejected).length > 0) {
+                        $scope.$emit('ranalyze.error', {
+                            controller: 'basicDialogController',
+                            controllerAs: 'ctrl',
+                            locals: {
+                                title: dialogTitle,
+                                reasons: rejected
+                            },
+                            templateUrl: 'templates/dialogs/blacklist-error.html'
+                        });
+                    }
+                    ctrl.cloud.update();
+                });
+            };
         };
 
         angular.extend(ctrl, {
@@ -43,41 +84,27 @@
                 }
             },
             frequency: {
-                blacklistSelected: function(){
-                    var promises = ctrl.frequency.selectedWords.map(function(word){
-                        return ctrl.frequency.inBlacklist(word.text) ? $q.reject(word) :
-                            models.Config.addToBlacklist(word.text).then(function success(item){
+                blacklistSelected: batchBlacklistActionFactory(function(word){
+                    return ctrl.frequency.inBlacklist(word.text) ? $q.reject("already in blacklist") :
+                        models.Config.addToBlacklist(word.text).then(function success(item){
                             blacklist.push(item);
+                        }, function failure(){
+                            return $q.reject("server error");
                         });
+                }, "Couldn't Add Some Words to Blacklist"),
+                unblacklistSelected: batchBlacklistActionFactory(function(word){
+                    var configItem;
+                    angular.forEach(blacklist, function(item) {
+                        if (item.value === word.text) {
+                            configItem = item;
+                        }
                     });
-                    $q.all(promises).then(function success(){
-                        ctrl.frequency.selectedWords = [];
+                    return configItem ? configItem.delete().then(function success(){
+                        blacklist.splice(blacklist.indexOf(configItem), 1);
                     }, function failure(){
-                        $scope.$emit('ranalyze.error', {
-                            textContent: 'An error occurred while trying to add words to the blacklist'
-                        });
-                    }).finally(ctrl.cloud.update);;
-                },
-                unblacklistSelected: function(){
-                    var promises = ctrl.frequency.selectedWords.map(function(word){
-                        var configItem;
-                        angular.forEach(blacklist, function(item) {
-                            if (item.value === word.text) {
-                                configItem = item;
-                            }
-                        });
-                        return configItem ? configItem.delete().then(function success(){
-                            blacklist.splice(blacklist.indexOf(configItem), 1);
-                        }) : $q.reject(word);
-                    });
-                    $q.all(promises).then(function success(){
-                        ctrl.frequency.selectedWords = [];
-                    }, function failure(){
-                        $scope.$emit('ranalyze.error', {
-                            textContent: 'An error occurred while trying to remove words from the blacklist'
-                        });
-                    }).finally(ctrl.cloud.update);;
-                },
+                        return $q.reject("server error");
+                    }) : $q.reject("not in blacklist");
+                }, "Couldn't Remove Some Words from Blacklist"),
                 checkDates: function(){
                     ctrl.frequency.params.valid = datesInOrder(ctrl.frequency.params.after, ctrl.frequency.params.before);
                     return ctrl.frequency.params.valid;
@@ -168,7 +195,7 @@
             },
             search: function(word) {
                 tabs.setTab(0);
-                $rootScope.$broadcast('ranalyze.search', angular.extend({
+                $scope.$emit('ranalyze.search', angular.extend({
                     query: word,
                     advanced: false,
                     subreddit: []
@@ -176,7 +203,7 @@
             }
         });
 
-        $scope.$on('ranalyze.cloudConfig.change', function(event, newConfig){
+        $rootScope.$on('ranalyze.cloudConfig.change', function(event, newConfig){
             newConfig = newConfig || {};
             angular.extend(ctrl.frequency.params, newConfig.params);
             blacklist = newConfig.blacklist || blacklist;

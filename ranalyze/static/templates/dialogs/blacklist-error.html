@@ -1,0 +1,16 @@
+<md-dialog>
+    <md-dialog-content class="md-dialog-content">
+        <h2 class="md-title" ng-bind="ctrl.locals.title"></h2>
+        <div ng-repeat="(reason, words) in ctrl.locals.reasons">
+            <p>
+                <span style="text-transform: capitalize;font-weight: bold" ng-bind="reason"></span>:
+                <span ng-bind="words.join(', ')"></span>
+            </p>
+        </div>
+    </md-dialog-content>
+    <md-dialog-actions>
+        <md-button class="md-primary" ng-click="ctrl.close()">
+            Okay
+        </md-button>
+    </md-dialog-actions>
+</md-dialog>

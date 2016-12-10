@@ -116,33 +116,29 @@
                             <i class="material-icons">delete</i>
                         </md-button>
                     </div>
-                    <md-table-container>
-                        <table md-table md-row-select multiple ng-model="ctrl.blacklist.selected">
-                            <thead md-head>
-                                <tr md-row>
-                                    <th md-column>
-                                        <md-input-container>
-                                            <md-tooltip md-direction="down">
-                                                Search
-                                            </md-tooltip>
-                                            <label>
-                                                <i class="material-icons label-icon">search</i>
-                                                Blacklisted Words
-                                            </label>
-                                            <input type="text" ng-model="blacklistSearch.value">
-                                        </md-input-container>
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody md-body>
-                                <tr md-row md-select="word" md-select-id="value" md-auto-select
-                                    ng-repeat="word in ctrl.blacklist.all | filter: blacklistSearch | orderBy: 'value' | limitTo: ctrl.blacklist.table.limit : (ctrl.blacklist.table.page -1) * ctrl.blacklist.table.limit">
-                                    <td md-cell>{{word.value}}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </md-table-container>
-                    <md-table-pagination md-page="ctrl.blacklist.table.page" md-total="{{ctrl.blacklist.all.length}}" md-limit="ctrl.blacklist.table.limit" md-limit-options="ctrl.blacklist.table.limitOptions" md-page-select></md-table-pagination>
+                    <md-input-container>
+                        <md-tooltip md-direction="down">
+                            Search
+                        </md-tooltip>
+                        <label>
+                            <i class="material-icons label-icon">search</i>
+                            Blacklisted Words
+                        </label>
+                        <input type="text" ng-model="blacklistSearch.value">
+                    </md-input-container>
+                    <div layout="row">
+                        <md-table-container flex ng-repeat="column in ctrl.range(ctrl.blacklist.table.columnCount)">
+                            <table md-table md-row-select multiple ng-model="ctrl.blacklist.selected">
+                                <tbody md-body>
+                                    <tr md-row md-select="word" md-select-id="value" md-auto-select
+                                        ng-repeat="word in ctrl.blacklist.all | filter: blacklistSearch | orderBy: 'value' | limitTo: ctrl.blacklist.table.limit/ctrl.blacklist.table.columnCount : column*ctrl.blacklist.table.limit/ctrl.blacklist.table.columnCount+(ctrl.blacklist.table.page-1)*ctrl.blacklist.table.limit">
+                                        <td md-cell>{{word.value}}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </md-table-container>
+                    </div>
+                    <md-table-pagination md-label="{rowsPerPage: 'Words per page:'}" md-page="ctrl.blacklist.table.page" md-total="{{ctrl.blacklist.all.length}}" md-limit="ctrl.blacklist.table.limit" md-limit-options="ctrl.blacklist.table.limitOptions" md-page-select></md-table-pagination>
                     <h2 class="md-headline">
                         Default Blacklist
                     </h2>

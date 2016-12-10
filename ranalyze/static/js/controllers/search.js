@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var searchController = function($scope, $mdDialog, constants, datesInOrder, models) {
+    var searchController = function($scope, $mdDialog, $rootScope, constants, datesInOrder, models) {
 
         var ctrl = this,
         baseForm = {
@@ -86,7 +86,7 @@
             }
         });
 
-        $scope.$on('ranalyze.search', function onSearch(event, args) {
+        $rootScope.$on('ranalyze.search', function onSearch(event, args) {
             ctrl.search.clear();
             angular.extend(ctrl.search.form, args);
             ctrl.search.execute();

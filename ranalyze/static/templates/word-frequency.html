@@ -42,17 +42,16 @@
                             <tr md-row md-select="word"
                                 ng-repeat="word in ctrl.frequency.words | orderBy: ctrl.frequency.table.order | limitTo: ctrl.frequency.table.limit : (ctrl.frequency.table.page -1) * ctrl.frequency.table.limit">
                                 <td md-cell>
-                                    <span>
-                                        <i ng-click="ctrl.search(word.text)" class="material-icons label-icon clickable">search</i>
-                                        <md-tooltip direction="down">Search for this word</md-tooltip>
-                                    </span>
-                                    {{word.text}}
-                                </td>
-                                <td md-cell>
                                     <span ng-show="ctrl.frequency.inBlacklist(word.text)">
                                         <i class="material-icons label-icon">assignment_late</i>
                                         <md-tooltip direction="down">Blacklisted</md-tooltip>
                                     </span>
+                                    <span>
+                                        <span ng-click="ctrl.search(word.text)" class="clickable">{{ word.text }}</span>
+                                        <md-tooltip direction="down">Search for this word</md-tooltip>
+                                    </span>
+                                </td>
+                                <td md-cell>
                                     {{word.entries}}
                                 </td>
                                 <td md-cell>{{word.total}}</td>
