@@ -1,8 +1,7 @@
 
 
 import os
-from ranalyze import scrape
-from ranalyze import imprt
+from ranalyze import scrape, imprt, update_posts
 from ranalyze.scrape import get_subreddits
 
 print("Beginning scrape")
@@ -14,7 +13,7 @@ scrape(subs)
 print("Done scraping")
 
 print("Updating posts from last week")
-update
+update_posts(7)
 print("Done updating")
 
 print("Importing from import table")
