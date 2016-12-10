@@ -116,7 +116,7 @@ def update_posts(days_ago):
 
     for post in posts:
         for entry in fetch_post(post.permalink):
-            add_update_object(entry)
+            add_update_object(entry, ENTRY_TABLE)
 
 
 def get_subreddits():
