@@ -8,7 +8,7 @@
         return {
             'responseError': function(rejection) {
 
-                if (rejection.status === -1 && ++failCount == constants.SSO_ERROR_THRESHOLD) {
+                if (rejection.status === -1 && failCount++ == constants.SSO_ERROR_THRESHOLD) {
 
                     $rootScope.$emit('ranalyze.error', {
                         controller: ssoDialogController,

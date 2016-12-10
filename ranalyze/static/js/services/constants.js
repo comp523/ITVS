@@ -13,7 +13,7 @@
         REFRESH_INTERVAL: 10000,
 
         /** Number of likely SSO timeout error to ignore before alerting */
-        SSO_ERROR_THRESHOLD: 5
+        SSO_ERROR_THRESHOLD: 0
 
     };
 
