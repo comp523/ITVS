@@ -27,7 +27,7 @@
                 all: [],
                 selected: [],
                 serverList: [],
-                deleteSelected: function() {
+                deleteSelected: models.confirm(function() {
                     var numSelected = ctrl.blacklist.selected.length;
                     $mdDialog.show(
                         $mdDialog.confirm()
@@ -55,8 +55,8 @@
                         });
                         ctrl.blacklist.selected = [];
                     });
-                },
-                add: function() {
+                }),
+                add: models.confirm(function() {
                     $mdDialog.show(
                         $mdDialog.prompt()
                             .title('Add words to cloud blacklist')
@@ -81,7 +81,7 @@
                             textContent: reason
                         });
                     });
-                },
+                }),
                 table: {
                     columnCount: 4,
                     limit: 20,
@@ -90,7 +90,7 @@
                 }
             },
             cloud: {
-                save: function(){
+                save: models.confirm(function(){
                     ctrl.cloud.saving.inProgress = true;
                     ctrl.cloud.saving.failed = false;
                     var promises = [];
@@ -112,7 +112,7 @@
                     }).finally(function(){
                         ctrl.cloud.saving.inProgress = false;
                     });
-                },
+                }),
                 saving: {
                     failed: false,
                     inProgress: false,
@@ -166,7 +166,7 @@
                 return range;
             },
             subreddits: {
-                add: function(){
+                add: models.confirm(function(){
                     $mdDialog.show(
                         $mdDialog.prompt()
                             .title('Add subreddit to scrape')
@@ -183,8 +183,8 @@
                             });
                         });
                     });
-                },
-                deleteSelected: function(){
+                }),
+                deleteSelected: models.confirm(function(){
                     $mdDialog.show(
                         $mdDialog.confirm()
                             .title('Delete Subreddits')
@@ -210,7 +210,7 @@
                             });
                         });
                     })
-                },
+                }),
                 getAll: function(){
                     return models.Subreddit.collection
                 },

@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var modelsService = function($filter, $httpParamSerializer, $log, $q,
+    var modelsService = function($filter, $httpParamSerializer, $log, $mdDialog, $q,
                                  $resource, $timeout, $window, constants, modelFactory) {
 
         var sanitizeDate = function(value) {
@@ -115,6 +115,25 @@
             })
         },
 
+        noConfirm = false,
+
+        confirm = this.confirm = function(fn) {
+
+            return function(){
+                var args = arguments;
+                (noConfirm ? $q.resolve() : $mdDialog.show({
+                    controller: confirmDialogController,
+                    controllerAs: 'ctrl',
+                    templateUrl: 'dialogs/config-warning.html'
+                })).then(function(stopAsking){
+                    if (stopAsking) {
+                        noConfirm = true;
+                    }
+                    fn.apply(undefined, args);
+                });
+            };
+
+        },
 
         /**
          *
@@ -268,6 +287,21 @@
         subredditIsRefreshing = false;
 
         refreshStats();
+
+    };
+
+    var confirmDialogController = function($scope, $mdDialog) {
+
+        var ctrl = this;
+
+        angular.extend(ctrl, {
+            cancel: function(){
+                $mdDialog.cancel('warning');
+            },
+            confirm: function(){
+                $mdDialog.hide(ctrl.stopAsking);
+            }
+        });
 
     };
 

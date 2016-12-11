@@ -1,7 +1,7 @@
 (function(app){
 "use strict";
 
-    var modelFactoryFactory = function($log){
+    var modelFactoryFactory = function($log, $q){
         /**
          * Factory for creating constructors for  Models are wrappers
          * for angular's $resource. Additional instance methods may be defined
@@ -105,7 +105,7 @@
                 }
                 return this.proxy;
             };
-            angular.extend(Model.prototype, {
+            var prototype = {
                 commit: function () {
                     var self = this;
                     return self.$resourceInstance.$save().then(function () {
@@ -129,7 +129,8 @@
                         }
                     });
                 }
-            }, instanceMethods);
+            };
+            angular.extend(Model.prototype, prototype, instanceMethods);
             return angular.extend(Model, staticProperties);
         };
     };

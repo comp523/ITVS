@@ -84,15 +84,15 @@
                 }
             },
             frequency: {
-                blacklistSelected: batchBlacklistActionFactory(function(word){
+                blacklistSelected: models.confirm(batchBlacklistActionFactory(function(word){
                     return ctrl.frequency.inBlacklist(word.text) ? $q.reject("already in blacklist") :
                         models.Config.addToBlacklist(word.text).then(function success(item){
                             blacklist.push(item);
-                        }, function failure(){
+                        }, function failure(rejection){
                             return $q.reject("server error");
                         });
-                }, "Couldn't Add Some Words to Blacklist"),
-                unblacklistSelected: batchBlacklistActionFactory(function(word){
+                }, "Couldn't Add Some Words to Blacklist")),
+                unblacklistSelected: models.confirm(batchBlacklistActionFactory(function(word){
                     var configItem;
                     angular.forEach(blacklist, function(item) {
                         if (item.value === word.text) {
@@ -104,7 +104,7 @@
                     }, function failure(){
                         return $q.reject("server error");
                     }) : $q.reject("not in blacklist");
-                }, "Couldn't Remove Some Words from Blacklist"),
+                }, "Couldn't Remove Some Words from Blacklist")),
                 checkDates: function(){
                     ctrl.frequency.params.valid = datesInOrder(ctrl.frequency.params.after, ctrl.frequency.params.before);
                     return ctrl.frequency.params.valid;
