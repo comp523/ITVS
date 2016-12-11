@@ -7,11 +7,13 @@ to run:
     python api.py
 """
 import flask
-import io
-import os
+from os import environ, mkdir, path, walk
+import sass
 
 from csv import DictWriter
 from io import StringIO
+from itertools import chain
+from jsmin import jsmin
 from tempfile import NamedTemporaryFile
 from .constants import CONFIG_TABLE, ENTRY_FIELDS, ENTRY_TABLE, IMPORT_TABLE, SUBREDDIT_TABLE
 from .database import add_update_object, execute_query
@@ -22,14 +24,59 @@ from .query import Condition, DeleteQuery, SelectQuery
 from .search import search as search_db
 from .utils import iso_to_date, timestamp_to_str
 
-app = flask.Flask(__name__)
+asset_dir = path.join(path.dirname(path.abspath(__file__)), 'assets')
+template_dir = path.join(path.dirname(path.abspath(__file__)), 'templates')
+
+
+class CustomFlask(flask.Flask):
+    jinja_options = flask.Flask.jinja_options.copy()
+    jinja_options.update(dict(
+        variable_start_string="[[",
+        variable_end_string="]]"
+    ))
+
+
+app = CustomFlask(__name__, template_folder=template_dir)
+
+
+@app.template_global('incl')
+def incl(filename):
+    with open(filename) as file:
+        return file.read()
+
+
+@app.template_filter('sass')
+def sass_compile(sass_code):
+    return sass.compile(string=sass_code, output_style="compressed")
+
+
+@app.template_filter('minify')
+def js_minify(js):
+    return jsmin(js)
+
+
+@app.context_processor
+def inject_static():
+    js_dir = path.join(asset_dir, 'js')
+    js_files = [[path.join(s[0], f) for f in s[2]] for s in walk(js_dir)]
+    sass_dir = path.join(asset_dir, 'sass')
+    sass_files = [[path.join(s[0], f) for f in s[2]] for s in walk(sass_dir)]
+    partial_dir = path.join(template_dir, 'partials')
+    templates = [[path.join(s[0], f)[len(template_dir):] for f in s[2]]
+                 for s in walk(partial_dir)]
+    return dict(
+        js_files=chain.from_iterable(js_files),
+        sass_files=chain.from_iterable(sass_files),
+        templates=chain.from_iterable(templates)
+    )
+
 
 @app.route('/')
 def index():
     """
     Routing for the home page
     """
-    return flask.send_from_directory(app.static_folder, 'index.html')
+    return flask.render_template('index.html')
 
 
 @app.route('/<path:filename>')
@@ -38,23 +85,6 @@ def static_files(filename):
     Routing for static files
     """
     return flask.send_from_directory(app.static_folder, filename)
-
-
-@app.route('/app.js')
-def compile_js():
-    cur_path = os.path.dirname(os.path.realpath(__file__))
-    sub_dirs = ['controllers', 'config', 'directives', 'filters', 'services']
-    js_files = ['ranalyze.js']
-    for sub in sub_dirs:
-        path = os.path.join(cur_path, 'static/js', sub)
-        js_files.extend([os.path.join(path, file) for file in os.listdir(path)])
-    out_buffer = io.StringIO()
-    for file in js_files:
-        with open(os.path.join(cur_path, 'static/js', file)) as fp:
-            out_buffer.write(fp.read())
-        out_buffer.write("\n")
-    response = flask.Response(out_buffer.getvalue(), mimetype='text/javascript')
-    return response
 
 
 @app.route('/config/<_id>', methods=["GET", "DELETE"])
@@ -120,11 +150,9 @@ def entry_import():
             "queueLength": execute_query(query, transpose=False)[0]["items"]
         })
     f = flask.request.files['file']
-    temp = NamedTemporaryFile(delete=False)
-    f.save(temp)
-    temp.close()
-    count = schedule_for_import(temp.name)
-    os.remove(temp.name)
+    with NamedTemporaryFile() as temp:
+        f.save(temp)
+        count = schedule_for_import(temp.name)
     return flask.jsonify({
         'success': True,
         'status': '{} permalinks scheduled for import'.format(count)
@@ -317,20 +345,20 @@ def env_shiv():
     shiv the os.environ dictionary to work on local machines
     """
     try:
-        os.mkdir("/tmp/ranalyze")
+        mkdir("/tmp/ranalyze")
     except FileExistsError:
         pass
 
-    os.environ.update({
+    environ.update({
         "OPENSHIFT_DATA_DIR": "/tmp/ranalyze",
-        "OPENSHIFT_MYSQL_DB_HOST": os.environ["MYSQL_DB_HOST"],
-        "OPENSHIFT_MYSQL_DB_USERNAME": os.environ["MYSQL_DB_USER"],
-        "OPENSHIFT_MYSQL_DB_PASSWORD": os.environ["MYSQL_DB_PASSWORD"],
-        "OPENSHIFT_MYSQL_DB_PORT": os.environ["MYSQL_DB_PORT"]
+        "OPENSHIFT_MYSQL_DB_HOST": environ["MYSQL_DB_HOST"],
+        "OPENSHIFT_MYSQL_DB_USERNAME": environ["MYSQL_DB_USER"],
+        "OPENSHIFT_MYSQL_DB_PASSWORD": environ["MYSQL_DB_PASSWORD"],
+        "OPENSHIFT_MYSQL_DB_PORT": environ["MYSQL_DB_PORT"]
     })
 
 
-if "OPENSHIFT_DATA_DIR" not in os.environ:
+if "OPENSHIFT_DATA_DIR" not in environ:
     env_shiv()
 
 if __name__ == '__main__':

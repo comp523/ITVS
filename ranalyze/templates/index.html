@@ -2,6 +2,7 @@
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Reddit Analyzer</title>
 		<!-- Angular Material -->
 		<link rel="stylesheet" href="//ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.css">
 
@@ -15,20 +16,19 @@
 		<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 		<!-- Favicons -->
-		<link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
-		<link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
+		<link rel="icon" type="image/png" href="../static/favicon-32x32.png" sizes="32x32" />
+		<link rel="icon" type="image/png" href="../static/favicon-16x16.png" sizes="16x16" />
 
 		<!-- RanalyzeApp -->
-		<link rel="stylesheet" href="main.css">
-        <title>Reddit Analyzer</title>
+        <style>{% for file in sass_files %}[[ incl(file) | sass | safe ]]{% endfor %}</style>
 	</head>
 	<body ng-app="RanalyzeApp" ng-cloak ng-controller="mainController as mainCtrl">
 
 		<header>
-			<img class="md-padding" src="ranalyze-logo.png">
+			<img class="md-padding" src="../static/ranalyze-logo.png">
             <div class="status-icons" ng-messages="mainCtrl.getStatus()" multiple>
-                <i title="Scrape in progress" class="material-icons spinning-icon md-padding" ng-message="scraping">refresh</i>
-                <i title="Import in progress" class="material-icons pulsing-icon md-padding" ng-message="importing">cloud_upload</i>
+                <i title="Scrape in progress" class="material-icons spinning md-padding" ng-message="scraping">refresh</i>
+                <i title="Import in progress" class="material-icons pulsing md-padding" ng-message="importing">cloud_upload</i>
             </div>
 		</header>
 
@@ -37,34 +37,34 @@
 				<md-tabs md-dynamic-height md-center-tabs md-border-bottom md-selected="mainCtrl.activeTab">
 					<md-tab>
 						<md-tab-label>
-							<i class="material-icons label-icon">search</i> search
+							<i class="material-icons label">search</i> search
 						</md-tab-label>
 						<md-tab-body>
-							<ng-include src="'templates/search.html'"></ng-include>
+							<ng-include src="'search.html'"></ng-include>
 						</md-tab-body>
 					</md-tab>
 					<md-tab md-on-select="firstActive=true">
 						<md-tab-label>
-							<i class="material-icons label-icon">trending_up</i> word frequency
+							<i class="material-icons label">trending_up</i> word frequency
 						</md-tab-label>
 						<md-tab-body>
-							<ng-include src="'templates/word-frequency.html'"></ng-include>
+							<ng-include src="'word-frequency.html'"></ng-include>
 						</md-tab-body>
 					</md-tab>
 					<md-tab>
 						<md-tab-label>
-							<i class="material-icons label-icon">settings</i> settings
+							<i class="material-icons label">settings</i> settings
 						</md-tab-label>
 						<md-tab-body>
-							<ng-include src="'templates/settings.html'"></ng-include>
+							<ng-include src="'settings.html'"></ng-include>
 						</md-tab-body>
 					</md-tab>
                     <md-tab>
 						<md-tab-label>
-							<i class="material-icons label-icon">info_outline</i> about
+							<i class="material-icons label">info_outline</i> about
 						</md-tab-label>
 						<md-tab-body>
-							<ng-include src="'templates/about.html'"></ng-include>
+							<ng-include src="'about.html'"></ng-include>
 						</md-tab-body>
 					</md-tab>
 				</md-tabs>
@@ -94,7 +94,13 @@
 		<!-- Angular Material -->
 		<script src="//ajax.googleapis.com/ajax/libs/angular_material/1.1.0/angular-material.min.js"></script>
 
-		<!-- RanalyzeApp -->
-		<script src="app.js"></script>
+		<script>{% for file in js_files %}[[ incl(file) | minify | safe ]]{% endfor %}</script>
+
+        {% for template in templates %}
+        <script type="text/ng-template" id="[[template[10:]]]">
+            {% include template %}
+        </script>
+        {% endfor %}
+
 	</body>
 </html>

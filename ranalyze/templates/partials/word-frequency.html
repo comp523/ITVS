@@ -2,7 +2,7 @@
     <md-tabs md-dynamic-height md-center-tabs md-border-bottom><!--md-center-tabs-->
         <md-tab>
             <md-tab-label>
-                <i class="material-icons label-icon">cloud</i>
+                <i class="material-icons label">cloud</i>
                 cloud
             </md-tab-label>
             <md-tab-body>
@@ -11,7 +11,7 @@
         </md-tab>
         <md-tab>
             <md-tab-label>
-                <i class="material-icons label-icon">list</i>
+                <i class="material-icons label">list</i>
                 table
             </md-tab-label>
             <md-tab-body>
@@ -43,7 +43,7 @@
                                 ng-repeat="word in ctrl.frequency.words | orderBy: ctrl.frequency.table.order | limitTo: ctrl.frequency.table.limit : (ctrl.frequency.table.page -1) * ctrl.frequency.table.limit">
                                 <td md-cell>
                                     <span ng-show="ctrl.frequency.inBlacklist(word.text)">
-                                        <i class="material-icons label-icon">assignment_late</i>
+                                        <i class="material-icons label">assignment_late</i>
                                         <md-tooltip direction="down">Blacklisted</md-tooltip>
                                     </span>
                                     <span>

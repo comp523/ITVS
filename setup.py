@@ -14,7 +14,9 @@ setup(name='ranalyze',
           "lazy-object-proxy==1.2.1",
           "flask==0.11.1",
           "mysqlclient==1.3.9",
-          "simplejson==3.10.0"
+          "simplejson==3.10.0",
+          "jsmin==2.2.1",
+          "libsass==0.12.0"
       ],
       packages=["ranalyze"]
       )

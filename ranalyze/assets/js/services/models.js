@@ -186,7 +186,7 @@
                 }
             },
             staticProperties: {
-                downloadQuery: function(params) {
+                downloadSearch: function(params) {
                     params.download = true;
                     var url = '/entry?' + $httpParamSerializer(params);
                     $window.open(url);

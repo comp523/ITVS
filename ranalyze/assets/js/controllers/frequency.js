@@ -62,7 +62,7 @@
                                 title: dialogTitle,
                                 reasons: rejected
                             },
-                            templateUrl: 'templates/dialogs/blacklist-error.html'
+                            templateUrl: 'dialogs/blacklist-error.html'
                         });
                     }
                     ctrl.cloud.update();

@@ -13,7 +13,7 @@
                     $rootScope.$emit('ranalyze.error', {
                         controller: ssoDialogController,
                         controllerAs: 'ctrl',
-                        templateUrl: 'templates/dialogs/sso-error.html'
+                        templateUrl: 'dialogs/sso-error.html'
                     });
 
                 }

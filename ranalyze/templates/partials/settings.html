@@ -26,7 +26,7 @@
                                         Search by Subreddit name
                                     </md-tooltip>
                                     <label>
-                                        <i class="material-icons label-icon">search</i>
+                                        <i class="material-icons label">search</i>
                                         Subreddit
                                     </label>
                                     <input type="text" ng-model="subredditSearch">
@@ -43,7 +43,7 @@
                         <tr md-row md-select="sub.name" md-select-id="value" md-auto-select
                             ng-repeat="sub in ctrl.subreddits.getAll() | filter:subredditSearch | orderBy: ctrl.subreddits.table.order | limitTo: ctrl.subreddits.table.limit : (ctrl.subreddits.table.page -1) * ctrl.subreddits.table.limit">
                             <td md-cell>
-                                <i class="material-icons spinning-icon" ng-show="sub.scraping">refresh</i>
+                                <i class="material-icons spinning" ng-show="sub.scraping">refresh</i>
                                 {{sub.name}}
                             </td>
                             <td md-cell>{{ sub.added*1000 | date:'short' }}</td>
@@ -90,8 +90,8 @@
                     </div>
                     <div layout="row" layout-align="end center">
                         <div ng-messages="ctrl.cloud.saving">
-                            <i ng-message="succeeded" class="material-icons success-icon">check</i>
-                            <i ng-message="failed" class="material-icons failure-icon">error_outline</i>
+                            <i ng-message="succeeded" class="material-icons success">check</i>
+                            <i ng-message="failed" class="material-icons failure">error_outline</i>
                         </div>
                         <md-button ng-click="ctrl.cloud.save()" ng-disabled="ctrl.cloud.saving.inProgress" class="md-primary md-raised">
                             Save
@@ -121,7 +121,7 @@
                             Search
                         </md-tooltip>
                         <label>
-                            <i class="material-icons label-icon">search</i>
+                            <i class="material-icons label">search</i>
                             Blacklisted Words
                         </label>
                         <input type="text" ng-model="blacklistSearch.value">
@@ -150,7 +150,7 @@
                     <md-divider></md-divider>
                     <md-input-container>
                         <label>
-                            <i class="material-icons label-icon">search</i>
+                            <i class="material-icons label">search</i>
                             Search
                         </label>
                         <input type="text" ng-model="serverListSearch">
@@ -184,7 +184,7 @@
                             Choose CSV File
                         </md-button>
                         <md-button type="submit" class="md-raised md-primary" ng-disabled="!ctrl.import.file.value">
-                            <i class="material-icons label-icon">file_upload</i>
+                            <i class="material-icons label">file_upload</i>
                             Upload
                         </md-button>
                     </div>
