@@ -21,7 +21,7 @@ from .database import add_update_object, execute_query
 from .frequency import BLACKLIST, overview
 from .imprt import schedule_for_import
 from .models import ConfigEntryFactory, SubredditFactory
-from .query import Condition, DeleteQuery, SelectQuery
+from .query import Condition, DeleteQuery, SelectQuery, UpdateQuery
 from .search import search as search_db
 from .utils import iso_to_date, timestamp_to_str
 
@@ -80,7 +80,14 @@ def index():
     """
     Routing for the home page
     """
-    return flask.render_template('index.html')
+
+    response = flask.render_template('index.html')
+
+    compact = re.sub(r'^\s+', ' ', response, flags=re.MULTILINE)
+
+    compact = re.sub(r'\n((?:\s)?)', r'\1', compact)
+
+    return compact
 
 
 @app.route('/<path:filename>')
@@ -364,6 +371,14 @@ def env_shiv():
 
 if "OPENSHIFT_DATA_DIR" not in environ:
     env_shiv()
+
+# Clear scraping statuses
+query = UpdateQuery(table=SUBREDDIT_TABLE,
+                    values={"scraping": 0},
+                    where=Condition("scraping", 1))
+execute_query(query, commit=True)
+
+print("Scraping statuses reset")
 
 if __name__ == '__main__':
     app.run()

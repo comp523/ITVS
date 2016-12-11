@@ -9,7 +9,6 @@ try:
       exec(code, dict(__file__=virtualenv))
 
 except IOError:
-    print("This doesn't work")
     pass
 #
 # IMPORTANT: Put any additional includes below this line.  If placed above this

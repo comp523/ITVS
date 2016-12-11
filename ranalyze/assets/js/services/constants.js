@@ -12,7 +12,7 @@
         /** Time between automatic stat refreshes */
         REFRESH_INTERVAL: 10000,
 
-        /** Number of likely SSO timeout error to ignore before alerting */
+        /** Number of likely SSO timeout errors to ignore before alerting */
         SSO_ERROR_THRESHOLD: 0
 
     };

@@ -58,27 +58,32 @@ def fetch_data(subreddit_set):
 
         params = {"before": before.id} if before is not None else {}
 
-        for post in subreddit.get_new(limit=None, params=params):
+        try:
 
-            post.replace_more_comments(limit=None, threshold=0)
+            for post in subreddit.get_new(limit=None, params=params):
 
-            yield(PostFactory.from_praw(post)) # first yields the post itself
+                post.replace_more_comments(limit=None, threshold=0)
 
-            post.replace_more_comments(limit=None)
+                yield(PostFactory.from_praw(post))  # first yield the post
 
-            for comment in traverse_comments(post.comments):
-                yield(comment)  # yields all post comments
+                post.replace_more_comments(limit=None)
 
-        timestamp = date_to_timestamp(datetime.datetime.now())
+                for comment in traverse_comments(post.comments):
 
-        query = UpdateQuery(table=SUBREDDIT_TABLE,
-                            values={
-                                "scraping": 0,
-                                "last_scraped": timestamp
-                            },
-                            where=condition)
+                    yield(comment)  # yield all comments
 
-        execute_query(query, commit=True)
+        finally:
+
+            timestamp = date_to_timestamp(datetime.datetime.now())
+
+            query = UpdateQuery(table=SUBREDDIT_TABLE,
+                                values={
+                                    "scraping": 0,
+                                    "last_scraped": timestamp
+                                },
+                                where=condition)
+
+            execute_query(query, commit=True)
 
 
 def fetch_post(permalink):

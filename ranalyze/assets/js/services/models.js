@@ -5,7 +5,7 @@
                                  $resource, $timeout, $window, constants, modelFactory) {
 
         var sanitizeDate = function(value) {
-            return value ? $filter('date')(value, constants.DATE.FORMAT) : value;
+            return value ? $filter('date')(value, constants.DATE_FORMAT) : value;
         },
 
         /**

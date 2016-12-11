@@ -15,7 +15,6 @@
                 $mdDialog.alert(params)
             )
         });
-        window["$http"] = $http;
     };
 
     app.run(addErrorListener);
