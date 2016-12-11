@@ -16,7 +16,7 @@ setup(name='ranalyze',
           "mysqlclient==1.3.9",
           "simplejson==3.10.0",
           "jsmin==2.2.1",
-          "libsass==0.12.0"
+          "pyScss==1.3.5"
       ],
       packages=["ranalyze"]
       )

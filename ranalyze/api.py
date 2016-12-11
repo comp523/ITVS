@@ -8,7 +8,8 @@ to run:
 """
 import flask
 from os import environ, mkdir, path, walk
-import sass
+import re
+import scss
 
 from csv import DictWriter
 from io import StringIO
@@ -47,7 +48,10 @@ def incl(filename):
 
 @app.template_filter('sass')
 def sass_compile(sass_code):
-    return sass.compile(string=sass_code, output_style="compressed")
+    css = scss.Compiler().compile_string(sass_code)
+    css = re.sub(r'\n', '', css)
+    css = re.sub(r'\s+', ' ', css)
+    return css
 
 
 @app.template_filter('minify')
