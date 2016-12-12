@@ -76,6 +76,10 @@ span.highlight-yellow {
     display: none;
 }
 
+.no-min-width {
+    min-width: 0;
+}
+
 .slide {
     transition: height 1s;
     overflow: hidden;

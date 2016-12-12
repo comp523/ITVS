@@ -13,7 +13,8 @@
                     $rootScope.$emit('ranalyze.error', {
                         controller: ssoDialogController,
                         controllerAs: 'ctrl',
-                        templateUrl: 'dialogs/sso-error.html'
+                        templateUrl: 'dialogs/sso-error.html',
+                        clickOutsideToClose: false
                     });
 
                 }
@@ -31,6 +32,7 @@
         angular.extend(ctrl, {
             close: $mdDialog.hide,
             reload: function(){
+                ctrl.reloading = true;
                 $window.location.reload();
             }
         });

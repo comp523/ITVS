@@ -1,10 +1,14 @@
-<md-dialog>
-    <md-dialog-content class="md-dialog-content">
+<md-dialog class="no-min-width">
+    <md-dialog-content class="md-dialog-content" ng-hide="ctrl.reloading">
         <h2 class="md-title">Session Ended</h2>
         <div>It looks like your SSO session has ended.</div>
         <div>Reload the app to login again.</div>
+        <h4 class="md-caption">*If you're seeing this error often, try clearing you cookies.</h4>
     </md-dialog-content>
-    <md-dialog-actions layout="row">
+    <md-dialog-content class="md-dialog-content" ng-show="ctrl.reloading" layout="row" layout-align="center center">
+        <md-progress-circular md-indefinite></md-progress-circular>
+    </md-dialog-content>
+    <md-dialog-actions layout="row" ng-hide="ctrl.reloading">
         <md-button ng-click="ctrl.close()">
             Ignore
         </md-button>
