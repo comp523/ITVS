@@ -48,15 +48,15 @@ def import_from_table():
     retrieve permalinks from import table and scrape data into database
     """
 
-    count = 1
+    countQuery = SelectQuery(IMPORT_TABLE, "count(*) as numleft")
+    count = execute_query(countQuery, transpose=False)[0]['numleft']
     while count > 0:
         dataQuery = SelectQuery(IMPORT_TABLE, limit=IMPORT_CHUNK_SIZE)
         data = execute_query(dataQuery, transpose=False)
         for row in data:
             for entry in fetch_post(row["permalink"]):
-                add_update_object(entry, ENTRY_TABLE)				
+                try:
+                    add_update_object(entry, ENTRY_TABLE)
             deleteQuery = DeleteQuery(IMPORT_TABLE, where=Condition("permalink", row["permalink"]))
             execute_query(deleteQuery, commit=True)
-        count = 0
-        countQuery = SelectQuery(IMPORT_TABLE, "count(*) as numleft")
-        count = execute_query(countQuery, transpose=False)[0]['numleft']
+        count -= 1
