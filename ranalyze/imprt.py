@@ -59,4 +59,4 @@ def import_from_table():
                     add_update_object(entry, ENTRY_TABLE)
             deleteQuery = DeleteQuery(IMPORT_TABLE, where=Condition("permalink", row["permalink"]))
             execute_query(deleteQuery, commit=True)
-        count -= 1
+        count -= IMPORT_CHUNK_SIZE
