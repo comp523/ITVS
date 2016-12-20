@@ -57,6 +57,8 @@ def import_from_table():
             for entry in fetch_post(row["permalink"]):
                 try:
                     add_update_object(entry, ENTRY_TABLE)
+                except:
+                    print("error on entry: ".format(entry))
             deleteQuery = DeleteQuery(IMPORT_TABLE, where=Condition("permalink", row["permalink"]))
             execute_query(deleteQuery, commit=True)
         count -= IMPORT_CHUNK_SIZE
