@@ -161,9 +161,11 @@ def entry_import():
             "queueLength": execute_query(query, transpose=False)[0]["items"]
         })
     f = flask.request.files['file']
-    with NamedTemporaryFile() as temp:
-        f.save(temp)
-        count = schedule_for_import(temp.name)
+    temp = NamedTemporaryFile(delete=False)
+    f.save(temp)
+    temp.close()
+    count = schedule_for_import(temp.name)
+    os.remove(temp.name)
     return flask.jsonify({
         'success': True,
         'status': '{} permalinks scheduled for import'.format(count)
