@@ -39,7 +39,7 @@ def schedule_for_import(fname):
                 q = InsertQuery(IMPORT_TABLE, {"permalink":cell})
                 execute_query(q, commit=True)
                 count += 1
-    print (count)
+    print(count)
     return count
 
 
@@ -54,6 +54,7 @@ def import_from_table():
         dataQuery = SelectQuery(IMPORT_TABLE, limit=IMPORT_CHUNK_SIZE)
         data = execute_query(dataQuery, transpose=False)
         for row in data:
+            print(row)
             if not row["permalink"]:
                 continue
             for entry in fetch_post(row["permalink"]):
