@@ -3,7 +3,8 @@ from ranalyze.scrape import get_subreddits
 
 print("starting scrape...")
 
-subs = [s['name'] for s in get_subreddits()]
+# order subs by last_scrape (oldest first)
+subs = [s['name'] for s in sorted(get_subreddits(), key=lambda s: s["last_scraped"] or 0)]
 
 print("scraping", subs)
 
