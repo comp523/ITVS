@@ -3,7 +3,7 @@ from ranalyze.scrape import get_subreddits
 
 print("starting scrape...")
 
-subs = list(get_subreddits())
+subs = [s['name'] for s in get_subreddits()]
 
 print("scraping", subs)
 
