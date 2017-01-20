@@ -95,7 +95,7 @@ def fetch_post(permalink):
     # api wrapper connection
     try:
         reddit = praw.Reddit(user_agent="Documenting ecig subs")
-        print(permalink)
+        print('perm', permalink)
         post = reddit.get_submission(url=permalink)
         post.replace_more_comments(limit=None, threshold=0)
         yield(PostFactory.from_praw(post))
