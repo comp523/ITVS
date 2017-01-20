@@ -54,14 +54,12 @@ def import_from_table():
         dataQuery = SelectQuery(IMPORT_TABLE, limit=IMPORT_CHUNK_SIZE)
         data = execute_query(dataQuery, transpose=False)
         for row in data:
-            print(row)
-            if not row["permalink"]:
-                continue
-            for entry in fetch_post(row["permalink"]):
-                try:
-                    add_update_object(entry, ENTRY_TABLE)
-                except:
-                    print("error on entry: ".format(entry))
+            if row["permalink"]:
+                for entry in fetch_post(row["permalink"]):
+                    try:
+                        add_update_object(entry, ENTRY_TABLE)
+                    except:
+                        print("error on entry: ".format(entry))
             deleteQuery = DeleteQuery(IMPORT_TABLE, where=Condition("permalink", row["permalink"]))
             execute_query(deleteQuery, commit=True)
         count -= IMPORT_CHUNK_SIZE
