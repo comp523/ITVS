@@ -54,6 +54,8 @@ def import_from_table():
         dataQuery = SelectQuery(IMPORT_TABLE, limit=IMPORT_CHUNK_SIZE)
         data = execute_query(dataQuery, transpose=False)
         for row in data:
+            if not row["permalink"]:
+                continue
             for entry in fetch_post(row["permalink"]):
                 try:
                     add_update_object(entry, ENTRY_TABLE)
