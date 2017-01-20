@@ -74,7 +74,7 @@ def fetch_data(subreddit_set):
 
         finally:
 
-            timestamp = date_to_timestamp(datetime.datetime.now())
+            timestamp = date_to_timestamp(datetime.datetime.utcnow())
 
             query = UpdateQuery(table=SUBREDDIT_TABLE,
                                 values={
