@@ -7,7 +7,7 @@ to run:
     python api.py
 """
 import flask
-from os import environ, mkdir, path, walk
+from os import environ, mkdir, path, remove, walk
 import re
 import scss
 
@@ -165,7 +165,7 @@ def entry_import():
     f.save(temp)
     temp.close()
     count = schedule_for_import(temp.name)
-    os.remove(temp.name)
+    remove(temp.name)
     return flask.jsonify({
         'success': True,
         'status': '{} permalinks scheduled for import'.format(count)
